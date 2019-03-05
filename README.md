@@ -1,4 +1,5 @@
 # FileFormats.Pdf
+[![Build Status](https://synercoding.visualstudio.com/Synercoding.FileFormats.Pdf/_apis/build/status/synercoder.FileFormats.Pdf?branchName=master)](https://synercoding.visualstudio.com/Synercoding.FileFormats.Pdf/_build/latest?definitionId=7&branchName=master)
 
 This project was created to enable PDF creation on .NETStandard. This because multiple libraries did not suit my purpose of working on .NET Core & .NET Framework the same way. Some alternatives supported settings the different boxes (Media, Crop, Bleed & Trim) but did not fully supported images on all platforms. Others supported images but not the different boxes, and again others did not work at all on .NET Core.
 
