@@ -1,17 +1,34 @@
-# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
 trigger:
 - master
 
-pool:
-  vmImage: 'Ubuntu-16.04'
+jobs:
 
-variables:
-  buildConfiguration: 'Release'
+- job: Linux
+  pool:
+    vmImage: 'Hosted Ubuntu 1604'
+  steps:
+  - bash: ./build.sh
+    env:
+      COREHOST_TRACE: 0
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
-steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+- job: macOS
+  pool:
+    vmImage: 'Hosted macOS'
+  steps:
+  - bash: ./build.sh
+    env:
+      COREHOST_TRACE: 0
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+- job: Windows
+  pool:
+    vmImage: 'Hosted VS2017'
+  steps:
+  - powershell: .\build.ps1
+    env:
+      COREHOST_TRACE: 0
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
