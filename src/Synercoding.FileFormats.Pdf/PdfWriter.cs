@@ -7,6 +7,9 @@ using System.IO;
 
 namespace Synercoding.FileFormats.Pdf
 {
+    /// <summary>
+    /// Main class for writing PDF files to streams
+    /// </summary>
     public class PdfWriter : IDisposable
     {
         private readonly Stream _stream;
@@ -17,6 +20,10 @@ namespace Synercoding.FileFormats.Pdf
 
         private readonly ICollection<IPdfObject> _pageReferences = new List<IPdfObject>();
 
+        /// <summary>
+        /// Constructor for <see cref="PdfWriter"/>
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write the PDF file</param>
         public PdfWriter(Stream stream)
         {
             _stream = stream;
@@ -26,6 +33,11 @@ namespace Synercoding.FileFormats.Pdf
             _catalog = _tableBuilder.ReserveId();
         }
 
+        /// <summary>
+        /// Add a page to the pdf file
+        /// </summary>
+        /// <param name="pageAction">Action used to setup the page</param>
+        /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
         public PdfWriter AddPage(Action<PdfPage> pageAction)
         {
             var page = new PdfPage(_tableBuilder);
@@ -41,6 +53,9 @@ namespace Synercoding.FileFormats.Pdf
             return this;
         }
 
+        /// <summary>
+        /// Close the PDF document by writing the pagetree, catalog, xref table and trailer to the <see cref="Stream"/>
+        /// </summary>
         public void Dispose()
         {
             _writePageTree();
