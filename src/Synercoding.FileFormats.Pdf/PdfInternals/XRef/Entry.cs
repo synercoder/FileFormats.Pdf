@@ -1,0 +1,61 @@
+using Synercoding.FileFormats.Pdf.Helpers;
+using System;
+
+namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
+{
+    internal struct Entry : ISpanWriteable
+    {
+        public Entry(uint data)
+            : this(data, 0, false)
+        { }
+
+        public Entry(uint data, ushort generation, bool isFree)
+        {
+            Data = data;
+            GenerationNumber = generation;
+            IsFree = isFree;
+        }
+
+        public uint Data { get; }
+        public ushort GenerationNumber { get; }
+
+        public bool IsFree { get; }
+
+        public void FillSpan(Span<byte> bytes)
+        {
+            _fillSpanLeadingZero(bytes.Slice(0, 10), Data);
+            bytes[10] = 0x20;
+
+            _fillSpanLeadingZero(bytes.Slice(11, 5), GenerationNumber);
+            bytes[16] = 0x20;
+
+            bytes[17] = IsFree ? (byte)0x66 : (byte)0x6E;
+            SpanHelper.WriteNewLine(bytes.Slice(18));
+        }
+
+        public int ByteSize()
+        {
+            return 20;
+        }
+
+        private void _fillSpanLeadingZero(Span<byte> span, uint data)
+        {
+            uint val = data;
+            for (int i = span.Length - 1; i >= 0; i--)
+            {
+                span[i] = (byte)( '0' + ( val % 10 ) );
+                val = val / 10;
+            }
+        }
+
+        private void _fillSpanLeadingZero(Span<byte> span, ushort data)
+        {
+            int val = data;
+            for (int i = span.Length - 1; i >= 0; i--)
+            {
+                span[i] = (byte)( '0' + ( val % 10 ) );
+                val = val / 10;
+            }
+        }
+    }
+}

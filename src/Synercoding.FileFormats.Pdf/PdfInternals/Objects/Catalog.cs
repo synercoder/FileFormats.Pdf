@@ -1,0 +1,43 @@
+using Synercoding.FileFormats.Pdf.Extensions;
+using System;
+using System.IO;
+
+namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
+{
+    internal class Catalog : IPdfObject
+    {
+        private readonly PdfReference _pageTree;
+        public Catalog(PdfReference id, PdfReference pageTree)
+        {
+            Reference = id;
+            _pageTree = pageTree;
+        }
+
+        public PdfReference Reference { get; private set; }
+
+        public bool IsWritten { get; private set; }
+
+        public uint WriteToStream(Stream stream)
+        {
+            if (IsWritten)
+            {
+                throw new InvalidOperationException("Object is already written to stream.");
+            }
+            var position = (uint)stream.Position;
+
+            stream.IndirectDictionary(Reference, dictionary =>
+            {
+                dictionary
+                    .Type(ObjectType.Catalog)
+                    .Write("/Pages", _pageTree);
+            });
+            IsWritten = true;
+
+            return position;
+        }
+
+        public void Dispose()
+        { }
+    }
+
+}

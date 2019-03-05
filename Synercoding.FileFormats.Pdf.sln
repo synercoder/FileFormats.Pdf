@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{76970674-A4D1-4439-8EA6-8832E4A24FF1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BE969D07-4BE6-4293-BBC6-C496F7D4A81C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4FA81463-B64F-40F2-A3F1-226179796E09}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synercoding.FileFormats.Pdf.ConsoleTester", "samples\Synercoding.FileFormats.Pdf.ConsoleTester\Synercoding.FileFormats.Pdf.ConsoleTester.csproj", "{E11AEF6A-6977-4D76-83E2-D5BDB84F3872}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synercoding.FileFormats.Pdf", "src\Synercoding.FileFormats.Pdf\Synercoding.FileFormats.Pdf.csproj", "{90A3DC19-7312-4649-8B1E-9455D664C074}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6FD0B899-9FAE-4974-B9D3-B0A4F7FBBE6A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E11AEF6A-6977-4D76-83E2-D5BDB84F3872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E11AEF6A-6977-4D76-83E2-D5BDB84F3872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E11AEF6A-6977-4D76-83E2-D5BDB84F3872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E11AEF6A-6977-4D76-83E2-D5BDB84F3872}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90A3DC19-7312-4649-8B1E-9455D664C074}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90A3DC19-7312-4649-8B1E-9455D664C074}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90A3DC19-7312-4649-8B1E-9455D664C074}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90A3DC19-7312-4649-8B1E-9455D664C074}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E11AEF6A-6977-4D76-83E2-D5BDB84F3872} = {76970674-A4D1-4439-8EA6-8832E4A24FF1}
+		{90A3DC19-7312-4649-8B1E-9455D664C074} = {BE969D07-4BE6-4293-BBC6-C496F7D4A81C}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8DB7E905-EFFC-44B7-A5B5-3CC08E3F5AD9}
+	EndGlobalSection
+EndGlobal
