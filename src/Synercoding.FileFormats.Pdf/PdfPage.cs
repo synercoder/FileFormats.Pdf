@@ -10,6 +10,9 @@ using ImageSharp = SixLabors.ImageSharp;
 
 namespace Synercoding.FileFormats.Pdf
 {
+    /// <summary>
+    /// A class that represents a pdf page 
+    /// </summary>
     public class PdfPage
     {
         private int _pageCounter = 0;
@@ -30,51 +33,99 @@ namespace Synercoding.FileFormats.Pdf
 
         internal ContentStream ContentStream { get; }
 
+        /// <summary>
+        /// The media box of the <see cref="PdfPage"/>
+        /// </summary>
         public Rectangle MediaBox { get; set; } = Sizes.A4Portrait;
 
+        /// <summary>
+        /// The cropbox of the <see cref="PdfPage"/>, defaults to <see cref="MediaBox"/>
+        /// </summary>
         public Rectangle CropBox
         {
             get => _cropBox.Equals(Rectangle.Zero) ? MediaBox : _cropBox;
             set => _cropBox = value;
         }
 
+        /// <summary>
+        /// The bleedbox of the <see cref="PdfPage"/>, defaults to <see cref="CropBox"/>
+        /// </summary>
         public Rectangle BleedBox
         {
             get => _bleedBox.Equals(Rectangle.Zero) ? CropBox : _bleedBox;
             set => _bleedBox = value;
         }
 
+        /// <summary>
+        /// The trimbox of the <see cref="PdfPage"/>, defaults to <see cref="CropBox"/>
+        /// </summary>
         public Rectangle TrimBox
         {
             get => _trimBox.Equals(Rectangle.Zero) ? CropBox : _trimBox;
             set => _trimBox = value;
         }
 
+        /// <summary>
+        /// Add image to the <see cref="PdfPage"/>
+        /// </summary>
+        /// <param name="image">The image to be added</param>
+        /// <param name="rectangle">The <see cref="Rectangle"/> that represents the placement on the page</param>
+        /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
         public PdfPage AddImage(ImageSharp.Image<Rgba32> image, Rectangle rectangle)
         {
             return _addImage(image, rectangle, true);
         }
 
+        /// <summary>
+        /// Add image to the <see cref="PdfPage"/>
+        /// </summary>
+        /// <param name="image">The image to be added</param>
+        /// <param name="rectangle">The <see cref="Rectangle"/> that represents the placement on the page</param>
+        /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
         public PdfPage AddImage(byte[] image, Rectangle rectangle)
         {
             return _addImage(ImageSharp.Image.Load(image), rectangle, false);
         }
 
+        /// <summary>
+        /// Add image to the <see cref="PdfPage"/>
+        /// </summary>
+        /// <param name="image">The image to be added</param>
+        /// <param name="rectangle">The <see cref="Rectangle"/> that represents the placement on the page</param>
+        /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
         public PdfPage AddImage(Stream image, Rectangle rectangle)
         {
             return _addImage(ImageSharp.Image.Load(image), rectangle, false);
         }
 
+        /// <summary>
+        /// Add image to the <see cref="PdfPage"/>
+        /// </summary>
+        /// <param name="image">The image to be added</param>
+        /// <param name="matrix">The <see cref="Matrix"/> that represents the placement on the page</param>
+        /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
         public PdfPage AddImage(ImageSharp.Image<Rgba32> image, Matrix matrix)
         {
             return _addImage(image, matrix, true);
         }
 
+        /// <summary>
+        /// Add image to the <see cref="PdfPage"/>
+        /// </summary>
+        /// <param name="image">The image to be added</param>
+        /// <param name="matrix">The <see cref="Matrix"/> that represents the placement on the page</param>
+        /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
         public PdfPage AddImage(byte[] image, Matrix matrix)
         {
             return _addImage(ImageSharp.Image.Load(image), matrix, false);
         }
 
+        /// <summary>
+        /// Add image to the <see cref="PdfPage"/>
+        /// </summary>
+        /// <param name="image">The image to be added</param>
+        /// <param name="matrix">The <see cref="Matrix"/> that represents the placement on the page</param>
+        /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
         public PdfPage AddImage(Stream image, Matrix matrix)
         {
             return _addImage(ImageSharp.Image.Load(image), matrix, false);
