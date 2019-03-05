@@ -5,7 +5,7 @@ jobs:
 
 - job: Linux
   pool:
-    vmImage: 'Hosted Ubuntu 1604'
+    vmImage: 'ubuntu-16.04'
   steps:
   - bash: ./build.sh
     env:
@@ -15,7 +15,7 @@ jobs:
 
 - job: macOS
   pool:
-    vmImage: 'Hosted macOS'
+    vmImage: 'macOS-10.13'
   steps:
   - bash: ./build.sh
     env:
@@ -25,7 +25,7 @@ jobs:
 
 - job: Windows
   pool:
-    vmImage: 'Hosted VS2017'
+    vmImage: 'vs2017-win2016'
   steps:
   - powershell: .\build.ps1
     env:
