@@ -1,4 +1,3 @@
-using ImageSharp = SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Synercoding.FileFormats.Pdf.Helpers;
 using Synercoding.FileFormats.Pdf.PdfInternals.Objects;
@@ -6,8 +5,8 @@ using Synercoding.FileFormats.Pdf.PdfInternals.XRef;
 using Synercoding.FileFormats.Pdf.Primitives;
 using Synercoding.FileFormats.Pdf.Primitives.Matrices;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
+using ImageSharp = SixLabors.ImageSharp;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -17,33 +16,34 @@ namespace Synercoding.FileFormats.Pdf
         private readonly Dictionary<string, Image> _images = new Dictionary<string, Image>();
         private readonly TableBuilder _tableBuilder;
 
+        private Rectangle _trimBox = Rectangle.Zero;
+        private Rectangle _bleedBox = Rectangle.Zero;
+        private Rectangle _cropBox = Rectangle.Zero;
+
         internal PdfPage(TableBuilder tableBuilder)
         {
             _tableBuilder = tableBuilder;
             ContentStream = new ContentStream(tableBuilder.ReserveId());
         }
 
-        internal IReadOnlyDictionary<string, Image> Images { get { return new ReadOnlyDictionary<string, Image>(_images); } }
+        internal IReadOnlyDictionary<string, Image> Images => _images;
 
         internal ContentStream ContentStream { get; }
 
         public Rectangle MediaBox { get; set; } = Sizes.A4Portrait;
 
-        private Rectangle _cropBox = Rectangle.Zero;
         public Rectangle CropBox
         {
             get => _cropBox.Equals(Rectangle.Zero) ? MediaBox : _cropBox;
             set => _cropBox = value;
         }
 
-        private Rectangle _bleedBox = Rectangle.Zero;
         public Rectangle BleedBox
         {
             get => _bleedBox.Equals(Rectangle.Zero) ? CropBox : _bleedBox;
             set => _bleedBox = value;
         }
 
-        private Rectangle _trimBox = Rectangle.Zero;
         public Rectangle TrimBox
         {
             get => _trimBox.Equals(Rectangle.Zero) ? CropBox : _trimBox;
@@ -100,7 +100,7 @@ namespace Synercoding.FileFormats.Pdf
             var key = "Im" + System.Threading.Interlocked.Increment(ref _pageCounter).ToString().PadLeft(6, '0');
             var id = _tableBuilder.ReserveId();
 
-            if(clone)
+            if (clone)
             {
                 image = image.Clone();
             }
