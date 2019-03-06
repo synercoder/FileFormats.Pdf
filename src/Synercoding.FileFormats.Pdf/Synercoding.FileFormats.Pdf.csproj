@@ -4,10 +4,14 @@
     <TargetFramework>netstandard1.6</TargetFramework>
     <LangVersion>7.3</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0-alpha001</Version>
+    <Version>1.0.0-alpha002</Version>
     <Authors>Synercoding</Authors>
     <Description>Contains classes which makes it easy to quickly create a pdf file</Description>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <PackageReleaseNotes>Added the ability to indicate that the PdfWriter does not own the stream.</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/synercoder/FileFormats.Pdf</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/synercoder/FileFormats.Pdf/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/synercoder/FileFormats.Pdf</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
