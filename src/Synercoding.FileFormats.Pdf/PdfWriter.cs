@@ -12,6 +12,7 @@ namespace Synercoding.FileFormats.Pdf
     /// </summary>
     public class PdfWriter : IDisposable
     {
+        private readonly bool _ownsStream;
         private readonly Stream _stream;
         private readonly TableBuilder _tableBuilder = new TableBuilder();
 
@@ -25,12 +26,23 @@ namespace Synercoding.FileFormats.Pdf
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to write the PDF file</param>
         public PdfWriter(Stream stream)
+            : this(stream, true)
+        { }
+
+        /// <summary>
+        /// Constructor for <see cref="PdfWriter"/>
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to write the PDF file</param>
+        /// <param name="ownsStream">If the stream is owned, then when this <see cref="PdfWriter"/> is disposed, the stream is also disposed.</param>
+        public PdfWriter(Stream stream, bool ownsStream)
         {
             _stream = stream;
             (new Header()).WriteToStream(stream);
 
             _pageTreeNode = _tableBuilder.ReserveId();
             _catalog = _tableBuilder.ReserveId();
+
+            _ownsStream = ownsStream;
         }
 
         /// <summary>
@@ -66,12 +78,15 @@ namespace Synercoding.FileFormats.Pdf
 
             _stream.Flush();
 
-            _stream.Dispose();
+            if (_ownsStream)
+            {
+                _stream.Dispose();
+            }
         }
 
         private void _writePageTree()
         {
-            _tableBuilder.SetPosition(_pageTreeNode,  (uint)_stream.Position);
+            _tableBuilder.SetPosition(_pageTreeNode, (uint)_stream.Position);
 
             var tree = new PageTree(_pageTreeNode, _pageReferences);
             tree.WriteToStream(_stream);
@@ -87,13 +102,13 @@ namespace Synercoding.FileFormats.Pdf
 
         private void _writePdfEnding()
         {
-            if(!_tableBuilder.Validate())
+            if (!_tableBuilder.Validate())
             {
                 throw new InvalidOperationException("XRef table is invalid.");
             }
 
             var xRefTable = _tableBuilder.GetXRefTable();
-            var xRefPosition = xRefTable.WriteToStream(_stream);
+            uint xRefPosition = xRefTable.WriteToStream(_stream);
 
             var trailer = new Trailer(xRefPosition, xRefTable.Section.ObjectCount, _catalog.ObjectId);
             trailer.WriteToStream(_stream);
