@@ -1,5 +1,11 @@
-trigger:
-- master
+trigger: none
+
+pr:
+  paths:
+    exclude:
+      -*.md
+      -LICENSE
+      -.editorconfig
 
 jobs:
 
