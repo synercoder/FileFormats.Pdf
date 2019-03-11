@@ -6,14 +6,15 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
 {
     internal class Catalog : IPdfObject
     {
-        private readonly PdfReference _pageTree;
         public Catalog(PdfReference id, PdfReference pageTree)
         {
             Reference = id;
-            _pageTree = pageTree;
+            PageTree = pageTree;
         }
 
-        public PdfReference Reference { get; private set; }
+        public PdfReference Reference { get; }
+
+        public PdfReference PageTree { get; }
 
         public bool IsWritten { get; private set; }
 
@@ -29,7 +30,7 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
             {
                 dictionary
                     .Type(ObjectType.Catalog)
-                    .Write("/Pages", _pageTree);
+                    .Write("/Pages", PageTree);
             });
             IsWritten = true;
 
@@ -39,5 +40,4 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
         public void Dispose()
         { }
     }
-
 }
