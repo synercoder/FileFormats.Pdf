@@ -26,6 +26,12 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                 );
 
                 writer
+                    // Set document info
+                    .SetDocumentInfo(info =>
+                    {
+                        info.Author = "Gerard Gunnewijk";
+                        info.Title = "Example 1";
+                    })
                     // Test placement using rectangle
                     .AddPage(page =>
                     {

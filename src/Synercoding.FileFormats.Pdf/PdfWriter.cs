@@ -16,10 +16,11 @@ namespace Synercoding.FileFormats.Pdf
         private readonly Stream _stream;
         private readonly TableBuilder _tableBuilder = new TableBuilder();
 
+        private readonly PdfReference _documentInfo;
         private readonly PdfReference _pageTreeNode;
         private readonly PdfReference _catalog;
 
-        private readonly ICollection<IPdfObject> _pageReferences = new List<IPdfObject>();
+        private readonly IList<IPdfObject> _pageReferences = new List<IPdfObject>();
 
         /// <summary>
         /// Constructor for <see cref="PdfWriter"/>
@@ -41,9 +42,19 @@ namespace Synercoding.FileFormats.Pdf
 
             _pageTreeNode = _tableBuilder.ReserveId();
             _catalog = _tableBuilder.ReserveId();
+            _documentInfo = _tableBuilder.ReserveId();
 
             _ownsStream = ownsStream;
         }
+
+        /// <summary>
+        /// Document information, such as the author and title
+        /// </summary>
+        public DocumentInformation DocumentInformation { get; } = new DocumentInformation()
+        {
+            Creator = "Synercoding.FileFormats.Pdf",
+            CreationDate = DateTime.Now
+        };
 
         /// <summary>
         /// Add a page to the pdf file
@@ -66,6 +77,18 @@ namespace Synercoding.FileFormats.Pdf
         }
 
         /// <summary>
+        /// Set meta information for this document
+        /// </summary>
+        /// <param name="infoAction">Action used to set meta data</param>
+        /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
+        public PdfWriter SetDocumentInfo(Action<DocumentInformation> infoAction)
+        {
+            infoAction(DocumentInformation);
+
+            return this;
+        }
+
+        /// <summary>
         /// Close the PDF document by writing the pagetree, catalog, xref table and trailer to the <see cref="Stream"/>
         /// </summary>
         public void Dispose()
@@ -73,6 +96,8 @@ namespace Synercoding.FileFormats.Pdf
             _writePageTree();
 
             _writeCatalog();
+
+            _writeDocumentInformation();
 
             _writePdfEnding();
 
@@ -82,6 +107,14 @@ namespace Synercoding.FileFormats.Pdf
             {
                 _stream.Dispose();
             }
+        }
+
+        private void _writeDocumentInformation()
+        {
+            _tableBuilder.SetPosition(_documentInfo, (uint)_stream.Position);
+
+            var info = new DocumentInformationDictionary(_documentInfo, DocumentInformation);
+            info.WriteToStream(_stream);
         }
 
         private void _writePageTree()
@@ -110,7 +143,7 @@ namespace Synercoding.FileFormats.Pdf
             var xRefTable = _tableBuilder.GetXRefTable();
             uint xRefPosition = xRefTable.WriteToStream(_stream);
 
-            var trailer = new Trailer(xRefPosition, xRefTable.Section.ObjectCount, _catalog.ObjectId);
+            var trailer = new Trailer(xRefPosition, xRefTable.Section.ObjectCount, _catalog, _documentInfo);
             trailer.WriteToStream(_stream);
         }
     }

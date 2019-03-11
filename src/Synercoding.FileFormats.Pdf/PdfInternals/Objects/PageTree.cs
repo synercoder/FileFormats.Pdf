@@ -8,9 +8,9 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
 {
     internal class PageTree : IPdfObject
     {
-        private readonly IEnumerable<IPdfObject> _pages;
+        private readonly IList<IPdfObject> _pages;
 
-        public PageTree(PdfReference id, IEnumerable<IPdfObject> pages)
+        public PageTree(PdfReference id, IList<IPdfObject> pages)
         {
             Reference = id;
             _pages = pages;
