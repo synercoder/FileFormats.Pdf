@@ -3,7 +3,7 @@ using System;
 
 namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
 {
-    internal interface IPdfObject : IStreamWriteable, IDisposable
+    public interface IPdfObject : IStreamWriteable, IDisposable
     {
         PdfReference Reference { get; }
         bool IsWritten { get; }

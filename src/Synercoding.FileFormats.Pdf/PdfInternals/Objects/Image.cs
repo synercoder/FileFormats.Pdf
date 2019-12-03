@@ -1,17 +1,16 @@
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using Synercoding.FileFormats.Pdf.Extensions;
 using System;
 using System.IO;
 
 namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
 {
-    internal class Image : IPdfObject, IDisposable
+    public class Image : IPdfObject, IDisposable
     {
-        private readonly Image<Rgba32> _image;
+        private readonly SixLabors.ImageSharp.Image _image;
         private bool _disposed;
 
-        public Image(PdfReference id, Image<Rgba32> image)
+        internal Image(PdfReference id, SixLabors.ImageSharp.Image image)
         {
             Reference = id;
             _image = image;

@@ -1,6 +1,6 @@
 namespace Synercoding.FileFormats.Pdf.PdfInternals
 {
-    internal struct PdfReference
+    public struct PdfReference
     {
         public PdfReference(int objectId)
             : this(objectId, 0)

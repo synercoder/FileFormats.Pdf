@@ -2,7 +2,7 @@ using System.IO;
 
 namespace Synercoding.FileFormats.Pdf.Helpers
 {
-    internal interface IStreamWriteable
+    public interface IStreamWriteable
     {
         /// <summary>
         /// Write the object to the provided stream
