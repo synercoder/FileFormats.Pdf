@@ -76,6 +76,17 @@ namespace Synercoding.FileFormats.Pdf
             return this;
         }
 
+        public Image AddImage(SixLabors.ImageSharp.Image image)
+        {
+            var id = _tableBuilder.ReserveId();
+
+            var pdfImage = new Image(id, image);
+
+            pdfImage.WriteToStream(_stream);
+
+            return pdfImage;
+        }
+
         /// <summary>
         /// Set meta information for this document
         /// </summary>

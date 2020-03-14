@@ -1,4 +1,5 @@
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using Synercoding.FileFormats.Pdf.Helpers;
 using Synercoding.FileFormats.Pdf.PdfInternals.Objects;
 using Synercoding.FileFormats.Pdf.PdfInternals.XRef;
@@ -71,7 +72,7 @@ namespace Synercoding.FileFormats.Pdf
         /// <param name="image">The image to be added</param>
         /// <param name="rectangle">The <see cref="Rectangle"/> that represents the placement on the page</param>
         /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
-        public PdfPage AddImage(ImageSharp.Image<Rgba32> image, Rectangle rectangle)
+        public PdfPage AddImage(ImageSharp.Image image, Rectangle rectangle)
         {
             return _addImage(image, rectangle, true);
         }
@@ -104,7 +105,7 @@ namespace Synercoding.FileFormats.Pdf
         /// <param name="image">The image to be added</param>
         /// <param name="matrix">The <see cref="Matrix"/> that represents the placement on the page</param>
         /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
-        public PdfPage AddImage(ImageSharp.Image<Rgba32> image, Matrix matrix)
+        public PdfPage AddImage(ImageSharp.Image image, Matrix matrix)
         {
             return _addImage(image, matrix, true);
         }
@@ -131,14 +132,40 @@ namespace Synercoding.FileFormats.Pdf
             return _addImage(ImageSharp.Image.Load(image), matrix, false);
         }
 
-        private PdfPage _addImage(ImageSharp.Image<Rgba32> image, Rectangle rectangle, bool clone)
+        /// <summary>
+        /// Add image to the <see cref="PdfPage"/>
+        /// </summary>
+        /// <param name="image">The image to be added</param>
+        /// <param name="rectangle">The <see cref="Rectangle"/> that represents the placement on the page</param>
+        /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
+        public PdfPage AddImage(Image image, Rectangle rectangle)
+        {
+            var matrix = new Matrix(rectangle.URX - rectangle.LLX, 0, 0, rectangle.URY - rectangle.LLY, rectangle.LLX, rectangle.LLY);
+            return AddImage(image, matrix);
+        }
+
+        /// <summary>
+        /// Add image to the <see cref="PdfPage"/>
+        /// </summary>
+        /// <param name="image">The image to be added</param>
+        /// <param name="matrix">The <see cref="Matrix"/> that represents the placement on the page</param>
+        /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
+        public PdfPage AddImage(Image image, Matrix matrix)
+        {
+            var key = _addImageToResources(image);
+            ContentStream.AddImage(key, matrix);
+
+            return this;
+        }
+
+        private PdfPage _addImage(ImageSharp.Image image, Rectangle rectangle, bool clone)
         {
             var matrix = new Matrix(rectangle.URX - rectangle.LLX, 0, 0, rectangle.URY - rectangle.LLY, rectangle.LLX, rectangle.LLY);
 
             return _addImage(image, matrix, clone);
         }
 
-        private PdfPage _addImage(ImageSharp.Image<Rgba32> image, Matrix matrix, bool clone)
+        private PdfPage _addImage(ImageSharp.Image image, Matrix matrix, bool clone)
         {
             var key = _addImageToResources(image, clone);
             ContentStream.AddImage(key, matrix);
@@ -146,17 +173,23 @@ namespace Synercoding.FileFormats.Pdf
             return this;
         }
 
-        private string _addImageToResources(ImageSharp.Image<Rgba32> image, bool clone)
+        private string _addImageToResources(ImageSharp.Image image, bool clone)
         {
-            var key = "Im" + System.Threading.Interlocked.Increment(ref _pageCounter).ToString().PadLeft(6, '0');
-            var id = _tableBuilder.ReserveId();
-
             if (clone)
             {
-                image = image.Clone();
+                image = image.Clone(ctx => { });
             }
 
-            _images.Add(key, new Image(id, image));
+            var id = _tableBuilder.ReserveId();
+
+            return _addImageToResources(new Image(id, image));
+        }
+
+        private string _addImageToResources(Image image)
+        {
+            var key = "Im" + System.Threading.Interlocked.Increment(ref _pageCounter).ToString().PadLeft(6, '0');
+
+            _images.Add(key, image);
 
             return key;
         }
