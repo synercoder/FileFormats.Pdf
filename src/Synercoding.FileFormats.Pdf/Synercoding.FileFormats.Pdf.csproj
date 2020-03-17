@@ -10,7 +10,7 @@
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
     <PackageReleaseNotes>Added the ability to indicate that the PdfWriter does not own the stream.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/synercoder/FileFormats.Pdf</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/synercoder/FileFormats.Pdf/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/synercoder/FileFormats.Pdf</RepositoryUrl>
   </PropertyGroup>
 
