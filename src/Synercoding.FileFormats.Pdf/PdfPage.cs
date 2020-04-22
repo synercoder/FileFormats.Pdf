@@ -1,4 +1,3 @@
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Synercoding.FileFormats.Pdf.Helpers;
 using Synercoding.FileFormats.Pdf.PdfInternals.Objects;
@@ -140,7 +139,10 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
         public PdfPage AddImage(Image image, Rectangle rectangle)
         {
-            var matrix = new Matrix(rectangle.URX - rectangle.LLX, 0, 0, rectangle.URY - rectangle.LLY, rectangle.LLX, rectangle.LLY);
+            var matrix = new Matrix(
+                rectangle.URX - rectangle.LLX, 0,
+                0, rectangle.URY - rectangle.LLY,
+                rectangle.LLX, rectangle.LLY);
             return AddImage(image, matrix);
         }
 
@@ -160,7 +162,10 @@ namespace Synercoding.FileFormats.Pdf
 
         private PdfPage _addImage(ImageSharp.Image image, Rectangle rectangle, bool clone)
         {
-            var matrix = new Matrix(rectangle.URX - rectangle.LLX, 0, 0, rectangle.URY - rectangle.LLY, rectangle.LLX, rectangle.LLY);
+            var matrix = new Matrix(
+                rectangle.URX - rectangle.LLX, 0,
+                0, rectangle.URY - rectangle.LLY,
+                rectangle.LLX, rectangle.LLY);
 
             return _addImage(image, matrix, clone);
         }

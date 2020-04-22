@@ -68,7 +68,7 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                         {
                             var scale = (double)forestImage.Width / forestImage.Height;
 
-                            var matrix = new ScaleMatrix(_mmToPts(scale * 303), _mmToPts(303))
+                            var matrix = Matrix.CreateScaleMatrix(_mmToPts(scale * 303), _mmToPts(303))
                                 .Translate(_mmToPts(-100), 0);
 
                             page.AddImage(forestImage, matrix);
