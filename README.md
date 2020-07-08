@@ -34,8 +34,6 @@ The sample project called *Synercoding.FileFormats.Pdf.ConsoleTester* uses multi
 <pre><code>using (var fs = File.OpenWrite(fileName))
 using (var writer = new PdfWriter(fs))
 {
-    double _mmToPts(double mm) => mm / 25.4d * 72;
-
     writer
         .AddPage(page =&gt;
         {
