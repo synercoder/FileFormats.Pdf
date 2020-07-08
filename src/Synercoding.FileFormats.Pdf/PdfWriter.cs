@@ -4,6 +4,7 @@ using Synercoding.FileFormats.Pdf.PdfInternals.XRef;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -38,7 +39,7 @@ namespace Synercoding.FileFormats.Pdf
         public PdfWriter(Stream stream, bool ownsStream)
         {
             _stream = stream;
-            (new Header()).WriteToStream(stream);
+            new Header().WriteToStream(stream);
 
             _pageTreeNode = _tableBuilder.ReserveId();
             _catalog = _tableBuilder.ReserveId();
@@ -52,7 +53,7 @@ namespace Synercoding.FileFormats.Pdf
         /// </summary>
         public DocumentInformation DocumentInformation { get; } = new DocumentInformation()
         {
-            Producer = $"Synercoding.FileFormats.Pdf {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}",
+            Producer = $"Synercoding.FileFormats.Pdf {typeof(PdfWriter).GetTypeInfo().Assembly.GetName().Version}",
             CreationDate = DateTime.Now
         };
 
