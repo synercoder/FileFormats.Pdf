@@ -10,32 +10,32 @@ namespace Synercoding.FileFormats.Pdf
         /// <summary>
         /// The document's title
         /// </summary>
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         /// <summary>
         /// The name of the person who created the document
         /// </summary>
-        public string Author { get; set; }
+        public string? Author { get; set; }
 
         /// <summary>
         /// The subject of the document
         /// </summary>
-        public string Subject { get; set; }
+        public string? Subject { get; set; }
 
         /// <summary>
         /// Keywords associated with the document
         /// </summary>
-        public string Keywords { get; set; }
+        public string? Keywords { get; set; }
 
         /// <summary>
         /// If the document was converted to PDF from another format, the name of the conforming product that created the original document from which it was converted. Otherwise the name of the application that created the document.
         /// </summary>
-        public string Creator { get; set; }
+        public string? Creator { get; set; }
 
         /// <summary>
         /// If the document was converted to PDF from another format, the name of the conforming product that converted it to PDF.
         /// </summary>
-        public string Producer { get; set; }
+        public string? Producer { get; set; }
 
         /// <summary>
         /// The date and time the document was created, in human-readable form.

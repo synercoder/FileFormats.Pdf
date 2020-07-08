@@ -1,7 +1,7 @@
 using Synercoding.FileFormats.Pdf.Helpers;
 using Synercoding.FileFormats.Pdf.PdfInternals;
 using Synercoding.FileFormats.Pdf.Primitives;
-using Synercoding.FileFormats.Pdf.Primitives.Matrices;
+using Synercoding.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -94,16 +94,17 @@ namespace Synercoding.FileFormats.Pdf.Extensions
 
         public static Stream Write(this Stream stream, Rectangle rectangle)
         {
+            rectangle = rectangle.ConvertTo(Unit.Points);
             return stream
                 .WriteSingleByte(0x5B) // [
                 .Space()
-                .Write(rectangle.LLX)
+                .Write(rectangle.LLX.Raw)
                 .Space()
-                .Write(rectangle.LLY)
+                .Write(rectangle.LLY.Raw)
                 .Space()
-                .Write(rectangle.URX)
+                .Write(rectangle.URX.Raw)
                 .Space()
-                .Write(rectangle.URY)
+                .Write(rectangle.URY.Raw)
                 .Space()
                 .WriteSingleByte(0x5D); // ]
         }

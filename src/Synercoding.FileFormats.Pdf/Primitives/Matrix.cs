@@ -1,6 +1,7 @@
+using Synercoding.Primitives;
 using System;
 
-namespace Synercoding.FileFormats.Pdf.Primitives.Matrices
+namespace Synercoding.FileFormats.Pdf.Primitives
 {
     /// <summary>
     /// Struct that represents a <see cref="Matrix"/>
@@ -96,6 +97,15 @@ namespace Synercoding.FileFormats.Pdf.Primitives.Matrices
             => Multiply(CreateScaleMatrix(x, y));
 
         /// <summary>
+        /// Apply a scale operation on the matrix
+        /// </summary>
+        /// <param name="x">The X amount to scale</param>
+        /// <param name="y">The Y amount to scale</param>
+        /// <returns>The new <see cref="Matrix"/></returns>
+        public Matrix Scale(Value x, Value y)
+            => Multiply(CreateScaleMatrix(x, y));
+
+        /// <summary>
         /// Apply a skew operation on the matrix
         /// </summary>
         /// <param name="a">The amount of degrees to skew (top left direction)</param>
@@ -111,6 +121,15 @@ namespace Synercoding.FileFormats.Pdf.Primitives.Matrices
         /// <param name="y">The Y distance to translate</param>
         /// <returns>The new <see cref="Matrix"/></returns>
         public Matrix Translate(double x, double y)
+            => Multiply(CreateTranslationMatrix(x, y));
+
+        /// <summary>
+        /// Apply a translation operation on the matrix
+        /// </summary>
+        /// <param name="x">The X distance to translate</param>
+        /// <param name="y">The Y distance to translate</param>
+        /// <returns>The new <see cref="Matrix"/></returns>
+        public Matrix Translate(Value x, Value y)
             => Multiply(CreateTranslationMatrix(x, y));
 
         /// <summary>
@@ -131,12 +150,12 @@ namespace Synercoding.FileFormats.Pdf.Primitives.Matrices
         {
             double a, b, c, d, e, f;
 
-            a = ( this.A * other.A ) + ( this.B * other.C );
-            b = ( this.A * other.B ) + ( this.B * other.D );
-            c = ( this.C * other.A ) + ( this.D * other.C );
-            d = ( this.C * other.B ) + ( this.D * other.D );
-            e = ( this.E * other.A ) + ( this.F * other.C ) + other.E;
-            f = ( this.E * other.B ) + ( this.F * other.D ) + other.F;
+            a = (A * other.A) + (B * other.C);
+            b = (A * other.B) + (B * other.D);
+            c = (C * other.A) + (D * other.C);
+            d = (C * other.B) + (D * other.D);
+            e = (E * other.A) + (F * other.C) + other.E;
+            f = (E * other.B) + (F * other.D) + other.F;
 
             return new Matrix(a, b, c, d, e, f);
         }
@@ -147,10 +166,13 @@ namespace Synercoding.FileFormats.Pdf.Primitives.Matrices
         /// <param name="degree">The amount of degrees to rotate by</param>
         /// <returns>A rotated matrix</returns>
         public static Matrix CreateRotationMatrix(double degree)
-            => new Matrix(
-                Math.Cos(_degreeToRad(degree)), Math.Sin(_degreeToRad(degree)) * -1,
-                Math.Sin(_degreeToRad(degree)), Math.Cos(_degreeToRad(degree)),
+        {
+            var rads = _degreeToRad(degree);
+            return new Matrix(
+                Math.Cos(rads), Math.Sin(rads) * -1,
+                Math.Sin(rads), Math.Cos(rads),
                 0, 0);
+        }
 
         /// <summary>
         /// Create a matrix used for scaling
@@ -162,6 +184,18 @@ namespace Synercoding.FileFormats.Pdf.Primitives.Matrices
             => new Matrix(
                 x, 0,
                 0, y,
+                0, 0);
+
+        /// <summary>
+        /// Create a matrix used for scaling
+        /// </summary>
+        /// <param name="x">The X scale</param>
+        /// <param name="y">The Y scale</param>
+        /// <returns>A scaled matrix</returns>
+        public static Matrix CreateScaleMatrix(Value x, Value y)
+            => new Matrix(
+                x.ConvertTo(Unit.Points).Raw, 0,
+                0, y.ConvertTo(Unit.Points).Raw,
                 0, 0);
 
         /// <summary>
@@ -188,10 +222,21 @@ namespace Synercoding.FileFormats.Pdf.Primitives.Matrices
                 0, 1,
                 x, y);
 
+        /// <summary>
+        /// Create a matrix used for translation
+        /// </summary>
+        /// <param name="x">The amount of X translation</param>
+        /// <param name="y">The amount of Y translation</param>
+        /// <returns>A matrix representing a translation</returns>
+        public static Matrix CreateTranslationMatrix(Value x, Value y)
+            => new Matrix(
+                1, 0,
+                0, 1,
+                x.ConvertTo(Unit.Points).Raw, y.ConvertTo(Unit.Points).Raw);
+
         private static double _degreeToRad(double degree)
         {
             return degree * Math.PI / 180;
         }
     }
-
 }

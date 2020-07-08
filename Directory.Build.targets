@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!-- Settings that append the existing setting value -->
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);$(OS)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Aspose.PDF" Version="20.1.0" />
+    <PackageReference Update="iTextSharp" Version="5.5.13.1" NoWarn="NU1701" />
+    <PackageReference Update="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0007" />
+    <PackageReference Update="xunit.assert" Version="2.4.1" />
+  </ItemGroup>
+
+</Project>
