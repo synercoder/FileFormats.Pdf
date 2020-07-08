@@ -5,6 +5,9 @@ using System.IO;
 
 namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
 {
+    /// <summary>
+    /// A class representing an image
+    /// </summary>
     public class Image : IPdfObject, IDisposable
     {
         private readonly SixLabors.ImageSharp.Image _image;
@@ -16,10 +19,13 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
             _image = image;
         }
 
+        /// <inheritdoc />
         public PdfReference Reference { get; private set; }
 
+        /// <inheritdoc />
         public bool IsWritten { get; private set; }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             if(!_disposed)
@@ -29,6 +35,7 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.Objects
             }
         }
 
+        /// <inheritdoc />
         public uint WriteToStream(Stream stream)
         {
             if(_disposed)
