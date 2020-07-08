@@ -2,6 +2,9 @@ using System.IO;
 
 namespace Synercoding.FileFormats.Pdf.Helpers
 {
+    /// <summary>
+    /// Interface that enables writting implementor to a stream
+    /// </summary>
     public interface IStreamWriteable
     {
         /// <summary>
