@@ -52,7 +52,7 @@ namespace Synercoding.FileFormats.Pdf
         /// </summary>
         public DocumentInformation DocumentInformation { get; } = new DocumentInformation()
         {
-            Creator = "Synercoding.FileFormats.Pdf",
+            Producer = $"Synercoding.FileFormats.Pdf {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}",
             CreationDate = DateTime.Now
         };
 
@@ -76,6 +76,11 @@ namespace Synercoding.FileFormats.Pdf
             return this;
         }
 
+        /// <summary>
+        /// Add an <seealso cref="SixLabors.ImageSharp.Image"/> to the pdf file and get the <seealso cref="Image"/> reference returned
+        /// </summary>
+        /// <param name="image">The image that needs to be added.</param>
+        /// <returns>The image reference that can be used in pages</returns>
         public Image AddImage(SixLabors.ImageSharp.Image image)
         {
             var id = _tableBuilder.ReserveId();

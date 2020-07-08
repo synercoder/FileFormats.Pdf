@@ -7,13 +7,11 @@ namespace Synercoding.FileFormats.Pdf.Extensions
     {
         public static string ToPdfName(this StreamFilter streamFilter)
         {
-            switch(streamFilter)
+            return streamFilter switch
             {
-                case StreamFilter.DCTDecode:
-                    return "/DCTDecode";
-                default:
-                    throw new NotImplementedException();
-            }
+                StreamFilter.DCTDecode => "/DCTDecode",
+                _ => throw new NotImplementedException(),
+            };
         }
     }
 }

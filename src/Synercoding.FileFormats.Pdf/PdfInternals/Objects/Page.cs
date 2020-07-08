@@ -1,5 +1,6 @@
 using Synercoding.FileFormats.Pdf.Extensions;
 using Synercoding.FileFormats.Pdf.PdfInternals.XRef;
+using Synercoding.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;

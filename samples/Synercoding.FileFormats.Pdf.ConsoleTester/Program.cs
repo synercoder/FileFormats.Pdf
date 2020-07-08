@@ -1,5 +1,6 @@
-using SixLabors.ImageSharp;
-using Synercoding.FileFormats.Pdf.Primitives.Matrices;
+using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.Primitives;
+using Synercoding.Primitives.Extensions;
 using System.IO;
 
 namespace Synercoding.FileFormats.Pdf.ConsoleTester
@@ -16,14 +17,9 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
             using (var fs = File.OpenWrite(fileName))
             using (var writer = new PdfWriter(fs))
             {
-                var bleed = _mmToPts(3);
-                var mediaBox = new Primitives.Rectangle(0, 0, _mmToPts(216), _mmToPts(303));
-                var trimBox = new Primitives.Rectangle(
-                    mediaBox.LLX + bleed,
-                    mediaBox.LLY + bleed,
-                    mediaBox.URX - bleed,
-                    mediaBox.URY - bleed
-                );
+                var bleed = new Spacing(3, Unit.Millimeters);
+                var mediaBox = Sizes.A4.Expand(bleed).AsRectangle();
+                var trimBox = mediaBox.Contract(bleed);
 
                 writer
                     // Set document info
@@ -39,22 +35,22 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                         page.TrimBox = trimBox;
 
                         using (var barrenStream = File.OpenRead("Pexels_com/arid-barren-desert-1975514.jpg"))
-                        using (var barrenImage = Image.Load(barrenStream))
+                        using (var barrenImage = SixLabors.ImageSharp.Image.Load(barrenStream))
                         {
                             var scale = (double)barrenImage.Width / barrenImage.Height;
 
-                            page.AddImage(barrenImage, new Primitives.Rectangle(0, 0, _mmToPts(scale * 303), _mmToPts(303)));
+                            page.AddImage(barrenImage, new Rectangle(0, 0, scale * 303, 303, Unit.Millimeters));
                         }
 
                         using (var eyeStream = File.OpenRead("Pexels_com/adult-blue-blue-eyes-865711.jpg"))
                         {
                             var scale = 3456d / 5184;
 
-                            var width = _mmToPts(100);
-                            var height = _mmToPts(100 * scale);
+                            var width = 100;
+                            var height = 100 * scale;
 
-                            var offSet = _mmToPts(6);
-                            page.AddImage(eyeStream, new Primitives.Rectangle(offSet, offSet, width + offSet, height + offSet));
+                            var offSet = 6;
+                            page.AddImage(eyeStream, new Rectangle(offSet, offSet, width + offSet, height + offSet, Unit.Millimeters));
                         }
                     })
                     // Test placement using matrix
@@ -64,19 +60,17 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                         page.TrimBox = trimBox;
 
                         using (var forestStream = File.OpenRead("Pexels_com/android-wallpaper-art-backlit-1114897.jpg"))
-                        using (var forestImage = Image.Load(forestStream))
+                        using (var forestImage = SixLabors.ImageSharp.Image.Load(forestStream))
                         {
                             var scale = (double)forestImage.Width / forestImage.Height;
 
-                            var matrix = Matrix.CreateScaleMatrix(_mmToPts(scale * 303), _mmToPts(303))
-                                .Translate(_mmToPts(-100), 0);
+                            var matrix = Matrix.CreateScaleMatrix(new Value(scale * 303, Unit.Millimeters), new Value(303, Unit.Millimeters))
+                                .Translate(new Value(-100, Unit.Millimeters), new Value(0, Unit.Millimeters));
 
                             page.AddImage(forestImage, matrix);
                         }
                     });
             }
         }
-
-        private static double _mmToPts(double mm) => mm / 25.4d * 72;
     }
 }

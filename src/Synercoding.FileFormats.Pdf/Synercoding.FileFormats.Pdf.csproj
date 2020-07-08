@@ -1,22 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
-    <LangVersion>7.3</LangVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0-alpha005</Version>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>8</LangVersion>
+    <Version>1.0.0-alpha006</Version>
     <Authors>Synercoding</Authors>
     <Description>Contains classes which makes it easy to quickly create a pdf file</Description>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <PackageReleaseNotes>Added the ability to indicate that the PdfWriter does not own the stream.</PackageReleaseNotes>
+    <PackageReleaseNotes>Started using Synercoding.Primitives &amp; updated SixLabors.ImageSharp.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/synercoder/FileFormats.Pdf</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/synercoder/FileFormats.Pdf</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
-    <PackageReference Include="System.Memory" Version="4.5.2" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-rc0003" />
+    <PackageReference Include="Synercoding.Primitives" Version="1.0.0-rc02" />
   </ItemGroup>
 
 </Project>
