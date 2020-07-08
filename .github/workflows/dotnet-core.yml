@@ -15,7 +15,7 @@ env:
   # Project name to pack and publish
   PROJECT_NAME: Synercoding.FileFormats.Pdf
   # GitHub Packages Feed settings
-  GITHUB_FEED: https://nuget.pkg.github.com/synercoder/index.json
+  GITHUB_FEED: https://nuget.pkg.github.com/synercoder/
   GITHUB_USER: synercoder
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # Official NuGet Feed settings
