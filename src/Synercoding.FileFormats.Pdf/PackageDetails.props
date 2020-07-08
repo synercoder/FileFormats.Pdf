@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageTags>PDF</PackageTags>
+    <Product>Synercoding.FileFormats.Pdf</Product>
+    <Title>Synercoding.FileFormats.Pdf</Title>
+    <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
+    <PackageReleaseNotes>Started using Synercoding.Primitives &amp; updated SixLabors.ImageSharp.</PackageReleaseNotes>
+  </PropertyGroup>
+
+</Project>
