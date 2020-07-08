@@ -4,6 +4,7 @@ using Synercoding.FileFormats.Pdf.PdfInternals.XRef;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -38,7 +39,7 @@ namespace Synercoding.FileFormats.Pdf
         public PdfWriter(Stream stream, bool ownsStream)
         {
             _stream = stream;
-            (new Header()).WriteToStream(stream);
+            new Header().WriteToStream(stream);
 
             _pageTreeNode = _tableBuilder.ReserveId();
             _catalog = _tableBuilder.ReserveId();
@@ -52,7 +53,7 @@ namespace Synercoding.FileFormats.Pdf
         /// </summary>
         public DocumentInformation DocumentInformation { get; } = new DocumentInformation()
         {
-            Creator = "Synercoding.FileFormats.Pdf",
+            Producer = $"Synercoding.FileFormats.Pdf {typeof(PdfWriter).GetTypeInfo().Assembly.GetName().Version}",
             CreationDate = DateTime.Now
         };
 
@@ -76,6 +77,11 @@ namespace Synercoding.FileFormats.Pdf
             return this;
         }
 
+        /// <summary>
+        /// Add an <seealso cref="SixLabors.ImageSharp.Image"/> to the pdf file and get the <seealso cref="Image"/> reference returned
+        /// </summary>
+        /// <param name="image">The image that needs to be added.</param>
+        /// <returns>The image reference that can be used in pages</returns>
         public Image AddImage(SixLabors.ImageSharp.Image image)
         {
             var id = _tableBuilder.ReserveId();

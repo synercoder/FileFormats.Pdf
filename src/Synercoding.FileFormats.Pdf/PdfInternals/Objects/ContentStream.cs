@@ -1,7 +1,6 @@
 using SixLabors.ImageSharp;
 using Synercoding.FileFormats.Pdf.Extensions;
 using Synercoding.FileFormats.Pdf.Primitives;
-using Synercoding.FileFormats.Pdf.Primitives.Matrices;
 using System;
 using System.IO;
 

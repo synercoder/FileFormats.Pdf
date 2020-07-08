@@ -1,5 +1,5 @@
 using Synercoding.FileFormats.Pdf.Extensions;
-using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,15 +17,11 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals
 
         public PdfDictionary SubType(XObjectSubType subType)
         {
-            string nameValue = null;
-            switch (subType)
+            var nameValue = subType switch
             {
-                case XObjectSubType.Image:
-                    nameValue = "/Image";
-                    break;
-                default:
-                    throw new NotImplementedException("Unknown XObjectSubType: " + subType);
-            }
+                XObjectSubType.Image => "/Image",
+                _ => throw new NotImplementedException("Unknown XObjectSubType: " + subType)
+            };
 
             _stream
                 .Write("/Subtype")
@@ -38,24 +34,14 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals
 
         public PdfDictionary Type(ObjectType objectType)
         {
-            string nameValue = null;
-            switch (objectType)
+            var nameValue = objectType switch
             {
-                case ObjectType.Catalog:
-                    nameValue = "/Catalog";
-                    break;
-                case ObjectType.Page:
-                    nameValue = "/Page";
-                    break;
-                case ObjectType.Pages:
-                    nameValue = "/Pages";
-                    break;
-                case ObjectType.XObject:
-                    nameValue = "/XObject";
-                    break;
-                default:
-                    throw new NotImplementedException("Unknown objectType: " + objectType);
-            }
+                ObjectType.Catalog => "/Catalog",
+                ObjectType.Page => "/Page",
+                ObjectType.Pages => "/Pages",
+                ObjectType.XObject => "/XObject",
+                _ => throw new NotImplementedException("Unknown objectType: " + objectType)
+            };
 
             _stream
                 .Write("/Type")

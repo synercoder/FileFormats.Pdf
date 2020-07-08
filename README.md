@@ -1,6 +1,4 @@
 # FileFormats.Pdf
-[![Build Status](https://synercoding.visualstudio.com/Synercoding.FileFormats.Pdf/_apis/build/status/synercoder.FileFormats.Pdf?branchName=master)](https://synercoding.visualstudio.com/Synercoding.FileFormats.Pdf/_build/latest?definitionId=7&branchName=master)
-
 [![NuGet][nuget-badge]][nuget] 
 
 [nuget]: https://www.nuget.org/packages/Synercoding.FileFormats.Pdf/
@@ -36,30 +34,22 @@ The sample project called *Synercoding.FileFormats.Pdf.ConsoleTester* uses multi
 <pre><code>using (var fs = File.OpenWrite(fileName))
 using (var writer = new PdfWriter(fs))
 {
-    double _mmToPts(double mm) => mm / 25.4d * 72;
-
     writer
         .AddPage(page =&gt;
         {
-            var bleed = _mmToPts(3);
-            // Mediabox = A4 Portrait with 3mm bleed all around
-            page.MediaBox = new Primitives.Rectangle(0, 0, _mmToPts(216), _mmToPts(303));
-            page.TrimBox = new Primitives.Rectangle(
-                page.MediaBox.LLX + bleed,
-                page.MediaBox.LLY + bleed,
-                page.MediaBox.URX - bleed,
-                page.MediaBox.URY - bleed
-            );
+            var bleed = new Spacing(3, Unit.Millimeters);
+            page.MediaBox = Sizes.A4Portrait.Expand(bleed).AsRectangle();
+            page.TrimBox = page.MediaBox.Contract(bleed);
 
             using (var eyeStream = File.OpenRead("Pexels_com/adult-blue-blue-eyes-865711.jpg"))
             {
                 var scale = 3456d / 5184;
 
-                var width = _mmToPts(100);
-                var height = _mmToPts(100 * scale);
+                var width = 100;
+                var height = 100 * scale;
 
-                var offSet = _mmToPts(6);
-                page.AddImage(eyeStream, new Primitives.Rectangle(offSet, offSet, width + offSet, height + offSet));
+                var offSet = 6;
+                page.AddImage(eyeStream, new Rectangle(offSet, offSet, width + offSet, height + offSet, Unit.Millimeters));
             }
         });
 }</code></pre>

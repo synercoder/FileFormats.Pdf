@@ -1,9 +1,9 @@
 using SixLabors.ImageSharp.Processing;
-using Synercoding.FileFormats.Pdf.Helpers;
 using Synercoding.FileFormats.Pdf.PdfInternals.Objects;
 using Synercoding.FileFormats.Pdf.PdfInternals.XRef;
 using Synercoding.FileFormats.Pdf.Primitives;
-using Synercoding.FileFormats.Pdf.Primitives.Matrices;
+using Synercoding.Primitives;
+using Synercoding.Primitives.Extensions;
 using System.Collections.Generic;
 using System.IO;
 using ImageSharp = SixLabors.ImageSharp;
@@ -36,7 +36,7 @@ namespace Synercoding.FileFormats.Pdf
         /// <summary>
         /// The media box of the <see cref="PdfPage"/>
         /// </summary>
-        public Rectangle MediaBox { get; set; } = Sizes.A4Portrait;
+        public Rectangle MediaBox { get; set; } = Sizes.A4.AsRectangle();
 
         /// <summary>
         /// The cropbox of the <see cref="PdfPage"/>, defaults to <see cref="MediaBox"/>
@@ -139,10 +139,11 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>This <see cref="PdfPage"/> so calls can be chained.</returns>
         public PdfPage AddImage(Image image, Rectangle rectangle)
         {
+            rectangle = rectangle.ConvertTo(Unit.Points);
             var matrix = new Matrix(
-                rectangle.URX - rectangle.LLX, 0,
-                0, rectangle.URY - rectangle.LLY,
-                rectangle.LLX, rectangle.LLY);
+                rectangle.URX.Raw - rectangle.LLX.Raw, 0,
+                0, rectangle.URY.Raw - rectangle.LLY.Raw,
+                rectangle.LLX.Raw, rectangle.LLY.Raw);
             return AddImage(image, matrix);
         }
 
@@ -162,10 +163,11 @@ namespace Synercoding.FileFormats.Pdf
 
         private PdfPage _addImage(ImageSharp.Image image, Rectangle rectangle, bool clone)
         {
+            rectangle = rectangle.ConvertTo(Unit.Points);
             var matrix = new Matrix(
-                rectangle.URX - rectangle.LLX, 0,
-                0, rectangle.URY - rectangle.LLY,
-                rectangle.LLX, rectangle.LLY);
+                rectangle.URX.Raw - rectangle.LLX.Raw, 0,
+                0, rectangle.URY.Raw - rectangle.LLY.Raw,
+                rectangle.LLX.Raw, rectangle.LLY.Raw);
 
             return _addImage(image, matrix, clone);
         }

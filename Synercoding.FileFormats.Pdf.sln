@@ -1,29 +1,41 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.421
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{76970674-A4D1-4439-8EA6-8832E4A24FF1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BE969D07-4BE6-4293-BBC6-C496F7D4A81C}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+		src\Directory.Build.targets = src\Directory.Build.targets
+	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4FA81463-B64F-40F2-A3F1-226179796E09}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4FA81463-B64F-40F2-A3F1-226179796E09}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Directory.Build.props = tests\Directory.Build.props
+		tests\Directory.Build.targets = tests\Directory.Build.targets
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synercoding.FileFormats.Pdf.ConsoleTester", "samples\Synercoding.FileFormats.Pdf.ConsoleTester\Synercoding.FileFormats.Pdf.ConsoleTester.csproj", "{E11AEF6A-6977-4D76-83E2-D5BDB84F3872}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synercoding.FileFormats.Pdf", "src\Synercoding.FileFormats.Pdf\Synercoding.FileFormats.Pdf.csproj", "{90A3DC19-7312-4649-8B1E-9455D664C074}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6FD0B899-9FAE-4974-B9D3-B0A4F7FBBE6A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{6AAE343B-2D3D-4F7F-BC6D-6481428BECB2}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
-		azure-build-artifacts.yml = azure-build-artifacts.yml
-		azure-pipelines.yml = azure-pipelines.yml
-		build.cake = build.cake
-		build.ps1 = build.ps1
-		build.sh = build.sh
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
 		LICENSE = LICENSE
 		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{67FFC819-02FC-4D51-8D02-4588713DE0AB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{B1B3DE7C-7961-4FA6-BABD-06B3979D1ABF}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet-core.yml = .github\workflows\dotnet-core.yml
 	EndProjectSection
 EndProject
 Global
@@ -45,8 +57,13 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{76970674-A4D1-4439-8EA6-8832E4A24FF1} = {6AAE343B-2D3D-4F7F-BC6D-6481428BECB2}
+		{BE969D07-4BE6-4293-BBC6-C496F7D4A81C} = {6AAE343B-2D3D-4F7F-BC6D-6481428BECB2}
+		{4FA81463-B64F-40F2-A3F1-226179796E09} = {6AAE343B-2D3D-4F7F-BC6D-6481428BECB2}
 		{E11AEF6A-6977-4D76-83E2-D5BDB84F3872} = {76970674-A4D1-4439-8EA6-8832E4A24FF1}
 		{90A3DC19-7312-4649-8B1E-9455D664C074} = {BE969D07-4BE6-4293-BBC6-C496F7D4A81C}
+		{67FFC819-02FC-4D51-8D02-4588713DE0AB} = {6AAE343B-2D3D-4F7F-BC6D-6481428BECB2}
+		{B1B3DE7C-7961-4FA6-BABD-06B3979D1ABF} = {67FFC819-02FC-4D51-8D02-4588713DE0AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8DB7E905-EFFC-44B7-A5B5-3CC08E3F5AD9}
