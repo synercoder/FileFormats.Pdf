@@ -10,16 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Pexels_com\4k-wallpaper-blur-bokeh-1484253.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Pexels_com\adult-blue-blue-eyes-865711.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Pexels_com\android-wallpaper-art-backlit-1114897.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Pexels_com\arid-barren-desert-1975514.jpg">
+    <None Update="Pexels_com\*.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
