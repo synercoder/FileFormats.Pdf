@@ -70,6 +70,25 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                             page.AddImage(forestImage, matrix);
                         }
                     });
+
+                using (var blurStream = File.OpenRead("Pexels_com/4k-wallpaper-blur-bokeh-1484253.jpg"))
+                using (var blurImage = SixLabors.ImageSharp.Image.Load(blurStream))
+                {
+                    var reusedImage = writer.AddImage(blurImage);
+
+                    for(int i = 0; i < 4; i++)
+                    {
+                        writer.AddPage(page =>
+                        {
+                            page.MediaBox = mediaBox;
+                            page.TrimBox = trimBox;
+
+                            var scale = (double)blurImage.Width / blurImage.Height;
+
+                            page.AddImage(reusedImage, new Rectangle(0, 0, scale * 303, 303, Unit.Millimeters));
+                        });
+                    }
+                }
             }
         }
     }
