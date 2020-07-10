@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Started using Synercoding.Primitives &amp; updated SixLabors.ImageSharp.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed AddImage bug on PdfWriter.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
