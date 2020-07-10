@@ -88,7 +88,9 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, image);
 
-            pdfImage.WriteToStream(_stream);
+            var position = pdfImage.WriteToStream(_stream);
+
+            _tableBuilder.SetPosition(id, position);
 
             return pdfImage;
         }
