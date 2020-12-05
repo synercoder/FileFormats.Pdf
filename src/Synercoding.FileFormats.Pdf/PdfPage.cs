@@ -15,7 +15,7 @@ namespace Synercoding.FileFormats.Pdf
     /// </summary>
     public class PdfPage
     {
-        private int _pageCounter = 0;
+        private int _imageCounter = 0;
         private readonly Dictionary<string, Image> _images = new Dictionary<string, Image>();
         private readonly TableBuilder _tableBuilder;
 
@@ -194,7 +194,7 @@ namespace Synercoding.FileFormats.Pdf
 
         private string _addImageToResources(Image image)
         {
-            var key = "Im" + System.Threading.Interlocked.Increment(ref _pageCounter).ToString().PadLeft(6, '0');
+            var key = "Im" + System.Threading.Interlocked.Increment(ref _imageCounter).ToString().PadLeft(6, '0');
 
             _images.Add(key, image);
 
