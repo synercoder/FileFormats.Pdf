@@ -1,5 +1,6 @@
 using Synercoding.Primitives;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Synercoding.FileFormats.Pdf.Primitives
 {
@@ -14,8 +15,21 @@ namespace Synercoding.FileFormats.Pdf.Primitives
     /// E F 1
     /// </code>
     /// </remarks>
-    public readonly struct Matrix
+    public readonly struct Matrix : IEquatable<Matrix>
     {
+        /// <summary>
+        /// The identity matrix
+        /// </summary>
+        /// <remarks>
+        /// This matrix can be interpreted as:
+        /// <list type="bullet">
+        ///   <item>translation with (0,0)</item>
+        ///   <item>rotation with 0 degrees</item>
+        ///   <item>scaling with (1,1)</item>
+        /// </list>
+        /// </remarks>
+        public static Matrix Identity { get; } = new Matrix(1, 0, 0, 1, 0, 0);
+
         /// <summary>
         /// Copy constructor for the <see cref="Matrix"/>
         /// </summary>
@@ -52,32 +66,54 @@ namespace Synercoding.FileFormats.Pdf.Primitives
         /// <summary>
         /// The A value
         /// </summary>
-        public double A { get; }
+        public double A { get; init; }
 
         /// <summary>
         /// The B value
         /// </summary>
-        public double B { get; }
+        public double B { get; init; }
 
         /// <summary>
         /// The C value
         /// </summary>
-        public double C { get; }
+        public double C { get; init; }
 
         /// <summary>
         /// The D value
         /// </summary>
-        public double D { get; }
+        public double D { get; init; }
 
         /// <summary>
         /// The E value
         /// </summary>
-        public double E { get; }
+        public double E { get; init; }
 
         /// <summary>
         /// The F value
         /// </summary>
-        public double F { get; }
+        public double F { get; init; }
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj)
+            => obj is Rectangle other && Equals(other);
+
+        /// <inheritdoc/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Equals(Matrix other)
+            => A.Equals(other.A)
+            && B.Equals(other.B)
+            && C.Equals(other.C)
+            && D.Equals(other.D)
+            && E.Equals(other.E)
+            && F.Equals(other.F);
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+            => HashCode.Combine(A, B, C, D, E, F);
+
+        /// <inheritdoc/>
+        public override string ToString()
+            => $"Matrix [ {A}, {B}, {C}, {D}, {E}, {F} ]";
 
         /// <summary>
         /// Apply a rotation operation on the matrix
@@ -86,6 +122,20 @@ namespace Synercoding.FileFormats.Pdf.Primitives
         /// <returns>The new <see cref="Matrix"/></returns>
         public Matrix Rotate(double degrees)
             => Multiply(CreateRotationMatrix(degrees));
+
+        /// <summary>
+        /// Apply a horizontal flip operation on the matrix
+        /// </summary>
+        /// <returns>The new <see cref="Matrix"/></returns>
+        public Matrix FlipHorizontal()
+            => Multiply(CreateScaleMatrix(-1, 1));
+
+        /// <summary>
+        /// Apply a vertical flip operation on the matrix
+        /// </summary>
+        /// <returns>The new <see cref="Matrix"/></returns>
+        public Matrix FlipVertical()
+            => Multiply(CreateScaleMatrix(1, -1));
 
         /// <summary>
         /// Apply a scale operation on the matrix
@@ -146,19 +196,15 @@ namespace Synercoding.FileFormats.Pdf.Primitives
         /// </summary>
         /// <param name="other">The matrix to multiply with</param>
         /// <returns>The new <see cref="Matrix"/></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Matrix Multiply(in Matrix other)
-        {
-            double a, b, c, d, e, f;
-
-            a = (A * other.A) + (B * other.C);
-            b = (A * other.B) + (B * other.D);
-            c = (C * other.A) + (D * other.C);
-            d = (C * other.B) + (D * other.D);
-            e = (E * other.A) + (F * other.C) + other.E;
-            f = (E * other.B) + (F * other.D) + other.F;
-
-            return new Matrix(a, b, c, d, e, f);
-        }
+            => new Matrix(
+                a: ( A * other.A ) + ( B * other.C ),
+                b: ( A * other.B ) + ( B * other.D ),
+                c: ( C * other.A ) + ( D * other.C ),
+                d: ( C * other.B ) + ( D * other.D ),
+                e: ( E * other.A ) + ( F * other.C ) + other.E,
+                f: ( E * other.B ) + ( F * other.D ) + other.F);
 
         /// <summary>
         /// Create a matrix used for rotation
@@ -234,9 +280,8 @@ namespace Synercoding.FileFormats.Pdf.Primitives
                 0, 1,
                 x.ConvertTo(Unit.Points).Raw, y.ConvertTo(Unit.Points).Raw);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static double _degreeToRad(double degree)
-        {
-            return degree * Math.PI / 180;
-        }
+            => degree * Math.PI / 180;
     }
 }
