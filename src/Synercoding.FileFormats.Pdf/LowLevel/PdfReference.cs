@@ -1,4 +1,4 @@
-namespace Synercoding.FileFormats.Pdf.PdfInternals
+namespace Synercoding.FileFormats.Pdf.LowLevel
 {
     /// <summary>
     /// A struct representing a reference
@@ -9,7 +9,7 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals
         /// Constructor for <see cref="PdfReference"/> that uses generation 0
         /// </summary>
         /// <param name="objectId">The id of the reference</param>
-        public PdfReference(int objectId)
+        internal PdfReference(int objectId)
             : this(objectId, 0)
         { }
 
@@ -18,7 +18,7 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals
         /// </summary>
         /// <param name="objectId">The id of the reference</param>
         /// <param name="generation">The generation of the reference</param>
-        public PdfReference(int objectId, int generation)
+        internal PdfReference(int objectId, int generation)
         {
             ObjectId = objectId;
             Generation = generation;
@@ -28,9 +28,16 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals
         /// The object id of this reference
         /// </summary>
         public int ObjectId { get; }
+
         /// <summary>
         /// The generation of this reference
         /// </summary>
         public int Generation { get; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"{ObjectId} {Generation}";
+        }
     }
 }

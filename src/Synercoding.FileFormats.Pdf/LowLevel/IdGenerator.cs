@@ -1,4 +1,4 @@
-namespace Synercoding.FileFormats.Pdf.Helpers
+﻿namespace Synercoding.FileFormats.Pdf.LowLevel
 {
     internal sealed class IdGenerator
     {

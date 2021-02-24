@@ -1,9 +1,9 @@
-using Synercoding.FileFormats.Pdf.Helpers;
+﻿using Synercoding.FileFormats.Pdf.LowLevel.Internals;
 using System;
 
-namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
+namespace Synercoding.FileFormats.Pdf.LowLevel.XRef
 {
-    internal class Section : ISpanWriteable
+    internal class Section
     {
         public Section(int firstObjectNumber, params Entry[] entries)
         {
@@ -26,7 +26,7 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
 
             for (int i = 0; i < Entries.Length; i++)
             {
-                var position = bytesFilled + 2 + ( i * 20 );
+                var position = bytesFilled + 2 + (i * 20);
                 Entries[i].FillSpan(bytes.Slice(position, 20));
             }
         }

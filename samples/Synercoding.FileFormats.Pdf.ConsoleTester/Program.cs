@@ -1,4 +1,4 @@
-using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.FileFormats.Pdf.Extensions;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
 using System.IO;
