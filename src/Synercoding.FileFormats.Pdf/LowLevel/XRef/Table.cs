@@ -1,10 +1,8 @@
-using Synercoding.FileFormats.Pdf.Helpers;
-using System;
-using System.IO;
+﻿using System;
 
-namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
+namespace Synercoding.FileFormats.Pdf.LowLevel.XRef
 {
-    internal class Table : ISpanWriteable, IStreamWriteable
+    internal class Table
     {
         public Table(params Entry[] entries)
         {
@@ -16,7 +14,18 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
 
         public Section Section { get; }
 
-        public void FillSpan(Span<byte> bytes)
+        internal uint WriteToStream(PdfStream stream)
+        {
+            var position = (uint)stream.Position;
+
+            var bytes = new byte[_byteSize()];
+            _fillSpan(bytes);
+            stream.Write(bytes);
+
+            return position;
+        }
+
+        private void _fillSpan(Span<byte> bytes)
         {
             bytes[0] = 0x78; // x
             bytes[1] = 0x72; // r
@@ -29,23 +38,12 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
             Section.FillSpan(bytes.Slice(6, freeSize));
         }
 
-        public int ByteSize()
+        private int _byteSize()
         {
             int size = 6; // xref + CR LF
             size += Section.ByteSize();
 
             return size;
-        }
-
-        public uint WriteToStream(Stream stream)
-        {
-            var position = (uint)stream.Position;
-
-            var bytes = new byte[ByteSize()];
-            FillSpan(bytes);
-            stream.Write(bytes, 0, bytes.Length);
-
-            return position;
         }
     }
 }

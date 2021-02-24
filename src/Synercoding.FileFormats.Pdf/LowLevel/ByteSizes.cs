@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Globalization;
 
-namespace Synercoding.FileFormats.Pdf.Helpers
+namespace Synercoding.FileFormats.Pdf.LowLevel
 {
     internal static class ByteSizes
     {

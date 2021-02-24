@@ -1,8 +1,8 @@
-using Synercoding.FileFormats.Pdf.Helpers;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
+namespace Synercoding.FileFormats.Pdf.LowLevel.XRef
 {
     internal class TableBuilder
     {
@@ -27,12 +27,15 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
 
         public void SetPosition(PdfReference id, uint position)
         {
+            if (_positions[id] != -1)
+                throw new InvalidOperationException($"Reference {id} already has a position in the xref table.");
+
             _positions[id] = position;
         }
 
         public bool Validate()
         {
-            foreach(var value in _positions.Values)
+            foreach (var value in _positions.Values)
             {
                 if (value == -1)
                 {
@@ -45,8 +48,8 @@ namespace Synercoding.FileFormats.Pdf.PdfInternals.XRef
         public Table GetXRefTable()
         {
             var entries = _positions
-                .OrderBy(x => x.Key.ObjectId)
-                .Select(x => new Entry((uint)x.Value))
+                .OrderBy(static x => x.Key.ObjectId)
+                .Select(static x => new Entry((uint)x.Value))
                 .ToArray();
             return new Table(entries);
         }

@@ -1,8 +1,8 @@
-using Synercoding.Primitives;
+﻿using Synercoding.Primitives;
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Synercoding.FileFormats.Pdf.Primitives
+namespace Synercoding.FileFormats.Pdf
 {
     /// <summary>
     /// Struct that represents a <see cref="Matrix"/>
@@ -199,12 +199,12 @@ namespace Synercoding.FileFormats.Pdf.Primitives
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Matrix Multiply(in Matrix other)
             => new Matrix(
-                a: ( A * other.A ) + ( B * other.C ),
-                b: ( A * other.B ) + ( B * other.D ),
-                c: ( C * other.A ) + ( D * other.C ),
-                d: ( C * other.B ) + ( D * other.D ),
-                e: ( E * other.A ) + ( F * other.C ) + other.E,
-                f: ( E * other.B ) + ( F * other.D ) + other.F);
+                a: (A * other.A) + (B * other.C),
+                b: (A * other.B) + (B * other.D),
+                c: (C * other.A) + (D * other.C),
+                d: (C * other.B) + (D * other.D),
+                e: (E * other.A) + (F * other.C) + other.E,
+                f: (E * other.B) + (F * other.D) + other.F);
 
         /// <summary>
         /// Create a matrix used for rotation
