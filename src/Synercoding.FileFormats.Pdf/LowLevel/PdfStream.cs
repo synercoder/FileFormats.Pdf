@@ -1,3 +1,4 @@
+using Synercoding.FileFormats.Pdf.Internals;
 using System;
 using System.Globalization;
 using System.IO;

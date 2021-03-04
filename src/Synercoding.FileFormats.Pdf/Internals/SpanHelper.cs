@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Synercoding.FileFormats.Pdf.LowLevel.Internals
+namespace Synercoding.FileFormats.Pdf.Internals
 {
     internal static class SpanHelper
     {

@@ -1,4 +1,4 @@
-﻿using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
 {
     public class PdfName
     {
-        private static IDictionary<string, PdfName> _reservedNames = new Dictionary<string, PdfName>()
+        private static readonly IDictionary<string, PdfName> _reservedNames = new Dictionary<string, PdfName>()
         {
             { "Author", new PdfName("Author") },
             { "BitsPerComponent", new PdfName("BitsPerComponent") },
@@ -21,6 +21,8 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             { "CropBox", new PdfName("CropBox") },
             { "DCTDecode", new PdfName("DCTDecode") },
             { "Decode", new PdfName("Decode") },
+            { "DeviceCMYK", new PdfName("DeviceCMYK") },
+            { "DeviceGray", new PdfName("DeviceGray") },
             { "DeviceRGB", new PdfName("DeviceRGB") },
             { "Filter", new PdfName("Filter") },
             { "Height", new PdfName("Height") },

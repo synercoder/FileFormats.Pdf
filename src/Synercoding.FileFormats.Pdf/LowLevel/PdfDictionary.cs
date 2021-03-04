@@ -1,4 +1,4 @@
-﻿using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.Primitives;
 using System;
 using System.Collections.Generic;
@@ -14,23 +14,6 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream = stream;
         }
 
-        public PdfDictionary SubType(XObjectSubType subType)
-        {
-            var nameValue = subType switch
-            {
-                XObjectSubType.Image => PdfName.Get("Image"),
-                _ => throw new NotImplementedException("Unknown XObjectSubType: " + subType)
-            };
-
-            _stream
-                .Write(PdfName.Get("Subtype"))
-                .Space()
-                .Write(nameValue)
-                .NewLine();
-
-            return this;
-        }
-
         public PdfDictionary Type(ObjectType objectType)
         {
             var nameValue = objectType switch
@@ -44,6 +27,23 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
 
             _stream
                 .Write(PdfName.Get("Type"))
+                .Space()
+                .Write(nameValue)
+                .NewLine();
+
+            return this;
+        }
+
+        public PdfDictionary SubType(XObjectSubType subType)
+        {
+            var nameValue = subType switch
+            {
+                XObjectSubType.Image => PdfName.Get("Image"),
+                _ => throw new NotImplementedException("Unknown XObjectSubType: " + subType)
+            };
+
+            _stream
+                .Write(PdfName.Get("Subtype"))
                 .Space()
                 .Write(nameValue)
                 .NewLine();
