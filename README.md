@@ -15,7 +15,7 @@ This project is licensed under MIT license.
 ## Specifications used
 This library was created using the specifications lay out in ["PDF 32000-1:2008, Document management – Portable document format – Part 1: PDF 1.7"](https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf).
 
-The full specifications are not implemented. This library currently only supports placements of images and setting the different boxes.
+The full specifications are not implemented. This library currently only supports placements of images, drawing of vector shapes (CMYK, RGB & gray scale), and setting the different boxes.
 
 ## Remarks
 Unlike most PDF libraries this library does not create the entire PDF model in memory before writing the PDF to a (file)stream. Most libaries support editing capabilities, because this libary only supports creating files, it was not necessary to keep the PDF model in memory. This results in less memory usage.
