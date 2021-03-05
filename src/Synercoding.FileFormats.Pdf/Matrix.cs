@@ -1,4 +1,4 @@
-﻿using Synercoding.Primitives;
+using Synercoding.Primitives;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -95,7 +95,7 @@ namespace Synercoding.FileFormats.Pdf
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
-            => obj is Rectangle other && Equals(other);
+            => obj is Matrix other && Equals(other);
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
