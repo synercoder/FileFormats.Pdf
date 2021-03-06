@@ -1,6 +1,6 @@
-﻿namespace Synercoding.FileFormats.Pdf.LowLevel
+namespace Synercoding.FileFormats.Pdf.LowLevel
 {
-    public enum ObjectType
+    internal enum ObjectType
     {
         Page,
         Pages,

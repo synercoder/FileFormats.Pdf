@@ -1,4 +1,4 @@
-﻿using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using System;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel
@@ -13,6 +13,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             PageTree = pageTree;
         }
 
+        /// <inheritdoc />
         public PdfReference Reference { get; }
 
         public PageTree PageTree { get; }

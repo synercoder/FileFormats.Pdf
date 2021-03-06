@@ -1,4 +1,7 @@
+using Synercoding.FileFormats.Pdf.Internals;
+using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.Primitives;
+using System;
 using System.IO;
 
 namespace Synercoding.FileFormats.Pdf.Extensions
@@ -123,5 +126,30 @@ namespace Synercoding.FileFormats.Pdf.Extensions
         /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
         public static PdfPage AddImage(this PdfPage page, Stream jpgStream, int originalWidth, int originalHeight, Rectangle rectangle)
             => page.AddImage(jpgStream, originalWidth, originalHeight, rectangle.AsPlacementMatrix());
+
+        /// <summary>
+        /// Add shapes to the pdf page
+        /// </summary>
+        /// <param name="page">The page to add the shapes to</param>
+        /// <param name="paintAction">The action painting the shapes</param>
+        /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
+        public static PdfPage AddShapes(this PdfPage page, Action<IShapeContext> paintAction)
+            => page.AddShapes(paintAction, static (action, context) => action(context));
+
+        /// <summary>
+        /// Add shapes to the pdf page
+        /// </summary>
+        /// <typeparam name="T">Type of <paramref name="data"/></typeparam>
+        /// <param name="page">The page to add the shapes to</param>
+        /// <param name="data">Data that can be passed to the <paramref name="paintAction"/></param>
+        /// <param name="paintAction">The action painting the shapes</param>
+        /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
+        public static PdfPage AddShapes<T>(this PdfPage page, T data, Action<T, IShapeContext> paintAction)
+        {
+            using (var context = new ShapeContext(page.ContentStream, page.Resources))
+                paintAction(data, context);
+
+            return page;
+        }
     }
 }

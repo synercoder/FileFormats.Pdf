@@ -1,4 +1,4 @@
-﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp;
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using System;
@@ -6,7 +6,10 @@ using System.IO;
 
 namespace Synercoding.FileFormats.Pdf
 {
-    public class Image : IPdfObject, IDisposable
+    /// <summary>
+    /// Class representing an image inside a pdf
+    /// </summary>
+    public sealed class Image : IPdfObject, IDisposable
     {
         private readonly Stream _imageStream;
         private readonly int _width;

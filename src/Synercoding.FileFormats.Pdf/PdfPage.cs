@@ -4,8 +4,6 @@ using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -14,8 +12,6 @@ namespace Synercoding.FileFormats.Pdf
     /// </summary>
     public sealed class PdfPage : IPdfObject, IDisposable
     {
-        private int _imageCounter = 0;
-        private readonly Map<PdfName, Image> _images = new Map<PdfName, Image>();
         private readonly TableBuilder _tableBuilder;
         private readonly PageTree _parent;
 
@@ -31,6 +27,8 @@ namespace Synercoding.FileFormats.Pdf
             Reference = tableBuilder.ReserveId();
             ContentStream = new ContentStream(tableBuilder.ReserveId());
         }
+
+        internal PageResources Resources { get; } = new PageResources();
 
         /// <summary>
         /// The content stream of this page
@@ -91,7 +89,7 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, image);
 
-            return _addImageToResources(pdfImage);
+            return Resources.AddImageToResources(pdfImage);
         }
 
         /// <summary>
@@ -107,7 +105,7 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, jpgStream, width, height);
 
-            return _addImageToResources(pdfImage);
+            return Resources.AddImageToResources(pdfImage);
         }
 
         /// <summary>
@@ -128,30 +126,15 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>The <see cref="PdfName"/> that can be used to reference this image in the <see cref="ContentStream"/></returns>
         public PdfName AddImageToResources(Image image)
         {
-            return _addImageToResources(image);
+            return Resources.AddImageToResources(image);
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
-            foreach (var kv in _images)
-                kv.Value.Dispose();
+            Resources.Dispose();
 
             ContentStream.Dispose();
-        }
-
-        private PdfName _addImageToResources(Image image)
-        {
-            if (_images.Reverse.Contains(image))
-                return _images.Reverse[image];
-
-            var key = "Im" + System.Threading.Interlocked.Increment(ref _imageCounter).ToString().PadLeft(6, '0');
-
-            var pdfName = PdfName.Get(key);
-
-            _images.Add(pdfName, image);
-
-            return pdfName;
         }
 
         internal uint WriteToStream(PdfStream stream)
@@ -179,23 +162,19 @@ namespace Synercoding.FileFormats.Pdf
                     .WriteIfNotNull(PdfName.Get("Rotate"), page.Rotation);
 
                 // Resources
-                if (page._images.Count == 0)
+                dictionary.Write(PdfName.Get("Resources"), page.Resources, static (resources, stream) => stream.Dictionary(resources, static (resources, stream) =>
                 {
-                    dictionary.Write(PdfName.Get("Resources"), static x => x.EmptyDictionary());
-                }
-                else
-                {
-                    dictionary.Write(PdfName.Get("Resources"), page._images, static (images, stream) => stream.Dictionary(images, static (images, resources) =>
+                    if (resources.Images.Count != 0)
                     {
-                        resources.Write(PdfName.Get("XObject"), images, static (images, stream) => stream.Dictionary(images, static (images, xobject) =>
+                        stream.Write(PdfName.Get("XObject"), resources.Images, static (images, stream) => stream.Dictionary(images, static (images, xobject) =>
                         {
                             foreach (var image in images)
                             {
                                 xobject.Write(image.Key, image.Value.Reference);
                             }
                         }));
-                    }));
-                }
+                    }
+                }));
 
                 // Content stream
                 dictionary.Write(PdfName.Get("Contents"), page.ContentStream.Reference);
@@ -203,7 +182,7 @@ namespace Synercoding.FileFormats.Pdf
 
             _isWritten = true;
 
-            foreach (var kv in _images)
+            foreach (var kv in Resources.Images)
             {
                 if (kv.Value.TryWriteToStream(stream, out uint dependentPosition))
                 {
@@ -217,62 +196,6 @@ namespace Synercoding.FileFormats.Pdf
             }
 
             return position;
-        }
-
-        private sealed class Map<T1, T2> : IEnumerable<KeyValuePair<T1, T2>>
-            where T1 : notnull
-            where T2 : notnull
-        {
-            private readonly IDictionary<T1, T2> _forward = new Dictionary<T1, T2>();
-            private readonly IDictionary<T2, T1> _reverse = new Dictionary<T2, T1>();
-
-            public Map()
-            {
-                Forward = new Indexer<T1, T2>(_forward);
-                Reverse = new Indexer<T2, T1>(_reverse);
-            }
-
-            public int Count => _forward.Count;
-
-            public void Add(T1 t1, T2 t2)
-            {
-                _forward.Add(t1, t2);
-                _reverse.Add(t2, t1);
-            }
-
-            public IEnumerator<KeyValuePair<T1, T2>> GetEnumerator()
-            {
-                return _forward.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public Indexer<T1, T2> Forward { get; }
-            public Indexer<T2, T1> Reverse { get; }
-
-            public sealed class Indexer<T3, T4>
-                where T3 : notnull
-                where T4 : notnull
-            {
-                private readonly IDictionary<T3, T4> _dictionary;
-
-                public Indexer(IDictionary<T3, T4> dictionary)
-                {
-                    _dictionary = dictionary;
-                }
-
-                public T4 this[T3 index]
-                {
-                    get => _dictionary[index];
-                    set => _dictionary[index] = value;
-                }
-
-                public bool Contains(T3 value)
-                    => _dictionary.ContainsKey(value);
-            }
         }
     }
 }

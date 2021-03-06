@@ -1,4 +1,4 @@
-﻿using Synercoding.Primitives;
+using Synercoding.Primitives;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -95,7 +95,7 @@ namespace Synercoding.FileFormats.Pdf
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
-            => obj is Rectangle other && Equals(other);
+            => obj is Matrix other && Equals(other);
 
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -283,5 +283,23 @@ namespace Synercoding.FileFormats.Pdf
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static double _degreeToRad(double degree)
             => degree * Math.PI / 180;
+
+        /// <summary>
+        /// Indicates whether the left matrix is equal to the right matrix.
+        /// </summary>
+        /// <param name="left">The <see cref="Matrix"/> on the left side of the ==</param>
+        /// <param name="right">The <see cref="Matrix"/> on the right side of the ==</param>
+        /// <returns>true if the left matrix is equal to the right; otherwise, false.</returns>
+        public static bool operator ==(Matrix left, Matrix right)
+            => left.Equals(right);
+
+        /// <summary>
+        /// Indicates whether the left matrix is not equal to the right matrix.
+        /// </summary>
+        /// <param name="left">The <see cref="Matrix"/> on the left side of the !=</param>
+        /// <param name="right">The <see cref="Matrix"/> on the right side of the !=</param>
+        /// <returns>true if the left matrix is not equal to the right; otherwise, false.</returns>
+        public static bool operator !=(Matrix left, Matrix right)
+            => !( left == right );
     }
 }
