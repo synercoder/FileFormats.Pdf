@@ -28,7 +28,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.XRef
             _fillSpanLeadingZero(bytes.Slice(11, 5), GenerationNumber);
             bytes[16] = 0x20;
 
-            bytes[17] = IsFree ? (byte)0x66 : (byte)0x6E;
+            bytes[17] = IsFree ? 0x66 : 0x6E;
             bytes[18] = 0x0D;
             bytes[19] = 0x0A;
         }
