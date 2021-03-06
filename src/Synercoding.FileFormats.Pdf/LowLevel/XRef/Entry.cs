@@ -28,7 +28,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.XRef
             _fillSpanLeadingZero(bytes.Slice(11, 5), GenerationNumber);
             bytes[16] = 0x20;
 
-            bytes[17] = IsFree ? 0x66 : 0x6E;
+            bytes[17] = (byte)( IsFree ? 0x66 : 0x6E );
             bytes[18] = 0x0D;
             bytes[19] = 0x0A;
         }
@@ -43,7 +43,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.XRef
             uint val = data;
             for (int i = span.Length - 1; i >= 0; i--)
             {
-                span[i] = (byte)('0' + (val % 10));
+                span[i] = (byte)( '0' + ( val % 10 ) );
                 val /= 10;
             }
         }
@@ -53,7 +53,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.XRef
             int val = data;
             for (int i = span.Length - 1; i >= 0; i--)
             {
-                span[i] = (byte)('0' + (val % 10));
+                span[i] = (byte)( '0' + ( val % 10 ) );
                 val /= 10;
             }
         }
