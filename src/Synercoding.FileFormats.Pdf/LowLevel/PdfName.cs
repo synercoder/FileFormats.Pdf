@@ -1,4 +1,3 @@
-using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +5,9 @@ using System.Text;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel
 {
+    /// <summary>
+    /// A class representing a name object in a pdf.
+    /// </summary>
     public class PdfName
     {
         private static readonly IDictionary<string, PdfName> _reservedNames = new Dictionary<string, PdfName>()
@@ -47,6 +49,11 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             { "XObject", new PdfName("XObject") },
         };
 
+        /// <summary>
+        /// Get a <see cref="PdfName"/> from a given <see cref="string"/>
+        /// </summary>
+        /// <param name="name">The name in raw string form</param>
+        /// <returns>A <see cref="PdfName"/> that is based on the given <paramref name="name"/>.</returns>
         public static PdfName Get(string name)
         {
             if (_reservedNames.TryGetValue(name, out var value))
@@ -68,6 +75,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _encoded = _encode(raw);
         }
 
+        /// <inheritdoc />
         public override string ToString()
             => _encoded;
 
@@ -99,7 +107,8 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                     '}' => "#7d",
                     // special characters
                     var cc when cc < 16 => $"#0{Convert.ToString(cc, 16)}",
-                    var cc when cc > 126 || cc < 32 => '#' + Convert.ToString(cc, 16),
+                    var cc when cc < 32 => '#' + Convert.ToString(cc, 16),
+                    var cc when cc > 126 => '#' + Convert.ToString(cc, 16),
                     // "readable characters"
                     var cc => cc.ToString()
                 };
@@ -107,13 +116,6 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             }
 
             return pdfName.ToString();
-        }
-
-        public uint WriteToStream(PdfStream stream)
-        {
-            var position = stream.Position;
-            stream.Write(this);
-            return position;
         }
     }
 }

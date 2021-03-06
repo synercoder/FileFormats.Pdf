@@ -1,18 +1,24 @@
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
+
 namespace Synercoding.FileFormats.Pdf.LowLevel.Operators.Color
 {
+    /// <summary>
+    /// Struct representing a stroking cmyk operation (K)
+    /// </summary>
     public struct CmykStrokingColorOperator
     {
-        public CmykStrokingColorOperator(Graphics.CmykColor color)
+        /// <summary>
+        /// Constructor for <see cref="CmykStrokingColorOperator"/>.
+        /// </summary>
+        /// <param name="color">The color to use.</param>
+        public CmykStrokingColorOperator(CmykColor color)
         {
-            Cyan = color.Cyan;
-            Magenta = color.Magenta;
-            Yellow = color.Yellow;
-            Key = color.Key;
+            Color = color;
         }
 
-        public double Cyan { get; }
-        public double Magenta { get; }
-        public double Yellow { get; }
-        public double Key { get; }
+        /// <summary>
+        /// The color used in the operation
+        /// </summary>
+        public CmykColor Color { get; init; }
     }
 }

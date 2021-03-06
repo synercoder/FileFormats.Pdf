@@ -8,15 +8,17 @@ namespace Synercoding.FileFormats.Pdf.Internals
     {
         private readonly ContentStream _contentStream;
 
-        internal GraphicsState State { get; } = new GraphicsState();
+        internal GraphicsState State { get; }
 
         internal Path? CurrentPath { get; set; } = null;
 
-        internal ShapeContext(ContentStream contentStream)
+        internal ShapeContext(ContentStream contentStream, PageResources resources)
         {
             _contentStream = contentStream;
 
             _contentStream.SaveState();
+
+            State = new GraphicsState(resources);
         }
 
         public void Dispose()
@@ -42,7 +44,7 @@ namespace Synercoding.FileFormats.Pdf.Internals
             var state = State.Clone();
             configureState(state);
 
-            var path = new Path(this, _contentStream, state);
+            var path = new Path(_contentStream, state);
 
             CurrentPath = path;
 

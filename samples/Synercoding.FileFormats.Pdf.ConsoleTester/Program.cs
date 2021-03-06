@@ -1,7 +1,9 @@
 using Synercoding.FileFormats.Pdf.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
+using System;
 using System.IO;
 
 namespace Synercoding.FileFormats.Pdf.ConsoleTester
@@ -66,7 +68,7 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                                 g.Stroke = null;
                                 g.Dash = new Dash()
                                 {
-                                    Array = new double[0],
+                                    Array = Array.Empty<double>(),
                                     Phase = 0
                                 };
                                 g.MiterLimit = 10;
@@ -74,18 +76,18 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                                 g.LineJoin = LineJoinStyle.MiterJoin;
                             });
 
-                            ctx.NewPath(g => { g.Fill = Colors.Red; g.Stroke = Colors.Black; g.LineWidth = 5; })
+                            ctx.NewPath(g => { g.Fill = PredefinedColors.Red; g.Stroke = PredefinedColors.Black; g.LineWidth = 5; })
                                 .Move(100, 100)
                                 .LineTo(200, 100)
                                 .LineTo(200, 200)
                                 .LineTo(100, 200);
-                            ctx.NewPath(g => { g.Fill = Colors.Blue; g.Stroke = null; })
+                            ctx.NewPath(g => { g.Fill = PredefinedColors.Blue; g.Stroke = null; })
                                 .Move(50, 50)
                                 .LineTo(150, 50)
                                 .LineTo(150, 150)
                                 .LineTo(50, 150)
                                 .Close();
-                            ctx.NewPath(g => { g.Fill = null; g.Stroke = Colors.Yellow; g.LineWidth = 3; g.Dash = new Dash() { Array = new[] { 5d } }; })
+                            ctx.NewPath(g => { g.Fill = null; g.Stroke = PredefinedColors.Yellow; g.LineWidth = 3; g.Dash = new Dash() { Array = new[] { 5d } }; })
                                 .Move(150, 150)
                                 .LineTo(250, 150)
                                 .LineTo(250, 250)

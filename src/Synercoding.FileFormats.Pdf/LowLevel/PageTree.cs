@@ -1,4 +1,4 @@
-﻿using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,12 +20,13 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _pages = pages;
         }
 
+        /// <inheritdoc />
         public PdfReference Reference { get; }
 
         public void AddPage(PdfPage pdfObject)
             => _pages.Add(pdfObject);
 
-        public uint WriteToStream(PdfStream stream)
+        internal uint WriteToStream(PdfStream stream)
         {
             if (_isWritten)
             {
@@ -37,8 +38,8 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             {
                 dictionary
                     .Type(ObjectType.Pages)
-                    .Write(PdfName.Get("Kids"), pageTree._pages.Select(static p => p.Reference))
-                    .Write(PdfName.Get("Count"), pageTree._pages.Count());
+                    .Write(PdfName.Get("Kids"), pageTree._pages.Select(static p => p.Reference).ToArray())
+                    .Write(PdfName.Get("Count"), pageTree._pages.Count);
             });
             _isWritten = true;
 

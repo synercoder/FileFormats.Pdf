@@ -1,5 +1,6 @@
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Color;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Pathing.Construction;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Pathing.Painting;
@@ -11,12 +12,10 @@ namespace Synercoding.FileFormats.Pdf.Internals
 {
     internal class Path : IPath
     {
-        private readonly ShapeContext _context;
         private readonly ContentStream _contentStream;
 
-        public Path(ShapeContext context, ContentStream contentStream, GraphicsState graphicsState)
+        public Path(ContentStream contentStream, GraphicsState graphicsState)
         {
-            _context = context;
             _contentStream = contentStream;
             GraphicsState = graphicsState;
 
@@ -35,14 +34,10 @@ namespace Synercoding.FileFormats.Pdf.Internals
                 .Write(new LineJoinOperator(GraphicsState.LineJoin))
                 .Write(new MiterLimitOperator(GraphicsState.MiterLimit))
                 .Write(new DashOperator(GraphicsState.Dash.Array, GraphicsState.Dash.Phase));
-
-            // write graphic state to stream
         }
 
         internal void FinishPath()
         {
-            // TODO: set colorspace for stroke and/or fill
-
             if (GraphicsState.Stroke is not null && GraphicsState.Fill is not null)
             {
                 if (GraphicsState.Stroke is GrayColor gs)
@@ -99,11 +94,9 @@ namespace Synercoding.FileFormats.Pdf.Internals
             _contentStream.RestoreState();
         }
 
-        public IShapeContext Close()
+        public void Close()
         {
             _contentStream.Write(new CloseOperator());
-
-            return _context;
         }
 
         public IPath CurveTo(double cpX1, double cpY1, double cpX2, double cpY2, double finalX, double finalY)
@@ -118,27 +111,27 @@ namespace Synercoding.FileFormats.Pdf.Internals
             return this;
         }
 
-        public IPath CurveToWithEndAnker(double cpX, double cpY, double finalX, double finalY)
+        public IPath CurveToWithEndAnker(double cpX1, double cpY1, double finalX, double finalY)
         {
-            _contentStream.Write(new CubicBezierCurveFinalControlPointsOperator(cpX, cpY, finalX, finalY));
+            _contentStream.Write(new CubicBezierCurveFinalControlPointsOperator(cpX1, cpY1, finalX, finalY));
             return this;
         }
 
-        public IPath CurveToWithEndAnker(Point cp, Point final)
+        public IPath CurveToWithEndAnker(Point cp1, Point final)
         {
-            _contentStream.Write(new CubicBezierCurveFinalControlPointsOperator(cp, final));
+            _contentStream.Write(new CubicBezierCurveFinalControlPointsOperator(cp1, final));
             return this;
         }
 
-        public IPath CurveToWithStartAnker(double cpX, double cpY, double finalX, double finalY)
+        public IPath CurveToWithStartAnker(double cpX2, double cpY2, double finalX, double finalY)
         {
-            _contentStream.Write(new CubicBezierCurveInitialControlPointsOperator(cpX, cpY, finalX, finalY));
+            _contentStream.Write(new CubicBezierCurveInitialControlPointsOperator(cpX2, cpY2, finalX, finalY));
             return this;
         }
 
-        public IPath CurveToWithStartAnker(Point cp, Point final)
+        public IPath CurveToWithStartAnker(Point cp2, Point final)
         {
-            _contentStream.Write(new CubicBezierCurveInitialControlPointsOperator(cp, final));
+            _contentStream.Write(new CubicBezierCurveInitialControlPointsOperator(cp2, final));
             return this;
         }
 

@@ -1,4 +1,3 @@
-using Synercoding.FileFormats.Pdf.Internals;
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
@@ -13,8 +12,6 @@ namespace Synercoding.FileFormats.Pdf
     /// </summary>
     public sealed class PdfPage : IPdfObject, IDisposable
     {
-        private int _imageCounter = 0;
-        private readonly Map<PdfName, Image> _images = new Map<PdfName, Image>();
         private readonly TableBuilder _tableBuilder;
         private readonly PageTree _parent;
 
@@ -30,6 +27,8 @@ namespace Synercoding.FileFormats.Pdf
             Reference = tableBuilder.ReserveId();
             ContentStream = new ContentStream(tableBuilder.ReserveId());
         }
+
+        internal PageResources Resources { get; } = new PageResources();
 
         /// <summary>
         /// The content stream of this page
@@ -90,7 +89,7 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, image);
 
-            return _addImageToResources(pdfImage);
+            return Resources.AddImageToResources(pdfImage);
         }
 
         /// <summary>
@@ -106,7 +105,7 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, jpgStream, width, height);
 
-            return _addImageToResources(pdfImage);
+            return Resources.AddImageToResources(pdfImage);
         }
 
         /// <summary>
@@ -127,30 +126,15 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>The <see cref="PdfName"/> that can be used to reference this image in the <see cref="ContentStream"/></returns>
         public PdfName AddImageToResources(Image image)
         {
-            return _addImageToResources(image);
+            return Resources.AddImageToResources(image);
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
-            foreach (var kv in _images)
-                kv.Value.Dispose();
+            Resources.Dispose();
 
             ContentStream.Dispose();
-        }
-
-        private PdfName _addImageToResources(Image image)
-        {
-            if (_images.Reverse.Contains(image))
-                return _images.Reverse[image];
-
-            var key = "Im" + System.Threading.Interlocked.Increment(ref _imageCounter).ToString().PadLeft(6, '0');
-
-            var pdfName = PdfName.Get(key);
-
-            _images.Add(pdfName, image);
-
-            return pdfName;
         }
 
         internal uint WriteToStream(PdfStream stream)
@@ -178,23 +162,19 @@ namespace Synercoding.FileFormats.Pdf
                     .WriteIfNotNull(PdfName.Get("Rotate"), page.Rotation);
 
                 // Resources
-                if (page._images.Count == 0)
+                dictionary.Write(PdfName.Get("Resources"), page.Resources, static (resources, stream) => stream.Dictionary(resources, static (resources, stream) =>
                 {
-                    dictionary.Write(PdfName.Get("Resources"), static x => x.EmptyDictionary());
-                }
-                else
-                {
-                    dictionary.Write(PdfName.Get("Resources"), page._images, static (images, stream) => stream.Dictionary(images, static (images, resources) =>
+                    if (resources.Images.Count != 0)
                     {
-                        resources.Write(PdfName.Get("XObject"), images, static (images, stream) => stream.Dictionary(images, static (images, xobject) =>
+                        stream.Write(PdfName.Get("XObject"), resources.Images, static (images, stream) => stream.Dictionary(images, static (images, xobject) =>
                         {
                             foreach (var image in images)
                             {
                                 xobject.Write(image.Key, image.Value.Reference);
                             }
                         }));
-                    }));
-                }
+                    }
+                }));
 
                 // Content stream
                 dictionary.Write(PdfName.Get("Contents"), page.ContentStream.Reference);
@@ -202,7 +182,7 @@ namespace Synercoding.FileFormats.Pdf
 
             _isWritten = true;
 
-            foreach (var kv in _images)
+            foreach (var kv in Resources.Images)
             {
                 if (kv.Value.TryWriteToStream(stream, out uint dependentPosition))
                 {

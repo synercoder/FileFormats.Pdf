@@ -146,7 +146,7 @@ namespace Synercoding.FileFormats.Pdf.Extensions
         /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
         public static PdfPage AddShapes<T>(this PdfPage page, T data, Action<T, IShapeContext> paintAction)
         {
-            using (var context = new ShapeContext(page.ContentStream))
+            using (var context = new ShapeContext(page.ContentStream, page.Resources))
                 paintAction(data, context);
 
             return page;

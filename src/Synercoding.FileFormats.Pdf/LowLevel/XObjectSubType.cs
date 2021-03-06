@@ -1,6 +1,6 @@
-﻿namespace Synercoding.FileFormats.Pdf.LowLevel
+namespace Synercoding.FileFormats.Pdf.LowLevel
 {
-    public enum XObjectSubType
+    internal enum XObjectSubType
     {
         Image
     }

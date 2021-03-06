@@ -93,7 +93,7 @@ namespace Synercoding.FileFormats.Pdf
         }
 
         /// <summary>
-        /// Add an <seealso cref="SixLabors.ImageSharp.Image"/> to the pdf file and get the <seealso cref="Image"/> reference returned
+        /// Add an <see cref="SixLabors.ImageSharp.Image"/> to the pdf file and get the <see cref="Image"/> reference returned
         /// </summary>
         /// <param name="image">The image that needs to be added.</param>
         /// <returns>The image reference that can be used in pages</returns>
@@ -190,14 +190,14 @@ namespace Synercoding.FileFormats.Pdf
             {
                 StartXRef = startXRef;
                 Size = size;
-                Root = root;
-                DocumentInfo = documentInfo;
+                Root = root.Reference;
+                DocumentInfo = documentInfo.Reference;
             }
 
             public uint StartXRef { get; }
             public int Size { get; }
-            public Catalog Root { get; }
-            public DocumentInformation DocumentInfo { get; }
+            public PdfReference Root { get; }
+            public PdfReference DocumentInfo { get; }
 
             internal uint WriteToStream(PdfStream stream)
             {
@@ -210,8 +210,8 @@ namespace Synercoding.FileFormats.Pdf
                     {
                         dictionary
                             .Write(PdfName.Get("Size"), trailer.Size)
-                            .Write(PdfName.Get("Root"), trailer.Root.Reference)
-                            .Write(PdfName.Get("Info"), trailer.DocumentInfo.Reference);
+                            .Write(PdfName.Get("Root"), trailer.Root)
+                            .Write(PdfName.Get("Info"), trailer.DocumentInfo);
                     })
                     .Write("startxref")
                     .NewLine()

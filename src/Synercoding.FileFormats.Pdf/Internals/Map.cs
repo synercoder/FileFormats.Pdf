@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -37,7 +38,7 @@ namespace Synercoding.FileFormats.Pdf.Internals
         public Indexer<T1, T2> Forward { get; }
         public Indexer<T2, T1> Reverse { get; }
 
-        public sealed class Indexer<T3, T4>
+        public sealed class Indexer<T3, T4> : IReadOnlyDictionary<T3, T4>
             where T3 : notnull
             where T4 : notnull
         {
@@ -54,8 +55,26 @@ namespace Synercoding.FileFormats.Pdf.Internals
                 set => _dictionary[index] = value;
             }
 
+            public IEnumerable<T3> Keys => _dictionary.Keys;
+
+            public IEnumerable<T4> Values => _dictionary.Values;
+
+            public int Count => _dictionary.Count;
+
             public bool Contains(T3 value)
                 => _dictionary.ContainsKey(value);
+
+            public bool ContainsKey(T3 key)
+                => _dictionary.ContainsKey(key);
+
+            public IEnumerator<KeyValuePair<T3, T4>> GetEnumerator()
+                => _dictionary.GetEnumerator();
+
+            public bool TryGetValue(T3 key, out T4 value)
+                => throw new InvalidOperationException("TryGetValue is not supported on types with non-nullable values.");
+
+            IEnumerator IEnumerable.GetEnumerator()
+                => _dictionary.GetEnumerator();
         }
     }
 }

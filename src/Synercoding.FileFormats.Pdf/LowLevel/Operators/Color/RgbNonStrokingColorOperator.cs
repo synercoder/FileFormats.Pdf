@@ -1,16 +1,24 @@
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
+
 namespace Synercoding.FileFormats.Pdf.LowLevel.Operators.Color
 {
+    /// <summary>
+    /// Struct representing a rgb non stroking operator (rg)
+    /// </summary>
     public struct RgbNonStrokingColorOperator
     {
-        public RgbNonStrokingColorOperator(Graphics.RgbColor color)
+        /// <summary>
+        /// Constructor for <see cref="RgbNonStrokingColorOperator"/>.
+        /// </summary>
+        /// <param name="color">The color to use.</param>
+        public RgbNonStrokingColorOperator(RgbColor color)
         {
-            Red = color.Red;
-            Green = color.Green;
-            Blue = color.Blue;
+            Color = color;
         }
 
-        public double Red { get; }
-        public double Green { get; }
-        public double Blue { get; }
+        /// <summary>
+        /// The color used in the operation
+        /// </summary>
+        public RgbColor Color { get; init; }
     }
 }
