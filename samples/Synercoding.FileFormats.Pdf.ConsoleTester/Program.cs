@@ -1,6 +1,9 @@
-using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.FileFormats.Pdf.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
+using System;
 using System.IO;
 
 namespace Synercoding.FileFormats.Pdf.ConsoleTester
@@ -52,6 +55,45 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                             var offSet = 6;
                             page.AddImage(eyeStream, new Rectangle(offSet, offSet, width + offSet, height + offSet, Unit.Millimeters));
                         }
+                    })
+                    // Test shape graphics
+                    .AddPage(page =>
+                    {
+                        page.AddShapes(ctx =>
+                        {
+                            ctx.DefaultState(g =>
+                            {
+                                g.LineWidth = 1;
+                                g.Fill = null;
+                                g.Stroke = null;
+                                g.Dash = new Dash()
+                                {
+                                    Array = Array.Empty<double>(),
+                                    Phase = 0
+                                };
+                                g.MiterLimit = 10;
+                                g.LineCap = LineCapStyle.ButtCap;
+                                g.LineJoin = LineJoinStyle.MiterJoin;
+                            });
+
+                            ctx.NewPath(g => { g.Fill = PredefinedColors.Red; g.Stroke = PredefinedColors.Black; g.LineWidth = 5; })
+                                .Move(100, 100)
+                                .LineTo(200, 100)
+                                .LineTo(200, 200)
+                                .LineTo(100, 200);
+                            ctx.NewPath(g => { g.Fill = PredefinedColors.Blue; g.Stroke = null; })
+                                .Move(50, 50)
+                                .LineTo(150, 50)
+                                .LineTo(150, 150)
+                                .LineTo(50, 150)
+                                .Close();
+                            ctx.NewPath(g => { g.Fill = null; g.Stroke = PredefinedColors.Yellow; g.LineWidth = 3; g.Dash = new Dash() { Array = new[] { 5d } }; })
+                                .Move(150, 150)
+                                .LineTo(250, 150)
+                                .LineTo(250, 250)
+                                .LineTo(150, 250)
+                                .Close();
+                        });
                     })
                     // Test placement using matrix
                     .AddPage(page =>

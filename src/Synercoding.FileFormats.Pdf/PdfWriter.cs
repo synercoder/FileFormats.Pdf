@@ -1,27 +1,23 @@
-using Synercoding.FileFormats.Pdf.PdfInternals;
-using Synercoding.FileFormats.Pdf.PdfInternals.Objects;
-using Synercoding.FileFormats.Pdf.PdfInternals.XRef;
+using Synercoding.FileFormats.Pdf.LowLevel;
+using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
 namespace Synercoding.FileFormats.Pdf
 {
     /// <summary>
-    /// Main class for writing PDF files to streams
+    /// This class is the start point for creating a pdf file
     /// </summary>
-    public class PdfWriter : IDisposable
+    public sealed class PdfWriter : IDisposable
     {
         private readonly bool _ownsStream;
-        private readonly Stream _stream;
+        private readonly PdfStream _stream;
         private readonly TableBuilder _tableBuilder = new TableBuilder();
 
-        private readonly PdfReference _documentInfo;
-        private readonly PdfReference _pageTreeNode;
-        private readonly PdfReference _catalog;
-
-        private readonly IList<IPdfObject> _pageReferences = new List<IPdfObject>();
+        private readonly PageTree _pageTree;
+        private readonly Catalog _catalog;
 
         /// <summary>
         /// Constructor for <see cref="PdfWriter"/>
@@ -38,12 +34,17 @@ namespace Synercoding.FileFormats.Pdf
         /// <param name="ownsStream">If the stream is owned, then when this <see cref="PdfWriter"/> is disposed, the stream is also disposed.</param>
         public PdfWriter(Stream stream, bool ownsStream)
         {
-            _stream = stream;
-            new Header().WriteToStream(stream);
+            _stream = new PdfStream(stream);
+            _writeHeader(_stream);
 
-            _pageTreeNode = _tableBuilder.ReserveId();
-            _catalog = _tableBuilder.ReserveId();
-            _documentInfo = _tableBuilder.ReserveId();
+            _pageTree = new PageTree(_tableBuilder.ReserveId());
+            _catalog = new Catalog(_tableBuilder.ReserveId(), _pageTree);
+
+            DocumentInformation = new DocumentInformation(_tableBuilder.ReserveId())
+            {
+                Producer = $"Synercoding.FileFormats.Pdf {typeof(PdfWriter).GetTypeInfo().Assembly.GetName().Version}",
+                CreationDate = DateTime.Now
+            };
 
             _ownsStream = ownsStream;
         }
@@ -51,49 +52,7 @@ namespace Synercoding.FileFormats.Pdf
         /// <summary>
         /// Document information, such as the author and title
         /// </summary>
-        public DocumentInformation DocumentInformation { get; } = new DocumentInformation()
-        {
-            Producer = $"Synercoding.FileFormats.Pdf {typeof(PdfWriter).GetTypeInfo().Assembly.GetName().Version}",
-            CreationDate = DateTime.Now
-        };
-
-        /// <summary>
-        /// Add a page to the pdf file
-        /// </summary>
-        /// <param name="pageAction">Action used to setup the page</param>
-        /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
-        public PdfWriter AddPage(Action<PdfPage> pageAction)
-        {
-            var page = new PdfPage(_tableBuilder);
-            pageAction(page);
-
-            using (var obj = new Page(_tableBuilder, page, _pageTreeNode))
-            {
-                _pageReferences.Add(obj);
-
-                obj.WriteToStream(_stream);
-            }
-
-            return this;
-        }
-
-        /// <summary>
-        /// Add an <seealso cref="SixLabors.ImageSharp.Image"/> to the pdf file and get the <seealso cref="Image"/> reference returned
-        /// </summary>
-        /// <param name="image">The image that needs to be added.</param>
-        /// <returns>The image reference that can be used in pages</returns>
-        public Image AddImage(SixLabors.ImageSharp.Image image)
-        {
-            var id = _tableBuilder.ReserveId();
-
-            var pdfImage = new Image(id, image);
-
-            var position = pdfImage.WriteToStream(_stream);
-
-            _tableBuilder.SetPosition(id, position);
-
-            return pdfImage;
-        }
+        public DocumentInformation DocumentInformation { get; }
 
         /// <summary>
         /// Set meta information for this document
@@ -108,8 +67,51 @@ namespace Synercoding.FileFormats.Pdf
         }
 
         /// <summary>
-        /// Close the PDF document by writing the pagetree, catalog, xref table and trailer to the <see cref="Stream"/>
+        /// Add a page to the pdf file
         /// </summary>
+        /// <param name="pageAction">Action used to setup the page</param>
+        /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
+        public PdfWriter AddPage(Action<PdfPage> pageAction)
+            => AddPage(pageAction, static (action, page) => action(page));
+
+        /// <summary>
+        /// Add a page to the pdf file
+        /// </summary>
+        /// <param name="data">Data passed into the action</param>
+        /// <param name="pageAction">Action used to setup the page</param>
+        /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
+        public PdfWriter AddPage<T>(T data, Action<T, PdfPage> pageAction)
+        {
+            using (var page = new PdfPage(_tableBuilder, _pageTree))
+            {
+                pageAction(data, page);
+
+                page.WriteToStream(_stream);
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Add an <see cref="SixLabors.ImageSharp.Image"/> to the pdf file and get the <see cref="Image"/> reference returned
+        /// </summary>
+        /// <param name="image">The image that needs to be added.</param>
+        /// <returns>The image reference that can be used in pages</returns>
+        public Image AddImage(SixLabors.ImageSharp.Image image)
+        {
+            var id = _tableBuilder.ReserveId();
+
+            var pdfImage = new Image(id, image);
+
+            if (!pdfImage.TryWriteToStream(_stream, out uint position))
+                throw new InvalidOperationException("Image was just created but could not be written to stream.");
+
+            _tableBuilder.SetPosition(id, position);
+
+            return pdfImage;
+        }
+
+        /// <inheritdoc />
         public void Dispose()
         {
             _writePageTree();
@@ -128,42 +130,97 @@ namespace Synercoding.FileFormats.Pdf
             }
         }
 
+        private static void _writeHeader(PdfStream stream)
+        {
+            stream.WriteByte(0x25); // %
+            stream.WriteByte(0x50); // P
+            stream.WriteByte(0x44); // D
+            stream.WriteByte(0x46); // F
+            stream.WriteByte(0x2D); // -
+            stream.WriteByte(0x31); // 1
+            stream.WriteByte(0x2E); // .
+            stream.WriteByte(0x37); // 7
+            stream.WriteByte(0x0D); // CR
+            stream.WriteByte(0x0A); // LF
+            stream.WriteByte(0x25); // %
+            stream.WriteByte(0x81); // binary indicator > 128
+            stream.WriteByte(0x82); // binary indicator > 128
+            stream.WriteByte(0x83); // binary indicator > 128
+            stream.WriteByte(0x84); // binary indicator > 128
+            stream.WriteByte(0x0D); // CR
+            stream.WriteByte(0x0A); // LF
+        }
+
         private void _writeDocumentInformation()
         {
-            _tableBuilder.SetPosition(_documentInfo, (uint)_stream.Position);
+            _tableBuilder.SetPosition(DocumentInformation.Reference, (uint)_stream.Position);
 
-            var info = new DocumentInformationDictionary(_documentInfo, DocumentInformation);
-            info.WriteToStream(_stream);
+            DocumentInformation.WriteToStream(_stream);
         }
 
         private void _writePageTree()
         {
-            _tableBuilder.SetPosition(_pageTreeNode, (uint)_stream.Position);
+            _tableBuilder.SetPosition(_pageTree.Reference, (uint)_stream.Position);
 
-            var tree = new PageTree(_pageTreeNode, _pageReferences);
-            tree.WriteToStream(_stream);
+            _pageTree.WriteToStream(_stream);
         }
 
         private void _writeCatalog()
         {
-            _tableBuilder.SetPosition(_catalog, (uint)_stream.Position);
+            _tableBuilder.SetPosition(_catalog.Reference, (uint)_stream.Position);
 
-            var catalog = new Catalog(_catalog, _pageTreeNode);
-            catalog.WriteToStream(_stream);
+            _catalog.WriteToStream(_stream);
         }
 
         private void _writePdfEnding()
         {
             if (!_tableBuilder.Validate())
-            {
                 throw new InvalidOperationException("XRef table is invalid.");
-            }
 
             var xRefTable = _tableBuilder.GetXRefTable();
             uint xRefPosition = xRefTable.WriteToStream(_stream);
 
-            var trailer = new Trailer(xRefPosition, xRefTable.Section.ObjectCount, _catalog, _documentInfo);
+            var trailer = new Trailer(xRefPosition, xRefTable.Section.ObjectCount, _catalog, DocumentInformation);
             trailer.WriteToStream(_stream);
+        }
+
+        private readonly struct Trailer
+        {
+            public Trailer(uint startXRef, int size, Catalog root, DocumentInformation documentInfo)
+            {
+                StartXRef = startXRef;
+                Size = size;
+                Root = root.Reference;
+                DocumentInfo = documentInfo.Reference;
+            }
+
+            public uint StartXRef { get; }
+            public int Size { get; }
+            public PdfReference Root { get; }
+            public PdfReference DocumentInfo { get; }
+
+            internal uint WriteToStream(PdfStream stream)
+            {
+                var position = (uint)stream.Position;
+
+                stream
+                    .Write("trailer")
+                    .NewLine()
+                    .Dictionary(this, static (trailer, dictionary) =>
+                    {
+                        dictionary
+                            .Write(PdfName.Get("Size"), trailer.Size)
+                            .Write(PdfName.Get("Root"), trailer.Root)
+                            .Write(PdfName.Get("Info"), trailer.DocumentInfo);
+                    })
+                    .Write("startxref")
+                    .NewLine()
+                    .Write(StartXRef)
+                    .NewLine()
+                    .Write("%%EOF");
+
+                return position;
+            }
         }
     }
 }
