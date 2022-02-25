@@ -30,6 +30,20 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                     {
                         info.Author = "Gerard Gunnewijk";
                         info.Title = "Example 1";
+                        info.ExtraInfo.Add("CutContourProgramId", "cloud-shape");
+                    })
+                    // Add image to writer directly and then use that image in the page
+                    .AddPage(page =>
+                    {
+                        page.MediaBox = mediaBox;
+                        page.TrimBox = trimBox;
+
+                        using (var blurStream = File.OpenRead("Pexels_com/4k-wallpaper-blur-bokeh-1484253.jpg"))
+                        {
+                            var addedImage = writer.AddJpgImageUnsafe(blurStream, 7000, 4672);
+                            var scale = (double)addedImage.Width / addedImage.Height;
+                            page.AddImage(addedImage, new Rectangle(0, 0, scale * 303, 303, Unit.Millimeters));
+                        }
                     })
                     // Test placement using rectangle
                     .AddPage(page =>
@@ -118,7 +132,7 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                 {
                     var reusedImage = writer.AddImage(blurImage);
 
-                    for(int i = 0; i < 4; i++)
+                    for (int i = 0; i < 4; i++)
                     {
                         writer.AddPage(page =>
                         {

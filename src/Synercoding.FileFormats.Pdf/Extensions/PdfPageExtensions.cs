@@ -1,5 +1,4 @@
 using Synercoding.FileFormats.Pdf.Internals;
-using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.Primitives;
 using System;
 using System.IO;
@@ -98,13 +97,16 @@ namespace Synercoding.FileFormats.Pdf.Extensions
         /// <summary>
         /// Add an image to the pdf page
         /// </summary>
+        /// <remarks>
+        /// The <paramref name="jpgStream"/> is not checked, and is used as is. Make sure only streams that represent a JPG are used.
+        /// </remarks>
         /// <param name="page">The page to add the image to</param>
         /// <param name="jpgStream">The image to add</param>
         /// <param name="originalWidth">The original width of the image</param>
         /// <param name="originalHeight">The original height of the image</param>
         /// <param name="matrix">The placement matrix</param>
         /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
-        public static PdfPage AddImage(this PdfPage page, Stream jpgStream, int originalWidth, int originalHeight, Matrix matrix)
+        public static PdfPage AddJpgImageUnsafe(this PdfPage page, Stream jpgStream, int originalWidth, int originalHeight, Matrix matrix)
         {
             page.ContentStream
                 .SaveState()
@@ -118,14 +120,17 @@ namespace Synercoding.FileFormats.Pdf.Extensions
         /// <summary>
         /// Add an image to the pdf page
         /// </summary>
+        /// <remarks>
+        /// The <paramref name="jpgStream"/> is not checked, and is used as is. Make sure only streams that represent a JPG are used.
+        /// </remarks>
         /// <param name="page">The page to add the image to</param>
         /// <param name="jpgStream">The image to add</param>
         /// <param name="originalWidth">The original width of the image</param>
         /// <param name="originalHeight">The original height of the image</param>
         /// <param name="rectangle">The placement rectangle</param>
         /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
-        public static PdfPage AddImage(this PdfPage page, Stream jpgStream, int originalWidth, int originalHeight, Rectangle rectangle)
-            => page.AddImage(jpgStream, originalWidth, originalHeight, rectangle.AsPlacementMatrix());
+        public static PdfPage AddJpgImageUnsafe(this PdfPage page, Stream jpgStream, int originalWidth, int originalHeight, Rectangle rectangle)
+            => page.AddJpgImageUnsafe(jpgStream, originalWidth, originalHeight, rectangle.AsPlacementMatrix());
 
         /// <summary>
         /// Add shapes to the pdf page

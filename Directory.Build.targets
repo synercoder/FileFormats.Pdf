@@ -6,4 +6,9 @@
     <DefineConstants>$(DefineConstants);$(OS)</DefineConstants>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Update="SixLabors.ImageSharp" Version="1.0.4" />
+    <PackageReference Update="Synercoding.Primitives" Version="1.0.0-rc08" />
+  </ItemGroup>
+
 </Project>
