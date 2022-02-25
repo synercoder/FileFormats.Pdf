@@ -111,6 +111,30 @@ namespace Synercoding.FileFormats.Pdf
             return pdfImage;
         }
 
+        /// <summary>
+        /// Add an jpg <see cref="Stream"/> to the pdf file and get the <see cref="Image"/> reference returned
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="jpgStream"/> is not checked, and is used as is. Make sure only streams that represent a JPG are used.
+        /// </remarks>
+        /// <param name="jpgStream">The <see cref="Stream"/> of the jpg image that needs to be added.</param>
+        /// <param name="originalWidth">The width of the image in the <paramref name="jpgStream"/>.</param>
+        /// <param name="originalHeight">The height of the image in the <paramref name="jpgStream"/>.</param>
+        /// <returns>The image reference that can be used in pages</returns>
+        public Image AddJpgImageUnsafe(Stream jpgStream, int originalWidth, int originalHeight)
+        {
+            var id = _tableBuilder.ReserveId();
+
+            var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight);
+
+            if (!pdfImage.TryWriteToStream(_stream, out uint position))
+                throw new InvalidOperationException("Image was just created but could not be written to stream.");
+
+            _tableBuilder.SetPosition(id, position);
+
+            return pdfImage;
+        }
+
         /// <inheritdoc />
         public void Dispose()
         {
