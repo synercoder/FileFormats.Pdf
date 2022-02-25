@@ -12,9 +12,6 @@ namespace Synercoding.FileFormats.Pdf
     public sealed class Image : IPdfObject, IDisposable
     {
         private readonly Stream _imageStream;
-        private readonly int _width;
-        private readonly int _height;
-
         private bool _disposed;
         private bool _isWritten;
 
@@ -28,8 +25,8 @@ namespace Synercoding.FileFormats.Pdf
                 Quality = 100,
                 Subsample = SixLabors.ImageSharp.Formats.Jpeg.JpegSubsample.Ratio420
             });
-            _width = image.Width;
-            _height = image.Height;
+            Width = image.Width;
+            Height = image.Height;
             ms.Position = 0;
             _imageStream = ms;
         }
@@ -38,13 +35,23 @@ namespace Synercoding.FileFormats.Pdf
         {
             Reference = id;
 
-            _width = width;
-            _height = height;
+            Width = width;
+            Height = height;
             _imageStream = jpgStream;
         }
 
         /// <inheritdoc />
         public PdfReference Reference { get; private set; }
+
+        /// <summary>
+        /// The width of this <see cref="Image"/>
+        /// </summary>
+        public int Width { get; }
+
+        /// <summary>
+        /// The height of this <see cref="Image"/>
+        /// </summary>
+        public int Height { get; }
 
         /// <inheritdoc />
         public void Dispose()
@@ -72,8 +79,8 @@ namespace Synercoding.FileFormats.Pdf
                 dictionary
                     .Type(ObjectType.XObject)
                     .SubType(XObjectSubType.Image)
-                    .Write(PdfName.Get("Width"), image._width)
-                    .Write(PdfName.Get("Height"), image._height)
+                    .Write(PdfName.Get("Width"), image.Width)
+                    .Write(PdfName.Get("Height"), image.Height)
                     .Write(PdfName.Get("ColorSpace"), PdfName.Get("DeviceRGB"))
                     .Write(PdfName.Get("BitsPerComponent"), 8)
                     .Write(PdfName.Get("Decode"), 0f, 1f, 0f, 1f, 0f, 1f);
