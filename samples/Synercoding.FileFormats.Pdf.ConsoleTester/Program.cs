@@ -30,6 +30,7 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                     {
                         info.Author = "Gerard Gunnewijk";
                         info.Title = "Example 1";
+                        info.ExtraInfo.Add("CutContourProgramId", "cloud-shape");
                     })
                     // Test placement using rectangle
                     .AddPage(page =>
