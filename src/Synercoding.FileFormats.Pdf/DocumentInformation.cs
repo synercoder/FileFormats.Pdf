@@ -1,6 +1,7 @@
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using System;
+using System.Collections.Generic;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -59,6 +60,11 @@ namespace Synercoding.FileFormats.Pdf
         /// <inheritdoc />
         public PdfReference Reference { get; }
 
+        /// <summary>
+        /// Extra information that will be added to the PDF meta data
+        /// </summary>
+        public IDictionary<string, string> ExtraInfo { get; } = new Dictionary<string, string>();
+
         internal uint WriteToStream(PdfStream stream)
         {
             if (_isWritten)
@@ -84,6 +90,10 @@ namespace Synercoding.FileFormats.Pdf
                     dictionary.Write(PdfName.Get("CreationDate"), _toPdfDate(did.CreationDate.Value));
                 if (did.ModDate != null)
                     dictionary.Write(PdfName.Get("ModDate"), _toPdfDate(did.ModDate.Value));
+
+                if(did.ExtraInfo.Count != 0)
+                    foreach(var kv in did.ExtraInfo)
+                        dictionary.Write(PdfName.Get(kv.Key), _toPdfHexadecimalString(kv.Value));
             });
 
             _isWritten = true;
