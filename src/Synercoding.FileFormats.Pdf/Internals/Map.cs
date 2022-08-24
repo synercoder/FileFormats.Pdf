@@ -25,6 +25,12 @@ namespace Synercoding.FileFormats.Pdf.Internals
             _reverse.Add(t2, t1);
         }
 
+        public void Clear()
+        {
+            _forward.Clear();
+            _reverse.Clear();
+        }
+
         public IEnumerator<KeyValuePair<T1, T2>> GetEnumerator()
         {
             return _forward.GetEnumerator();
