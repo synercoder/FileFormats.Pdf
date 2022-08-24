@@ -17,6 +17,8 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             foreach (var kv in _images)
                 kv.Value.Dispose();
+
+            _images.Clear();
         }
 
         public PdfName AddImageToResources(Image image)
