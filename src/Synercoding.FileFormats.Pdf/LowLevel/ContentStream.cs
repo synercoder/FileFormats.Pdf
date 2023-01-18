@@ -1,10 +1,20 @@
+using SixLabors.ImageSharp;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Color;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Pathing.Construction;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Pathing.Painting;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.State;
+using Synercoding.FileFormats.Pdf.LowLevel.Text;
+using Synercoding.Primitives;
+using Synercoding.Primitives.Extensions;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using Color = Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors.Color;
+using Point = Synercoding.Primitives.Point;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel
 {
@@ -89,6 +99,249 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                 .Write(matrix.F)
                 .Space()
                 .Write("cm")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the BT operator to the stream
+        /// </summary>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream BeginText()
+        {
+            _streamWrapper
+                .Write("BT")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the font used to the content stream
+        /// </summary>
+        /// <param name="font">The font to write to the stream</param>
+        /// <param name="size">The font size to use</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream SetFontAndSize(PdfName font, float size)
+        {
+            _streamWrapper
+                .Write(font)
+                .Space()
+                .Write(size)
+                .Space()
+                .Write("Tf")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the text leading to the content stream
+        /// </summary>
+        /// <param name="leading">The leading value to write.</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream SetTextLeading(float leading)
+        {
+            _streamWrapper
+                .Write(leading)
+                .Space()
+                .Write("TL")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the character spacing to the content stream
+        /// </summary>
+        /// <param name="characterSpace">The character spacing value.</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream SetCharacterSpacing(float characterSpace)
+        {
+            _streamWrapper
+                .Write(characterSpace)
+                .Space()
+                .Write("Tc")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the horizontal scaling to the content stream
+        /// </summary>
+        /// <param name="horizontalScaling">The horizontal scaling value.</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream SetHorizontalScaling(float horizontalScaling)
+        {
+            _streamWrapper
+                .Write(horizontalScaling)
+                .Space()
+                .Write("Tz")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the text rise to the content stream
+        /// </summary>
+        /// <param name="textRise">The text rise value.</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream SetTextRise(float textRise)
+        {
+            _streamWrapper
+                .Write(textRise)
+                .Space()
+                .Write("Ts")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the text rendering mode to the content stream
+        /// </summary>
+        /// <param name="textRenderingMode">The text rendering mode value.</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream SetTextRenderMode(TextRenderingMode textRenderingMode)
+        {
+            _streamWrapper
+                .Write((int)textRenderingMode)
+                .Space()
+                .Write("Tr")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the word spacing to the content stream
+        /// </summary>
+        /// <param name="wordSpace">The word space value.</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream SetWordSpacing(float wordSpace)
+        {
+            _streamWrapper
+                .Write(wordSpace)
+                .Space()
+                .Write("Tw")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the end text operator to the content stream
+        /// </summary>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream EndText()
+        {
+            _streamWrapper
+                .Write("ET")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write one or more show text operators to the content stream
+        /// </summary>
+        /// <param name="text">The text to write</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream ShowText(string text)
+        {
+            var lines = _splitOnNewLines(text).ToArray();
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (i == 0)
+                {
+                    _streamWrapper
+                        .WriteStringLiteral(lines[i])
+                        .Space()
+                        .Write("Tj")
+                        .NewLine();
+                }
+                else
+                {
+                    _streamWrapper
+                        .WriteStringLiteral(lines[i])
+                        .Space()
+                        .Write("'")
+                        .NewLine();
+                }
+            }
+
+            return this;
+        }
+
+        private static IEnumerable<string> _splitOnNewLines(string text)
+        {
+            var builder = new StringBuilder(text.Length);
+            for (int i = 0; i < text.Length; i++)
+            {
+                var c = text[i];
+                var n = i < text.Length - 1
+                    ? text[i + 1]
+                    : '0';
+                if (( c == '\r' && n == '\n' ) || c == '\r' || c == '\n')
+                {
+                    yield return builder.ToString();
+                    builder.Clear();
+
+                    if (n == '\n')
+                        i++; // extra skip to also skip the \n
+                }
+                else
+                {
+                    builder.Append(c);
+                }
+            }
+
+            yield return builder.ToString();
+        }
+
+        /// <summary>
+        /// Write the <paramref name="position"/> to the content stream with a Td operator
+        /// </summary>
+        /// <param name="position">The position to write.</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream SetTextPosition(Point position)
+        {
+            _streamWrapper
+                .Write(position.X.AsRaw(Unit.Points))
+                .Space()
+                .Write(position.Y.AsRaw(Unit.Points))
+                .Space()
+                .Write("Td")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write a text transformation matrix operator (Tm) to the stream
+        /// </summary>
+        /// <param name="matrix">The <see cref="Matrix"/> to write.</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream Tm(Matrix matrix)
+        {
+            _streamWrapper
+                .Write(matrix.A)
+                .Space()
+                .Write(matrix.B)
+                .Space()
+                .Write(matrix.C)
+                .Space()
+                .Write(matrix.D)
+                .Space()
+                .Write(matrix.E)
+                .Space()
+                .Write(matrix.F)
+                .Space()
+                .Write("Tm")
                 .NewLine();
 
             return this;
@@ -304,6 +557,40 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                 .Write('n').NewLine();
 
             return this;
+        }
+
+        /// <summary>
+        /// Set the color used for filling operations
+        /// </summary>
+        /// <param name="color">The color to use</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        /// <exception cref="NotImplementedException">Will throw if the implementing color type is not supported.</exception>
+        public ContentStream SetColorFill(Color color)
+        {
+            return color switch
+            {
+                GrayColor gray => Write(new GrayNonStrokingColorOperator(gray)),
+                RgbColor rgb => Write(new RgbNonStrokingColorOperator(rgb)),
+                CmykColor cmyk => Write(new CmykNonStrokingColorOperator(cmyk)),
+                _ => throw new NotImplementedException($"The color type {color.GetType().Name} is not implemented.")
+            };
+        }
+
+        /// <summary>
+        /// Set the color used for stroking operations
+        /// </summary>
+        /// <param name="color">The color to use</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        /// <exception cref="NotImplementedException">Will throw if the implementing color type is not supported.</exception>
+        public ContentStream SetColorStroke(Color color)
+        {
+            return color switch
+            {
+                GrayColor gray => Write(new GrayStrokingColorOperator(gray)),
+                RgbColor rgb => Write(new RgbStrokingColorOperator(rgb)),
+                CmykColor cmyk => Write(new CmykStrokingColorOperator(cmyk)),
+                _ => throw new NotImplementedException($"The color type {color.GetType().Name} is not implemented.")
+            };
         }
 
         /// <summary>

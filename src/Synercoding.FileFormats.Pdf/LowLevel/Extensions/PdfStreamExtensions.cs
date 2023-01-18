@@ -52,6 +52,15 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
                 .NewLine();
         }
 
+        internal static PdfStream IndirectDictionary<T>(this PdfStream stream, PdfReference reference, T data, Action<T, PdfDictionary> dictionaryAction)
+        {
+            return stream
+                .StartObject(reference)
+                .Dictionary(data, dictionaryAction)
+                .EndObject()
+                .NewLine();
+        }
+
         /// <summary>
         /// Write a dictionary to the <see cref="PdfStream"/>
         /// </summary>
@@ -121,6 +130,74 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
             rectangle = rectangle.ConvertTo(Unit.Points);
 
             return stream.Write(rectangle.LLX.Raw, rectangle.LLY.Raw, rectangle.URX.Raw, rectangle.URY.Raw);
+        }
+
+        /// <summary>
+        /// Write a text to the stream as a string literal
+        /// </summary>
+        /// <param name="stream">The stream to write to</param>
+        /// <param name="value">The string to write</param>
+        /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
+        /// <exception cref="InvalidOperationException">Throws when the string contains characters outside of the StandardEncoding range.</exception>
+        public static PdfStream WriteStringLiteral(this PdfStream stream, string value)
+        {
+            stream.WriteByte(0x28); // (
+
+            foreach (var c in value)
+            {
+                if (c == '\n')
+                    stream.Write('\\').Write('n');
+                else if (c == '\r')
+                    stream.Write('\\').Write('r');
+                else if (c == '\t')
+                    stream.Write('\\').Write('t');
+                else if (c == '\b')
+                    stream.Write('\\').Write('b');
+                else if (c == '\f')
+                    stream.Write('\\').Write('f');
+                else if (c == '(')
+                    stream.Write('\\').Write('(');
+                else if (c == ')')
+                    stream.Write('\\').Write(')');
+                else if (c == '\\')
+                    stream.Write('\\').Write('\\');
+                else if (c > 0x7F && c < 0x200)
+                    stream.Write('\\').Write(_toOctal(c));
+                else if (c <= 0x7F)
+                    stream.Write(c);
+                else
+                    throw new InvalidOperationException("Character is outside of the StandardEncoding range");
+            }
+
+            stream.WriteByte(0x29); // )
+
+            return stream;
+        }
+
+        private static int _toOctal(int number)
+        {
+            if (number > 511)
+                throw new ArgumentOutOfRangeException(nameof(number), "Number is higher than octal 777 (dec 511).");
+            if (number < 0)
+                throw new ArgumentOutOfRangeException(nameof(number), "Only positive numbers can be converted.");
+
+            int resultNumber = 0;
+
+            int quotient = number;
+            int remainder = 0;
+            int multiplier = 1;
+
+            do
+            {
+                remainder = quotient % 8;
+                quotient = quotient / 8;
+
+                resultNumber += multiplier * remainder;
+                multiplier *= 10;
+            }
+            while (quotient != 0);
+
+            return resultNumber;
         }
 
         internal static PdfStream StartObject(this PdfStream stream, PdfReference objectReference)

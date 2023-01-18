@@ -1,10 +1,12 @@
 using Synercoding.FileFormats.Pdf.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
+using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
 using System;
 using System.IO;
+using static Synercoding.Primitives.ValueCreator;
 
 namespace Synercoding.FileFormats.Pdf.ConsoleTester
 {
@@ -30,6 +32,7 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                     {
                         info.Author = "Gerard Gunnewijk";
                         info.Title = "Example 1";
+                        info.Creator = "Synercoding.FileFormats.Pdf";
                         info.ExtraInfo.Add("CutContourProgramId", "cloud-shape");
                     })
                     // Add image to writer directly and then use that image in the page
@@ -73,6 +76,9 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                     // Test shape graphics
                     .AddPage(page =>
                     {
+                        page.MediaBox = mediaBox;
+                        page.TrimBox = trimBox;
+
                         page.AddShapes(ctx =>
                         {
                             ctx.DefaultState(g =>
@@ -107,6 +113,31 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                                 .LineTo(250, 250)
                                 .LineTo(150, 250)
                                 .Close();
+                        });
+                    })
+                    // Test pages with text
+                    .AddPage(page =>
+                    {
+                        page.MediaBox = mediaBox;
+                        page.TrimBox = trimBox;
+
+                        page.AddText("The quick brown fox jumps over the lazy dog.", new Point(Mm(10), Mm(10)), new TextState(StandardFonts.Helvetica, 12)
+                        {
+                            Fill = PredefinedColors.Blue
+                        });
+                        page.AddText("Text with a newline" + Environment.NewLine + "in it.", new Point(Mm(10), Mm(20)));
+                    })
+                    .AddPage(page =>
+                    {
+                        page.MediaBox = mediaBox;
+                        page.TrimBox = trimBox;
+
+                        page.AddText("This page also used Helvetica", new Point(Mm(10), Mm(10)), state =>
+                        {
+                            state.FontSize = 32;
+                            state.Font = StandardFonts.Helvetica;
+                            state.RenderingMode = TextRenderingMode.Stroke;
+                            state.Stroke = PredefinedColors.Red;
                         });
                     })
                     // Test placement using matrix

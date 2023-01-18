@@ -1,4 +1,9 @@
 using Synercoding.FileFormats.Pdf.Internals;
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
+using Synercoding.FileFormats.Pdf.LowLevel.Operators.Color;
+using Synercoding.FileFormats.Pdf.LowLevel.Operators.State;
+using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.Primitives;
 using System;
 using System.IO;
@@ -10,6 +15,84 @@ namespace Synercoding.FileFormats.Pdf.Extensions
     /// </summary>
     public static class PdfPageExtensions
     {
+        /// <summary>
+        /// Add text to the page.
+        /// </summary>
+        /// <param name="page">The page to add the text to.</param>
+        /// <param name="text">The text to add.</param>
+        /// <param name="point">The location of the text.</param>
+        /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
+        public static PdfPage AddText(this PdfPage page, string text, Point point)
+            => page.AddText(text, point, new TextState());
+
+        /// <summary>
+        /// Add text to the page.
+        /// </summary>
+        /// <param name="page">The page to add the text to.</param>
+        /// <param name="text">The text to add.</param>
+        /// <param name="point">The location of the text.</param>
+        /// <param name="configureState">Configure the state of the text to place.</param>
+        /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
+        public static PdfPage AddText(this PdfPage page, string text, Point point, Action<TextState> configureState)
+        {
+            var state = new TextState();
+            configureState(state);
+
+            return page.AddText(text, point, state);
+        }
+
+        /// <summary>
+        /// Add text to the page.
+        /// </summary>
+        /// <param name="page">The page to add the text to.</param>
+        /// <param name="text">The text to add.</param>
+        /// <param name="point">The location of the text.</param>
+        /// <param name="state">The state of the text to place.</param>
+        /// <returns>The same <see cref="PdfPage"/> to chain other calls.</returns>
+        public static PdfPage AddText(this PdfPage page, string text, Point point, TextState state)
+        {
+            page.MarkStdFontAsUsed(state.Font);
+
+            page.ContentStream
+                .SaveState()
+                .BeginText()
+                .SetTextPosition(point)
+                .SetFontAndSize(state.Font.LookupName, state.FontSize)
+                .SetTextLeading(state.Leading ?? state.FontSize);
+
+            if (state.Fill is Color fill)
+                page.ContentStream.SetColorFill(fill);
+            if (state.Stroke is Color stroke)
+                page.ContentStream.SetColorStroke(stroke);
+            if (state.LineWidth is double lineWidth)
+                page.ContentStream.Write(new LineWidthOperator(lineWidth));
+            if (state.LineCap is LineCapStyle lineCapStyle)
+                page.ContentStream.Write(new LineCapOperator(lineCapStyle));
+            if (state.LineJoin is LineJoinStyle lineJoinStyle)
+                page.ContentStream.Write(new LineJoinOperator(lineJoinStyle));
+            if (state.MiterLimit is double miterLimit)
+                page.ContentStream.Write(new MiterLimitOperator(miterLimit));
+            if (state.Dash is Dash dash)
+                page.ContentStream.Write(new DashOperator(dash.Array, dash.Phase));
+            if (state.CharacterSpacing is float charSpace)
+                page.ContentStream.SetCharacterSpacing(charSpace);
+            if (state.WordSpacing is float wordSpace)
+                page.ContentStream.SetWordSpacing(wordSpace);
+            if (state.HorizontalScaling is float horizontalScaling)
+                page.ContentStream.SetHorizontalScaling(horizontalScaling);
+            if (state.TextRise is float textRise)
+                page.ContentStream.SetTextRise(textRise);
+            if (state.RenderingMode is TextRenderingMode textRenderingMode)
+                page.ContentStream.SetTextRenderMode(textRenderingMode);
+
+            page.ContentStream
+                .ShowText(text)
+                .EndText()
+                .RestoreState();
+
+            return page;
+        }
+
         /// <summary>
         /// Add an image to the pdf page
         /// </summary>

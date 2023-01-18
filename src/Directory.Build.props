@@ -2,7 +2,7 @@
 <Project>
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net5.0;netcoreapp3.1;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net7.0;net6.0;netstandard2.1</TargetFrameworks>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileDirectory)..\Directory.Build.props</MSBuildAllProjects>
     <SynercodingProjectCategory>src</SynercodingProjectCategory>
   </PropertyGroup>
@@ -13,7 +13,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
     <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
   </PropertyGroup>
 

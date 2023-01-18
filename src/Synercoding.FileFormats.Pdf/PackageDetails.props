@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Fixed a memory buildup bug by clearing the dictionary that contained the image references on dispose.</PackageReleaseNotes>
+    <PackageReleaseNotes>Upgraded ImageSharp and added initial text support.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
