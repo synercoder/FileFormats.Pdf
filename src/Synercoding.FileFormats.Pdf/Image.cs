@@ -23,7 +23,7 @@ namespace Synercoding.FileFormats.Pdf
             image.SaveAsJpeg(ms, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
             {
                 Quality = 100,
-                Subsample = SixLabors.ImageSharp.Formats.Jpeg.JpegSubsample.Ratio420
+                ColorType = SixLabors.ImageSharp.Formats.Jpeg.JpegColorType.YCbCrRatio444
             });
             Width = image.Width;
             Height = image.Height;

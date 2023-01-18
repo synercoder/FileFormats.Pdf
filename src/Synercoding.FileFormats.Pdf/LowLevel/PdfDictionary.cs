@@ -428,6 +428,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                 ObjectType.Page => PdfName.Get("Page"),
                 ObjectType.Pages => PdfName.Get("Pages"),
                 ObjectType.XObject => PdfName.Get("XObject"),
+                ObjectType.Font => PdfName.Get("Font"),
                 _ => throw new NotImplementedException("Unknown objectType: " + objectType)
             };
 
@@ -446,6 +447,23 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             {
                 XObjectSubType.Image => PdfName.Get("Image"),
                 _ => throw new NotImplementedException("Unknown XObjectSubType: " + subType)
+            };
+
+            _stream
+                .Write(PdfName.Get("Subtype"))
+                .Space()
+                .Write(nameValue)
+                .NewLine();
+
+            return this;
+        }
+
+        internal PdfDictionary SubType(FontSubType subType)
+        {
+            var nameValue = subType switch
+            {
+                FontSubType.Type1 => PdfName.Get("Type1"),
+                _ => throw new NotImplementedException("Unknown FontSubType: " + subType)
             };
 
             _stream

@@ -37,7 +37,7 @@ namespace Synercoding.FileFormats.Pdf
             _stream = new PdfStream(stream);
             _writeHeader(_stream);
 
-            _pageTree = new PageTree(_tableBuilder.ReserveId());
+            _pageTree = new PageTree(_tableBuilder.ReserveId(), _tableBuilder);
             _catalog = new Catalog(_tableBuilder.ReserveId(), _pageTree);
 
             DocumentInformation = new DocumentInformation(_tableBuilder.ReserveId())

@@ -5,6 +5,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         Page,
         Pages,
         Catalog,
-        XObject
+        XObject,
+        Font
     }
 }
