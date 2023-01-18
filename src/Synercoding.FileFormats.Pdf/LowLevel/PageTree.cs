@@ -1,4 +1,6 @@
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Text;
+using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +9,14 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
 {
     internal class PageTree : IPdfObject
     {
-        private readonly IList<PdfPage> _pages;
+        private readonly IList<PdfPage> _pages = new List<PdfPage>();
+        private readonly TableBuilder _tableBuilder;
         private bool _isWritten;
 
-        public PageTree(PdfReference id)
-            : this(id, new List<PdfPage>())
-        { }
-
-        public PageTree(PdfReference id, IList<PdfPage> pages)
+        public PageTree(PdfReference id, TableBuilder tableBuilder)
         {
             Reference = id;
-            _pages = pages;
+            _tableBuilder = tableBuilder;
         }
 
         /// <inheritdoc />
@@ -32,9 +31,9 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             {
                 throw new InvalidOperationException("Object is already written to stream.");
             }
-            var position = (uint)stream.Position;
 
-            stream.IndirectDictionary(this, static (pageTree, dictionary) =>
+            var position = stream.Position;
+            stream.IndirectDictionary(Reference, this, static (pageTree, dictionary) =>
             {
                 dictionary
                     .Type(ObjectType.Pages)

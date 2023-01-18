@@ -52,6 +52,9 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The calling <see cref="PdfStream"/> to support chaining operations.</returns>
         public PdfStream Write(char c)
         {
+            if (c > 0xFF)
+                throw new InvalidOperationException($"Char {c} cannot be encoded directly because it is outside of the default ASCII range.");
+
             return WriteByte((byte)(c & 0xFF));
         }
 

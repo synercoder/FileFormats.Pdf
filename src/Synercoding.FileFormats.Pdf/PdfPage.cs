@@ -1,9 +1,12 @@
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -26,9 +29,10 @@ namespace Synercoding.FileFormats.Pdf
 
             Reference = tableBuilder.ReserveId();
             ContentStream = new ContentStream(tableBuilder.ReserveId());
+            Resources = new PageResources(_tableBuilder);
         }
 
-        internal PageResources Resources { get; } = new PageResources();
+        internal PageResources Resources { get; }
 
         /// <summary>
         /// The content stream of this page
@@ -137,6 +141,11 @@ namespace Synercoding.FileFormats.Pdf
             ContentStream.Dispose();
         }
 
+        internal void MarkStdFontAsUsed(Type1StandardFont font)
+        {
+            Resources.MarkStdFontAsUsed(font);
+        }
+
         internal uint WriteToStream(PdfStream stream)
         {
             if (_isWritten)
@@ -174,6 +183,17 @@ namespace Synercoding.FileFormats.Pdf
                             }
                         }));
                     }
+
+                    if (resources.FontReferences.Count != 0)
+                    {
+                        stream.Write(PdfName.Get("Font"), resources.FontReferences, static (fonts, stream) => stream.Dictionary(fonts, static (fontReferences, fontDictionary) =>
+                        {
+                            foreach (var (font, reference) in fontReferences)
+                            {
+                                fontDictionary.Write(font.LookupName, reference);
+                            }
+                        }));
+                    }
                 }));
 
                 // Content stream
@@ -188,6 +208,18 @@ namespace Synercoding.FileFormats.Pdf
                 {
                     _tableBuilder.SetPosition(kv.Value.Reference, dependentPosition);
                 }
+            }
+            foreach (var (font, refId) in Resources.FontReferences)
+            {
+                _tableBuilder.SetPosition(refId, stream.Position);
+
+                stream.IndirectDictionary(refId, font, static (font, dict) =>
+                {
+                    dict
+                        .Type(ObjectType.Font)
+                        .SubType(FontSubType.Type1)
+                        .Write(PdfName.Get("BaseFont"), font.Name);
+                });
             }
             if (!ContentStream.IsWritten)
             {

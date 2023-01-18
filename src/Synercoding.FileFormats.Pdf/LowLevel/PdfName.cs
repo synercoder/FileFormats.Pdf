@@ -1,3 +1,4 @@
+using Synercoding.FileFormats.Pdf.Internals;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,6 +50,27 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             { "XObject", new PdfName("XObject") },
         };
 
+        private readonly string _raw;
+        private readonly string _encoded;
+
+        private PdfName(string raw)
+        {
+            if (raw.Length > 127)
+                throw new ArgumentOutOfRangeException(nameof(raw), "The name is too long. Max length of 127 is allowed.");
+            if (raw.Any(c => c > 0xff))
+                throw new ArgumentOutOfRangeException(nameof(raw), "The name contains non-ascii characters, and is thus not allowed.");
+            _raw = raw;
+            _encoded = _encode(raw);
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+            => HashCode.Combine(_encoded, "PdfName");
+
+        /// <inheritdoc />
+        public override string ToString()
+            => _encoded;
+
         /// <summary>
         /// Get a <see cref="PdfName"/> from a given <see cref="string"/>
         /// </summary>
@@ -63,21 +85,6 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
 
             return new PdfName(name);
         }
-
-        private readonly string _encoded;
-
-        private PdfName(string raw)
-        {
-            if (raw.Length > 127)
-                throw new ArgumentOutOfRangeException(nameof(raw), "The name is too long. Max length of 127 is allowed.");
-            if (raw.Any(c => c > 0xff))
-                throw new ArgumentOutOfRangeException(nameof(raw), "The name contains non-ascii characters, and is thus not allowed.");
-            _encoded = _encode(raw);
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-            => _encoded;
 
         private static string _encode(string input)
         {
