@@ -55,6 +55,12 @@ namespace Synercoding.FileFormats.Pdf
         public DocumentInformation DocumentInformation { get; }
 
         /// <summary>
+        /// Returns the number of pages already added to the writer
+        /// </summary>
+        public int PageCount
+            => _pageTree.PageCount;
+
+        /// <summary>
         /// Set meta information for this document
         /// </summary>
         /// <param name="infoAction">Action used to set meta data</param>

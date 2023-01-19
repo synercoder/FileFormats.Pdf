@@ -1,5 +1,4 @@
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
-using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using System;
 using System.Collections.Generic;
@@ -24,6 +23,9 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
 
         public void AddPage(PdfPage pdfObject)
             => _pages.Add(pdfObject);
+
+        public int PageCount
+            => _pages.Count;
 
         internal uint WriteToStream(PdfStream stream)
         {
