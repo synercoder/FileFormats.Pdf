@@ -1,6 +1,7 @@
 using Synercoding.FileFormats.Pdf.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
@@ -151,8 +152,8 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                         {
                             var scale = (double)forestImage.Width / forestImage.Height;
 
-                            var matrix = Matrix.CreateScaleMatrix(new Value(scale * 303, Unit.Millimeters), new Value(303, Unit.Millimeters))
-                                .Translate(new Value(-100, Unit.Millimeters), new Value(0, Unit.Millimeters));
+                            var matrix = Matrix.CreateScaleMatrix(new Value(scale * 303, Unit.Millimeters).AsRaw(Unit.Points), new Value(303, Unit.Millimeters).AsRaw(Unit.Points))
+                                .Translate(new Value(-100, Unit.Millimeters).AsRaw(Unit.Points), new Value(0, Unit.Millimeters).AsRaw(Unit.Points));
 
                             page.AddImage(forestImage, matrix);
                         }
@@ -175,6 +176,26 @@ namespace Synercoding.FileFormats.Pdf.ConsoleTester
                             page.AddImage(reusedImage, new Rectangle(0, 0, scale * 303, 303, Unit.Millimeters));
                         });
                     }
+
+
+                    writer.AddPage(page =>
+                    {
+                        page.MediaBox = mediaBox;
+                        page.TrimBox = trimBox;
+
+                        var scale = (double)blurImage.Width / blurImage.Height;
+
+                        page.AddImage(reusedImage, new Rectangle(0, 0, scale * 303, 303, Unit.Millimeters));
+
+                        page.AddShapes(trimBox, static (trim, context) =>
+                        {
+                            context.DefaultState(state =>
+                            {
+                                state.Stroke = new SpotColor(new Separation(LowLevel.PdfName.Get("CutContour"), PredefinedColors.Magenta), 1);
+                            });
+                            context.NewPath().Rectangle(trim);
+                        });
+                    });
                 }
             }
         }

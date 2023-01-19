@@ -1,3 +1,4 @@
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors.ColorSpaces;
 using System;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors
@@ -90,6 +91,13 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors
         }
 
         /// <inheritdoc />
+        public override double[] Components => new double[] { Red, Green, Blue };
+
+        /// <inheritdoc />
+        public override ColorSpace Colorspace
+            => DeviceRGB.Instance;
+
+        /// <inheritdoc />
         public bool Equals(RgbColor? other)
         {
             return other is not null
@@ -100,11 +108,11 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors
 
         /// <inheritdoc />
         public override bool Equals(Color? other)
-            => other is RgbColor color && Equals(color);
+            => Equals(other as RgbColor);
 
         /// <inheritdoc />
         public override bool Equals(object? obj)
-            => obj is RgbColor color && Equals(color);
+            => Equals(obj as RgbColor);
 
         /// <inheritdoc />
         public override int GetHashCode()

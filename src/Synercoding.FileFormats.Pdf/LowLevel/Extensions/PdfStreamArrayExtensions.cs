@@ -1,3 +1,5 @@
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors.ColorSpaces;
+
 namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
 {
     /// <summary>
@@ -7,6 +9,34 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
     {
         private const byte BRACKET_OPEN = 0x5B;  // [
         private const byte BRACKET_CLOSE = 0x5D; // ]
+
+        internal static PdfStream Write(this PdfStream stream, Separation separation, PdfReference reference)
+        {
+            return stream
+                .StartObject(reference)
+                .WriteByte(BRACKET_OPEN)
+                .Write(PdfName.Get("Separation"))
+                .Write(separation.Name)
+                .Write(separation.BasedOnColor.Colorspace.Name)
+                .Dictionary(separation.BasedOnColor, static (color, dict) =>
+                {
+                    var c0 = new double[color.Colorspace.Components];
+                    var c1 = color.Components;
+                    var range = new double[color.Colorspace.Components * 2];
+                    for (int i = 1; i < range.Length; i += 2)
+                        range[i] = 1;
+
+                    dict.Write(PdfName.Get("C0"), c0)
+                        .Write(PdfName.Get("C1"), c1)
+                        .Write(PdfName.Get("Domain"), 0, 1)
+                        .Write(PdfName.Get("FunctionType"), 2)
+                        .Write(PdfName.Get("N"), 1.0)
+                        .Write(PdfName.Get("Range"), range);
+                })
+                .WriteByte(BRACKET_CLOSE)
+                .EndObject()
+                .NewLine();
+        }
 
         /// <summary>
         /// Write an array of numbers to the pdf stream
@@ -175,13 +205,13 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="number6">The sixth number in the array</param>
         /// <param name="number7">The seventh number in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            double number1, 
-            double number2, 
-            double number3, 
-            double number4, 
-            double number5, 
-            double number6, 
+        public static PdfStream Write(this PdfStream stream,
+            double number1,
+            double number2,
+            double number3,
+            double number4,
+            double number5,
+            double number6,
             double number7)
         {
             stream
@@ -219,14 +249,14 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="number7">The seventh number in the array</param>
         /// <param name="number8">The eigth number in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            double number1, 
-            double number2, 
-            double number3, 
-            double number4, 
-            double number5, 
-            double number6, 
-            double number7, 
+        public static PdfStream Write(this PdfStream stream,
+            double number1,
+            double number2,
+            double number3,
+            double number4,
+            double number5,
+            double number6,
+            double number7,
             double number8)
         {
             stream
@@ -420,13 +450,13 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="number6">The sixth number in the array</param>
         /// <param name="number7">The seventh number in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            int number1, 
-            int number2, 
-            int number3, 
-            int number4, 
-            int number5, 
-            int number6, 
+        public static PdfStream Write(this PdfStream stream,
+            int number1,
+            int number2,
+            int number3,
+            int number4,
+            int number5,
+            int number6,
             int number7)
         {
             stream
@@ -464,14 +494,14 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="number7">The seventh number in the array</param>
         /// <param name="number8">The eigth number in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            int number1, 
-            int number2, 
-            int number3, 
-            int number4, 
-            int number5, 
-            int number6, 
-            int number7, 
+        public static PdfStream Write(this PdfStream stream,
+            int number1,
+            int number2,
+            int number3,
+            int number4,
+            int number5,
+            int number6,
+            int number7,
             int number8)
         {
             stream
@@ -573,10 +603,10 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="reference3">The third reference in the array</param>
         /// <param name="reference4">The fourth reference in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            PdfReference reference1, 
-            PdfReference reference2, 
-            PdfReference reference3, 
+        public static PdfStream Write(this PdfStream stream,
+            PdfReference reference1,
+            PdfReference reference2,
+            PdfReference reference3,
             PdfReference reference4)
         {
             stream
@@ -605,11 +635,11 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="reference4">The fourth reference in the array</param>
         /// <param name="reference5">The fifth reference in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            PdfReference reference1, 
-            PdfReference reference2, 
+        public static PdfStream Write(this PdfStream stream,
+            PdfReference reference1,
+            PdfReference reference2,
             PdfReference reference3,
-            PdfReference reference4, 
+            PdfReference reference4,
             PdfReference reference5)
         {
             stream
@@ -641,12 +671,12 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="reference5">The fifth reference in the array</param>
         /// <param name="reference6">The sixth reference in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            PdfReference reference1, 
-            PdfReference reference2, 
-            PdfReference reference3, 
-            PdfReference reference4, 
-            PdfReference reference5, 
+        public static PdfStream Write(this PdfStream stream,
+            PdfReference reference1,
+            PdfReference reference2,
+            PdfReference reference3,
+            PdfReference reference4,
+            PdfReference reference5,
             PdfReference reference6)
         {
             stream
@@ -681,13 +711,13 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="reference6">The sixth reference in the array</param>
         /// <param name="reference7">The seventh reference in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            PdfReference reference1, 
-            PdfReference reference2, 
-            PdfReference reference3, 
-            PdfReference reference4, 
-            PdfReference reference5, 
-            PdfReference reference6, 
+        public static PdfStream Write(this PdfStream stream,
+            PdfReference reference1,
+            PdfReference reference2,
+            PdfReference reference3,
+            PdfReference reference4,
+            PdfReference reference5,
+            PdfReference reference6,
             PdfReference reference7)
         {
             stream
@@ -725,14 +755,14 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         /// <param name="reference7">The seventh reference in the array</param>
         /// <param name="reference8">The eigth reference in the array</param>
         /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream Write(this PdfStream stream, 
-            PdfReference reference1, 
-            PdfReference reference2, 
-            PdfReference reference3, 
-            PdfReference reference4, 
-            PdfReference reference5, 
-            PdfReference reference6, 
-            PdfReference reference7, 
+        public static PdfStream Write(this PdfStream stream,
+            PdfReference reference1,
+            PdfReference reference2,
+            PdfReference reference3,
+            PdfReference reference4,
+            PdfReference reference5,
+            PdfReference reference6,
+            PdfReference reference7,
             PdfReference reference8)
         {
             stream

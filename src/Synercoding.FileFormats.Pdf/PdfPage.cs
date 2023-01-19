@@ -5,8 +5,6 @@ using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -27,12 +25,18 @@ namespace Synercoding.FileFormats.Pdf
             _parent = parent;
             _parent.AddPage(this);
 
+            PageNumber = _parent.PageCount;
             Reference = tableBuilder.ReserveId();
-            ContentStream = new ContentStream(tableBuilder.ReserveId());
             Resources = new PageResources(_tableBuilder);
+            ContentStream = new ContentStream(tableBuilder.ReserveId(), Resources);
         }
 
         internal PageResources Resources { get; }
+
+        /// <summary>
+        /// The number of the page
+        /// </summary>
+        public int PageNumber { get; }
 
         /// <summary>
         /// The content stream of this page
@@ -93,7 +97,7 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, image);
 
-            return Resources.AddImageToResources(pdfImage);
+            return Resources.AddImage(pdfImage);
         }
 
         /// <summary>
@@ -109,7 +113,7 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, jpgStream, width, height);
 
-            return Resources.AddImageToResources(pdfImage);
+            return Resources.AddImage(pdfImage);
         }
 
         /// <summary>
@@ -130,7 +134,7 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>The <see cref="PdfName"/> that can be used to reference this image in the <see cref="ContentStream"/></returns>
         public PdfName AddImageToResources(Image image)
         {
-            return Resources.AddImageToResources(image);
+            return Resources.AddImage(image);
         }
 
         /// <inheritdoc />
@@ -143,7 +147,7 @@ namespace Synercoding.FileFormats.Pdf
 
         internal void MarkStdFontAsUsed(Type1StandardFont font)
         {
-            Resources.MarkStdFontAsUsed(font);
+            Resources.AddStandardFont(font);
         }
 
         internal uint WriteToStream(PdfStream stream)
@@ -194,6 +198,17 @@ namespace Synercoding.FileFormats.Pdf
                             }
                         }));
                     }
+
+                    if (resources.SeparationReferences.Count != 0)
+                    {
+                        stream.Write(PdfName.Get("ColorSpace"), resources.SeparationReferences.Values, static (separations, stream) => stream.Dictionary(separations, static (separations, colorspaceDictionary) =>
+                        {
+                            foreach (var (name, reference) in separations)
+                            {
+                                colorspaceDictionary.Write(name, reference);
+                            }
+                        }));
+                    }
                 }));
 
                 // Content stream
@@ -220,6 +235,12 @@ namespace Synercoding.FileFormats.Pdf
                         .SubType(FontSubType.Type1)
                         .Write(PdfName.Get("BaseFont"), font.Name);
                 });
+            }
+            foreach (var (separation, (_, refId)) in Resources.SeparationReferences)
+            {
+                _tableBuilder.SetPosition(refId, stream.Position);
+
+                stream.Write(separation, refId);
             }
             if (!ContentStream.IsWritten)
             {

@@ -1,6 +1,7 @@
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.Primitives;
 using System;
+using System.Runtime.Serialization;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel
 {
@@ -21,6 +22,38 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         }
 
         /// <summary>
+        /// Write an array of numbers to the dictionary
+        /// </summary>
+        /// <param name="key">The key of the item in the dictionary</param>
+        /// <param name="numbers">The array to write</param>
+        /// <returns>The <see cref="PdfDictionary"/> to support chaining operations.</returns>
+        public PdfDictionary Write(PdfName key, int[] numbers)
+        {
+            _stream
+                .Write(key)
+                .Space()
+                .Write(numbers);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write an array of numbers to the dictionary
+        /// </summary>
+        /// <param name="key">The key of the item in the dictionary</param>
+        /// <param name="numbers">The array to write</param>
+        /// <returns>The <see cref="PdfDictionary"/> to support chaining operations.</returns>
+        public PdfDictionary Write(PdfName key, double[] numbers)
+        {
+            _stream
+                .Write(key)
+                .Space()
+                .Write(numbers);
+
+            return this;
+        }
+
+        /// <summary>
         /// Write an array of <see cref="PdfReference"/>s to the dictionary
         /// </summary>
         /// <param name="key">The key of the item in the dictionary</param>
@@ -31,8 +64,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(objectReferences)
-                .NewLine();
+                .Write(objectReferences);
 
             return this;
         }
@@ -48,8 +80,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value)
-                .NewLine();
+                .Write(value);
 
             return this;
         }
@@ -66,8 +97,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2)
-                .NewLine();
+                .Write(value1, value2);
 
             return this;
         }
@@ -85,8 +115,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2, value3)
-                .NewLine();
+                .Write(value1, value2, value3);
 
             return this;
         }
@@ -105,8 +134,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2, value3, value4)
-                .NewLine();
+                .Write(value1, value2, value3, value4);
 
             return this;
         }
@@ -126,8 +154,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2, value3, value4, value5)
-                .NewLine();
+                .Write(value1, value2, value3, value4, value5);
 
             return this;
         }
@@ -148,8 +175,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2, value3, value4, value5, value6)
-                .NewLine();
+                .Write(value1, value2, value3, value4, value5, value6);
 
             return this;
         }
@@ -165,8 +191,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value)
-                .NewLine();
+                .Write(value);
 
             return this;
         }
@@ -182,8 +207,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value)
-                .NewLine();
+                .Write(value);
 
             return this;
         }
@@ -200,8 +224,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2)
-                .NewLine();
+                .Write(value1, value2);
 
             return this;
         }
@@ -219,8 +242,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2, value3)
-                .NewLine();
+                .Write(value1, value2, value3);
 
             return this;
         }
@@ -239,8 +261,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2, value3, value4)
-                .NewLine();
+                .Write(value1, value2, value3, value4);
 
             return this;
         }
@@ -260,8 +281,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2, value3, value4, value5)
-                .NewLine();
+                .Write(value1, value2, value3, value4, value5);
 
             return this;
         }
@@ -282,8 +302,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value1, value2, value3, value4, value5, value6)
-                .NewLine();
+                .Write(value1, value2, value3, value4, value5, value6);
 
             return this;
         }
@@ -299,8 +318,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value)
-                .NewLine();
+                .Write(value);
 
             return this;
         }
@@ -316,8 +334,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(value)
-                .NewLine();
+                .Write(value);
 
             return this;
         }
@@ -334,8 +351,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(objectReference)
-                .NewLine();
+                .Write(objectReference);
 
             return this;
         }
@@ -355,8 +371,6 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                 .Space();
 
             rawActions(data, _stream);
-
-            _stream.NewLine();
 
             return this;
         }
@@ -381,8 +395,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(key)
                 .Space()
-                .Write(rectangle)
-                .NewLine();
+                .Write(rectangle);
 
             return this;
         }
@@ -435,8 +448,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(PdfName.Get("Type"))
                 .Space()
-                .Write(nameValue)
-                .NewLine();
+                .Write(nameValue);
 
             return this;
         }
@@ -452,8 +464,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(PdfName.Get("Subtype"))
                 .Space()
-                .Write(nameValue)
-                .NewLine();
+                .Write(nameValue);
 
             return this;
         }
@@ -469,8 +480,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             _stream
                 .Write(PdfName.Get("Subtype"))
                 .Space()
-                .Write(nameValue)
-                .NewLine();
+                .Write(nameValue);
 
             return this;
         }
