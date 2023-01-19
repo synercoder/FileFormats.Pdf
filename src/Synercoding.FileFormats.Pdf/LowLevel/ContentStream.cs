@@ -26,24 +26,14 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         private const string UNKNOWN_FILL_RULE = "Unknown fill rule";
         private readonly PdfStream _streamWrapper;
 
-        /// <summary>
-        /// Constructor for <see cref="ContentStream"/>
-        /// </summary>
-        /// <param name="id">The <see cref="PdfReference"/> of this content stream</param>
-        public ContentStream(PdfReference id)
-            : this(id, new PdfStream(new MemoryStream()))
-        { }
-
-        /// <summary>
-        /// Constructor for <see cref="ContentStream"/>
-        /// </summary>
-        /// <param name="id">The <see cref="PdfReference"/> of this content stream</param>
-        /// <param name="pdfStream">The <see cref="PdfStream"/> to write to</param>
-        public ContentStream(PdfReference id, PdfStream pdfStream)
+        internal ContentStream(PdfReference id, PageResources pageResources)
         {
+            Resources = pageResources;
+            _streamWrapper = new PdfStream(new MemoryStream());
+
             Reference = id;
-            _streamWrapper = pdfStream;
         }
+        internal PageResources Resources { get; }
 
         /// <inheritdoc />
         public PdfReference Reference { get; }
@@ -572,6 +562,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                 GrayColor gray => Write(new GrayNonStrokingColorOperator(gray)),
                 RgbColor rgb => Write(new RgbNonStrokingColorOperator(rgb)),
                 CmykColor cmyk => Write(new CmykNonStrokingColorOperator(cmyk)),
+                SpotColor spot => Write(new SpotNonStrokingColorOperator(spot)),
                 _ => throw new NotImplementedException($"The color type {color.GetType().Name} is not implemented.")
             };
         }
@@ -589,6 +580,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                 GrayColor gray => Write(new GrayStrokingColorOperator(gray)),
                 RgbColor rgb => Write(new RgbStrokingColorOperator(rgb)),
                 CmykColor cmyk => Write(new CmykStrokingColorOperator(cmyk)),
+                SpotColor spot => Write(new SpotStrokingColorOperator(spot)),
                 _ => throw new NotImplementedException($"The color type {color.GetType().Name} is not implemented.")
             };
         }
@@ -738,6 +730,50 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                 .Write(op.Color.Key)
                 .Space()
                 .Write('k')
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the operator (SCN) to the stream
+        /// </summary>
+        /// <param name="op">The operator to write</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream Write(SpotStrokingColorOperator op)
+        {
+            var name = Resources.AddSeparation(op.Color.Separation);
+
+            _streamWrapper
+                .Write(name)
+                .Space()
+                .Write("CS")
+                .Space()
+                .Write(op.Color.Tint)
+                .Space()
+                .Write("SCN")
+                .NewLine();
+
+            return this;
+        }
+
+        /// <summary>
+        /// Write the operator (scn) to the stream
+        /// </summary>
+        /// <param name="op">The operator to write</param>
+        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+        public ContentStream Write(SpotNonStrokingColorOperator op)
+        {
+            var name = Resources.AddSeparation(op.Color.Separation);
+
+            _streamWrapper
+                .Write(name)
+                .Space()
+                .Write("cs")
+                .Space()
+                .Write(op.Color.Tint)
+                .Space()
+                .Write("scn")
                 .NewLine();
 
             return this;

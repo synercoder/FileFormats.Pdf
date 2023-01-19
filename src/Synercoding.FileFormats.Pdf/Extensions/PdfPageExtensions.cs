@@ -1,7 +1,6 @@
 using Synercoding.FileFormats.Pdf.Internals;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
-using Synercoding.FileFormats.Pdf.LowLevel.Operators.Color;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.State;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.Primitives;

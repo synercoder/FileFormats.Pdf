@@ -73,15 +73,13 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         {
             stream
                 .Write('<')
-                .Write('<')
-                .NewLine();
+                .Write('<');
 
             streamAction(data, new PdfDictionary(stream));
 
             stream
                 .Write('>')
-                .Write('>')
-                .NewLine();
+                .Write('>');
 
             return stream;
         }
@@ -184,12 +182,11 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
             int resultNumber = 0;
 
             int quotient = number;
-            int remainder = 0;
             int multiplier = 1;
 
             do
             {
-                remainder = quotient % 8;
+                int remainder = quotient % 8;
                 quotient = quotient / 8;
 
                 resultNumber += multiplier * remainder;
@@ -216,6 +213,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
         internal static PdfStream EndObject(this PdfStream stream)
         {
             return stream
+                .NewLine()
                 .Write('e')
                 .Write('n')
                 .Write('d')
