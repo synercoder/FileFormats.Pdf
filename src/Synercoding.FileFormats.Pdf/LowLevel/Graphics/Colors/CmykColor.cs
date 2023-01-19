@@ -1,3 +1,4 @@
+using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors.ColorSpaces;
 using System;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors
@@ -100,6 +101,13 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors
         }
 
         /// <inheritdoc />
+        public override ColorSpace Colorspace
+            => DeviceCMYK.Instance;
+
+        /// <inheritdoc />
+        public override double[] Components => new double[] { Cyan, Magenta, Yellow, Key };
+
+        /// <inheritdoc />
         public bool Equals(CmykColor? other)
         {
             return other is not null
@@ -111,11 +119,11 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors
 
         /// <inheritdoc />
         public override bool Equals(Color? other)
-            => other is CmykColor color && Equals(color);
+            => Equals(other as CmykColor);
 
         /// <inheritdoc />
         public override bool Equals(object? obj)
-            => obj is CmykColor color && Equals(color);
+            => Equals(obj as CmykColor);
 
         /// <inheritdoc />
         public override int GetHashCode()

@@ -40,50 +40,19 @@ namespace Synercoding.FileFormats.Pdf.Internals
         {
             if (GraphicsState.Stroke is not null && GraphicsState.Fill is not null)
             {
-                if (GraphicsState.Stroke is GrayColor gs)
-                    _contentStream.Write(new GrayStrokingColorOperator(gs));
-                else if (GraphicsState.Stroke is RgbColor rs)
-                    _contentStream.Write(new RgbStrokingColorOperator(rs));
-                else if (GraphicsState.Stroke is CmykColor cs)
-                    _contentStream.Write(new CmykStrokingColorOperator(cs));
-                else
-                    throw new NotImplementedException($"The color type {GraphicsState.Stroke.GetType().Name} is not implemented.");
-
-                if (GraphicsState.Fill is GrayColor gf)
-                    _contentStream.Write(new GrayNonStrokingColorOperator(gf));
-                else if (GraphicsState.Fill is RgbColor rf)
-                    _contentStream.Write(new RgbNonStrokingColorOperator(rf));
-                else if (GraphicsState.Fill is CmykColor cf)
-                    _contentStream.Write(new CmykNonStrokingColorOperator(cf));
-                else
-                    throw new NotImplementedException($"The color type {GraphicsState.Fill.GetType().Name} is not implemented.");
+                _contentStream.SetColorFill(GraphicsState.Fill);
+                _contentStream.SetColorStroke(GraphicsState.Stroke);
 
                 _contentStream.Write(new FillAndStrokeOperator(GraphicsState.FillRule));
             }
             else if (GraphicsState.Fill is not null)
             {
-                if (GraphicsState.Fill is GrayColor gf)
-                    _contentStream.Write(new GrayNonStrokingColorOperator(gf));
-                else if (GraphicsState.Fill is RgbColor rf)
-                    _contentStream.Write(new RgbNonStrokingColorOperator(rf));
-                else if (GraphicsState.Fill is CmykColor cf)
-                    _contentStream.Write(new CmykNonStrokingColorOperator(cf));
-                else
-                    throw new NotImplementedException($"The color type {GraphicsState.Fill.GetType().Name} is not implemented.");
-
+                _contentStream.SetColorFill(GraphicsState.Fill);
                 _contentStream.Write(new FillOperator(GraphicsState.FillRule));
             }
             else if (GraphicsState.Stroke is not null)
             {
-                if (GraphicsState.Stroke is GrayColor gs)
-                    _contentStream.Write(new GrayStrokingColorOperator(gs));
-                else if (GraphicsState.Stroke is RgbColor rs)
-                    _contentStream.Write(new RgbStrokingColorOperator(rs));
-                else if (GraphicsState.Stroke is CmykColor cs)
-                    _contentStream.Write(new CmykStrokingColorOperator(cs));
-                else
-                    throw new NotImplementedException($"The color type {GraphicsState.Stroke.GetType().Name} is not implemented.");
-
+                _contentStream.SetColorStroke(GraphicsState.Stroke);
                 _contentStream.Write(new StrokeOperator());
             }
             else
