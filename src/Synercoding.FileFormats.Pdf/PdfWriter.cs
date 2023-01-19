@@ -99,6 +99,32 @@ namespace Synercoding.FileFormats.Pdf
         }
 
         /// <summary>
+        /// Add a page to the pdf file
+        /// </summary>
+        /// <param name="pageAction">Action used to setup the page</param>
+        /// <returns>Returns an awaitable task that resolves into this <see cref="PdfWriter"/> to chain calls</returns>
+        public async Task<PdfWriter> AddPageAsync(Func<PdfPage, Task> pageAction)
+            => await AddPageAsync(pageAction, static async (action, page) => await action(page));
+
+        /// <summary>
+        /// Add a page to the pdf file
+        /// </summary>
+        /// <param name="data">Data passed into the action</param>
+        /// <param name="pageAction">Action used to setup the page</param>
+        /// <returns>Returns an awaitable task that resolves into this <see cref="PdfWriter"/> to chain calls</returns>
+        public async Task<PdfWriter> AddPageAsync<T>(T data, Func<T, PdfPage, Task> pageAction)
+        {
+            using (var page = new PdfPage(_tableBuilder, _pageTree))
+            {
+                await pageAction(data, page);
+
+                page.WriteToStream(_stream);
+            }
+
+            return this;
+        }
+
+        /// <summary>
         /// Add an <see cref="SixLabors.ImageSharp.Image"/> to the pdf file and get the <see cref="Image"/> reference returned
         /// </summary>
         /// <param name="image">The image that needs to be added.</param>
