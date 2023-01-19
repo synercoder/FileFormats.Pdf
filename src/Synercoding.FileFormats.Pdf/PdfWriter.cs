@@ -20,6 +20,8 @@ namespace Synercoding.FileFormats.Pdf
         private readonly PageTree _pageTree;
         private readonly Catalog _catalog;
 
+        private bool _endingWritten = false;
+
         /// <summary>
         /// Constructor for <see cref="PdfWriter"/>
         /// </summary>
@@ -68,6 +70,8 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
         public PdfWriter SetDocumentInfo(Action<DocumentInformation> infoAction)
         {
+            _throwWhenEndingWritten()';'
+
             infoAction(DocumentInformation);
 
             return this;
@@ -89,6 +93,8 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
         public PdfWriter AddPage<T>(T data, Action<T, PdfPage> pageAction)
         {
+            _throwWhenEndingWritten();
+
             using (var page = new PdfPage(_tableBuilder, _pageTree))
             {
                 pageAction(data, page);
@@ -115,6 +121,8 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>Returns an awaitable task that resolves into this <see cref="PdfWriter"/> to chain calls</returns>
         public async Task<PdfWriter> AddPageAsync<T>(T data, Func<T, PdfPage, Task> pageAction)
         {
+            _throwWhenEndingWritten();
+
             using (var page = new PdfPage(_tableBuilder, _pageTree))
             {
                 await pageAction(data, page);
@@ -132,6 +140,8 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>The image reference that can be used in pages</returns>
         public Image AddImage(SixLabors.ImageSharp.Image image)
         {
+            _throwWhenEndingWritten();
+
             var id = _tableBuilder.ReserveId();
 
             var pdfImage = new Image(id, image);
@@ -156,6 +166,8 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>The image reference that can be used in pages</returns>
         public Image AddJpgImageUnsafe(Stream jpgStream, int originalWidth, int originalHeight)
         {
+            _throwWhenEndingWritten();
+
             var id = _tableBuilder.ReserveId();
 
             var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight);
@@ -168,9 +180,17 @@ namespace Synercoding.FileFormats.Pdf
             return pdfImage;
         }
 
-        /// <inheritdoc />
-        public void Dispose()
+        /// <summary>
+        /// Write the PDF trailer; indicates that the PDF is done.
+        /// </summary>
+        /// <remarks>
+        /// Other calls to this <see cref="PdfWriter"/> will throw or have no effect after call this.
+        /// </remarks>
+        public void WriteTrailer()
         {
+            if (_endingWritten)
+                return;
+
             _writePageTree();
 
             _writeCatalog();
@@ -181,10 +201,25 @@ namespace Synercoding.FileFormats.Pdf
 
             _stream.Flush();
 
+            _endingWritten = true;
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            WriteTrailer();
+
+            _stream.Flush();
+
             if (_ownsStream)
             {
                 _stream.Dispose();
             }
+        }
+
+        private void _throwWhenEndingWritten()
+        {
+            if (_endingWritten) throw new InvalidOperationException("Can't change document information when PDF trailer is written to the stream.");
         }
 
         private static void _writeHeader(PdfStream stream)
