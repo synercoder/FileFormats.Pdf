@@ -70,7 +70,7 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
         public PdfWriter SetDocumentInfo(Action<DocumentInformation> infoAction)
         {
-            _throwWhenEndingWritten()';'
+            _throwWhenEndingWritten();
 
             infoAction(DocumentInformation);
 
