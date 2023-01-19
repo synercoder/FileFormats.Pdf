@@ -4,6 +4,7 @@ using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -236,47 +237,27 @@ namespace Synercoding.FileFormats.Pdf
             var xRefTable = _tableBuilder.GetXRefTable();
             uint xRefPosition = xRefTable.WriteToStream(_stream);
 
-            var trailer = new Trailer(xRefPosition, xRefTable.Section.ObjectCount, _catalog, DocumentInformation);
-            trailer.WriteToStream(_stream);
+            _writeTrailer(_stream, xRefPosition, xRefTable.Section.ObjectCount, _catalog.Reference, DocumentInformation.Reference);
         }
 
-        private readonly struct Trailer
+        private void _writeTrailer(PdfStream stream, uint startXRef, int size, PdfReference root, PdfReference documentInfo)
         {
-            public Trailer(uint startXRef, int size, Catalog root, DocumentInformation documentInfo)
-            {
-                StartXRef = startXRef;
-                Size = size;
-                Root = root.Reference;
-                DocumentInfo = documentInfo.Reference;
-            }
-
-            public uint StartXRef { get; }
-            public int Size { get; }
-            public PdfReference Root { get; }
-            public PdfReference DocumentInfo { get; }
-
-            internal uint WriteToStream(PdfStream stream)
-            {
-                var position = (uint)stream.Position;
-
-                stream
-                    .Write("trailer")
-                    .NewLine()
-                    .Dictionary(this, static (trailer, dictionary) =>
-                    {
-                        dictionary
-                            .Write(PdfName.Get("Size"), trailer.Size)
-                            .Write(PdfName.Get("Root"), trailer.Root)
-                            .Write(PdfName.Get("Info"), trailer.DocumentInfo);
-                    })
-                    .Write("startxref")
-                    .NewLine()
-                    .Write(StartXRef)
-                    .NewLine()
-                    .Write("%%EOF");
-
-                return position;
-            }
+            stream
+                .Write("trailer")
+                .NewLine()
+                .Dictionary((size, root, documentInfo), static (triple, dictionary) =>
+                {
+                    var (size, root, documentInfo) = triple;
+                    dictionary
+                        .Write(PdfName.Get("Size"), size)
+                        .Write(PdfName.Get("Root"), root)
+                        .Write(PdfName.Get("Info"), documentInfo);
+                })
+                .Write("startxref")
+                .NewLine()
+                .Write(startXRef)
+                .NewLine()
+                .Write("%%EOF");
         }
     }
 }
