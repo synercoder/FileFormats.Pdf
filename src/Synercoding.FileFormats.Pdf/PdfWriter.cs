@@ -4,6 +4,7 @@ using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Synercoding.FileFormats.Pdf
 {
@@ -18,6 +19,8 @@ namespace Synercoding.FileFormats.Pdf
 
         private readonly PageTree _pageTree;
         private readonly Catalog _catalog;
+
+        private bool _endingWritten = false;
 
         /// <summary>
         /// Constructor for <see cref="PdfWriter"/>
@@ -55,12 +58,20 @@ namespace Synercoding.FileFormats.Pdf
         public DocumentInformation DocumentInformation { get; }
 
         /// <summary>
+        /// Returns the number of pages already added to the writer
+        /// </summary>
+        public int PageCount
+            => _pageTree.PageCount;
+
+        /// <summary>
         /// Set meta information for this document
         /// </summary>
         /// <param name="infoAction">Action used to set meta data</param>
         /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
         public PdfWriter SetDocumentInfo(Action<DocumentInformation> infoAction)
         {
+            _throwWhenEndingWritten();
+
             infoAction(DocumentInformation);
 
             return this;
@@ -82,9 +93,39 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
         public PdfWriter AddPage<T>(T data, Action<T, PdfPage> pageAction)
         {
+            _throwWhenEndingWritten();
+
             using (var page = new PdfPage(_tableBuilder, _pageTree))
             {
                 pageAction(data, page);
+
+                page.WriteToStream(_stream);
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Add a page to the pdf file
+        /// </summary>
+        /// <param name="pageAction">Action used to setup the page</param>
+        /// <returns>Returns an awaitable task that resolves into this <see cref="PdfWriter"/> to chain calls</returns>
+        public async Task<PdfWriter> AddPageAsync(Func<PdfPage, Task> pageAction)
+            => await AddPageAsync(pageAction, static async (action, page) => await action(page));
+
+        /// <summary>
+        /// Add a page to the pdf file
+        /// </summary>
+        /// <param name="data">Data passed into the action</param>
+        /// <param name="pageAction">Action used to setup the page</param>
+        /// <returns>Returns an awaitable task that resolves into this <see cref="PdfWriter"/> to chain calls</returns>
+        public async Task<PdfWriter> AddPageAsync<T>(T data, Func<T, PdfPage, Task> pageAction)
+        {
+            _throwWhenEndingWritten();
+
+            using (var page = new PdfPage(_tableBuilder, _pageTree))
+            {
+                await pageAction(data, page);
 
                 page.WriteToStream(_stream);
             }
@@ -99,6 +140,8 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>The image reference that can be used in pages</returns>
         public Image AddImage(SixLabors.ImageSharp.Image image)
         {
+            _throwWhenEndingWritten();
+
             var id = _tableBuilder.ReserveId();
 
             var pdfImage = new Image(id, image);
@@ -123,6 +166,8 @@ namespace Synercoding.FileFormats.Pdf
         /// <returns>The image reference that can be used in pages</returns>
         public Image AddJpgImageUnsafe(Stream jpgStream, int originalWidth, int originalHeight)
         {
+            _throwWhenEndingWritten();
+
             var id = _tableBuilder.ReserveId();
 
             var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight);
@@ -135,9 +180,17 @@ namespace Synercoding.FileFormats.Pdf
             return pdfImage;
         }
 
-        /// <inheritdoc />
-        public void Dispose()
+        /// <summary>
+        /// Write the PDF trailer; indicates that the PDF is done.
+        /// </summary>
+        /// <remarks>
+        /// Other calls to this <see cref="PdfWriter"/> will throw or have no effect after call this.
+        /// </remarks>
+        public void WriteTrailer()
         {
+            if (_endingWritten)
+                return;
+
             _writePageTree();
 
             _writeCatalog();
@@ -148,10 +201,25 @@ namespace Synercoding.FileFormats.Pdf
 
             _stream.Flush();
 
+            _endingWritten = true;
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            WriteTrailer();
+
+            _stream.Flush();
+
             if (_ownsStream)
             {
                 _stream.Dispose();
             }
+        }
+
+        private void _throwWhenEndingWritten()
+        {
+            if (_endingWritten) throw new InvalidOperationException("Can't change document information when PDF trailer is written to the stream.");
         }
 
         private static void _writeHeader(PdfStream stream)
@@ -204,47 +272,27 @@ namespace Synercoding.FileFormats.Pdf
             var xRefTable = _tableBuilder.GetXRefTable();
             uint xRefPosition = xRefTable.WriteToStream(_stream);
 
-            var trailer = new Trailer(xRefPosition, xRefTable.Section.ObjectCount, _catalog, DocumentInformation);
-            trailer.WriteToStream(_stream);
+            _writeTrailer(_stream, xRefPosition, xRefTable.Section.ObjectCount, _catalog.Reference, DocumentInformation.Reference);
         }
 
-        private readonly struct Trailer
+        private void _writeTrailer(PdfStream stream, uint startXRef, int size, PdfReference root, PdfReference documentInfo)
         {
-            public Trailer(uint startXRef, int size, Catalog root, DocumentInformation documentInfo)
-            {
-                StartXRef = startXRef;
-                Size = size;
-                Root = root.Reference;
-                DocumentInfo = documentInfo.Reference;
-            }
-
-            public uint StartXRef { get; }
-            public int Size { get; }
-            public PdfReference Root { get; }
-            public PdfReference DocumentInfo { get; }
-
-            internal uint WriteToStream(PdfStream stream)
-            {
-                var position = (uint)stream.Position;
-
-                stream
-                    .Write("trailer")
-                    .NewLine()
-                    .Dictionary(this, static (trailer, dictionary) =>
-                    {
-                        dictionary
-                            .Write(PdfName.Get("Size"), trailer.Size)
-                            .Write(PdfName.Get("Root"), trailer.Root)
-                            .Write(PdfName.Get("Info"), trailer.DocumentInfo);
-                    })
-                    .Write("startxref")
-                    .NewLine()
-                    .Write(StartXRef)
-                    .NewLine()
-                    .Write("%%EOF");
-
-                return position;
-            }
+            stream
+                .Write("trailer")
+                .NewLine()
+                .Dictionary((size, root, documentInfo), static (triple, dictionary) =>
+                {
+                    var (size, root, documentInfo) = triple;
+                    dictionary
+                        .Write(PdfName.Get("Size"), size)
+                        .Write(PdfName.Get("Root"), root)
+                        .Write(PdfName.Get("Info"), documentInfo);
+                })
+                .Write("startxref")
+                .NewLine()
+                .Write(startXRef)
+                .NewLine()
+                .Write("%%EOF");
         }
     }
 }
