@@ -1,6 +1,7 @@
 using SixLabors.ImageSharp;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
+using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Color;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Pathing.Construction;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Pathing.Painting;
@@ -9,10 +10,7 @@ using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using Color = Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors.Color;
 using Point = Synercoding.Primitives.Point;
 
@@ -24,26 +22,26 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
     public sealed class ContentStream : IPdfObject, IDisposable
     {
         private const string UNKNOWN_FILL_RULE = "Unknown fill rule";
-        private readonly PdfStream _streamWrapper;
 
         internal ContentStream(PdfReference id, PageResources pageResources)
         {
             Resources = pageResources;
-            _streamWrapper = new PdfStream(new MemoryStream());
+            InnerStream = new PdfStream(new MemoryStream());
 
             Reference = id;
         }
+
+        internal PdfStream InnerStream { get; private set; }
+
         internal PageResources Resources { get; }
 
         /// <inheritdoc />
         public PdfReference Reference { get; }
 
-        internal bool IsWritten { get; private set; }
-
         /// <inheritdoc />
         public void Dispose()
         {
-            _streamWrapper.Dispose();
+            InnerStream.Dispose();
         }
 
         /// <summary>
@@ -52,7 +50,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SaveState()
         {
-            _streamWrapper.Write('q').NewLine();
+            InnerStream.Write('q').NewLine();
 
             return this;
         }
@@ -63,7 +61,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream RestoreState()
         {
-            _streamWrapper.Write('Q').NewLine();
+            InnerStream.Write('Q').NewLine();
 
             return this;
         }
@@ -75,7 +73,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream CTM(Matrix matrix)
         {
-            _streamWrapper
+            InnerStream
                 .Write(matrix.A)
                 .Space()
                 .Write(matrix.B)
@@ -100,7 +98,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream BeginText()
         {
-            _streamWrapper
+            InnerStream
                 .Write("BT")
                 .NewLine();
 
@@ -115,7 +113,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SetFontAndSize(PdfName font, float size)
         {
-            _streamWrapper
+            InnerStream
                 .Write(font)
                 .Space()
                 .Write(size)
@@ -133,7 +131,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SetTextLeading(float leading)
         {
-            _streamWrapper
+            InnerStream
                 .Write(leading)
                 .Space()
                 .Write("TL")
@@ -149,7 +147,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SetCharacterSpacing(float characterSpace)
         {
-            _streamWrapper
+            InnerStream
                 .Write(characterSpace)
                 .Space()
                 .Write("Tc")
@@ -165,7 +163,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SetHorizontalScaling(float horizontalScaling)
         {
-            _streamWrapper
+            InnerStream
                 .Write(horizontalScaling)
                 .Space()
                 .Write("Tz")
@@ -181,7 +179,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SetTextRise(float textRise)
         {
-            _streamWrapper
+            InnerStream
                 .Write(textRise)
                 .Space()
                 .Write("Ts")
@@ -197,7 +195,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SetTextRenderMode(TextRenderingMode textRenderingMode)
         {
-            _streamWrapper
+            InnerStream
                 .Write((int)textRenderingMode)
                 .Space()
                 .Write("Tr")
@@ -213,7 +211,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SetWordSpacing(float wordSpace)
         {
-            _streamWrapper
+            InnerStream
                 .Write(wordSpace)
                 .Space()
                 .Write("Tw")
@@ -228,69 +226,33 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream EndText()
         {
-            _streamWrapper
+            InnerStream
                 .Write("ET")
                 .NewLine();
 
             return this;
         }
 
-        /// <summary>
-        /// Write one or more show text operators to the content stream
-        /// </summary>
-        /// <param name="text">The text to write</param>
-        /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
-        public ContentStream ShowText(string text)
+        public ContentStream ShowTextTj(string line)
         {
-            var lines = _splitOnNewLines(text).ToArray();
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (i == 0)
-                {
-                    _streamWrapper
-                        .WriteStringLiteral(lines[i])
-                        .Space()
-                        .Write("Tj")
-                        .NewLine();
-                }
-                else
-                {
-                    _streamWrapper
-                        .WriteStringLiteral(lines[i])
-                        .Space()
-                        .Write("'")
-                        .NewLine();
-                }
-            }
+            InnerStream
+                .WriteStringLiteral(line)
+                .Space()
+                .Write("Tj")
+                .NewLine();
 
             return this;
         }
 
-        private static IEnumerable<string> _splitOnNewLines(string text)
+        public ContentStream MoveNextLineShowText(string line)
         {
-            var builder = new StringBuilder(text.Length);
-            for (int i = 0; i < text.Length; i++)
-            {
-                var c = text[i];
-                var n = i < text.Length - 1
-                    ? text[i + 1]
-                    : '0';
-                if (( c == '\r' && n == '\n' ) || c == '\r' || c == '\n')
-                {
-                    yield return builder.ToString();
-                    builder.Clear();
+            InnerStream
+                .WriteStringLiteral(line)
+                .Space()
+                .Write("'")
+                .NewLine();
 
-                    if (n == '\n')
-                        i++; // extra skip to also skip the \n
-                }
-                else
-                {
-                    builder.Append(c);
-                }
-            }
-
-            yield return builder.ToString();
+            return this;
         }
 
         /// <summary>
@@ -300,7 +262,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream SetTextPosition(Point position)
         {
-            _streamWrapper
+            InnerStream
                 .Write(position.X.AsRaw(Unit.Points))
                 .Space()
                 .Write(position.Y.AsRaw(Unit.Points))
@@ -318,7 +280,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Tm(Matrix matrix)
         {
-            _streamWrapper
+            InnerStream
                 .Write(matrix.A)
                 .Space()
                 .Write(matrix.B)
@@ -344,7 +306,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Paint(PdfName resource)
         {
-            _streamWrapper.Write(resource).Space().Write("Do").NewLine();
+            InnerStream.Write(resource).Space().Write("Do").NewLine();
 
             return this;
         }
@@ -356,7 +318,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(MoveOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.X).Space().Write(op.Y).Space()
                 .Write('m').NewLine();
 
@@ -370,7 +332,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(LineOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.X).Space().Write(op.Y).Space()
                 .Write('l').NewLine();
 
@@ -384,7 +346,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(CubicBezierCurveDualControlPointsOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.X1).Space().Write(op.Y1).Space()
                 .Write(op.X2).Space().Write(op.Y2).Space()
                 .Write(op.X3).Space().Write(op.Y3).Space()
@@ -400,7 +362,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(CubicBezierCurveInitialControlPointsOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.X2).Space().Write(op.Y2).Space()
                 .Write(op.X3).Space().Write(op.Y3).Space()
                 .Write('v').NewLine();
@@ -415,7 +377,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(CubicBezierCurveFinalControlPointsOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.X1).Space().Write(op.Y1).Space()
                 .Write(op.X3).Space().Write(op.Y3).Space()
                 .Write('y').NewLine();
@@ -430,7 +392,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(RectangleOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.X).Space().Write(op.Y).Space()
                 .Write(op.Width).Space().Write(op.Height).Space()
                 .Write("re").NewLine();
@@ -447,7 +409,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             _ = op;
 
-            _streamWrapper
+            InnerStream
                 .Write('h').NewLine();
 
             return this;
@@ -462,7 +424,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             _ = op;
 
-            _streamWrapper
+            InnerStream
                 .Write('S').NewLine();
 
             return this;
@@ -477,7 +439,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             _ = op;
 
-            _streamWrapper
+            InnerStream
                 .Write('s').NewLine();
 
             return this;
@@ -492,8 +454,8 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             _ = op.FillRule switch
             {
-                FillRule.NonZeroWindingNumber => _streamWrapper.Write('f').NewLine(),
-                FillRule.EvenOdd => _streamWrapper.Write('f').Write('*').NewLine(),
+                FillRule.NonZeroWindingNumber => InnerStream.Write('f').NewLine(),
+                FillRule.EvenOdd => InnerStream.Write('f').Write('*').NewLine(),
                 _ => throw new InvalidOperationException(UNKNOWN_FILL_RULE)
             };
 
@@ -509,8 +471,8 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             _ = op.FillRule switch
             {
-                FillRule.NonZeroWindingNumber => _streamWrapper.Write('B').NewLine(),
-                FillRule.EvenOdd => _streamWrapper.Write('B').Write('*').NewLine(),
+                FillRule.NonZeroWindingNumber => InnerStream.Write('B').NewLine(),
+                FillRule.EvenOdd => InnerStream.Write('B').Write('*').NewLine(),
                 _ => throw new InvalidOperationException(UNKNOWN_FILL_RULE)
             };
 
@@ -526,8 +488,8 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             _ = op.FillRule switch
             {
-                FillRule.NonZeroWindingNumber => _streamWrapper.Write('b').NewLine(),
-                FillRule.EvenOdd => _streamWrapper.Write('b').Write('*').NewLine(),
+                FillRule.NonZeroWindingNumber => InnerStream.Write('b').NewLine(),
+                FillRule.EvenOdd => InnerStream.Write('b').Write('*').NewLine(),
                 _ => throw new InvalidOperationException(UNKNOWN_FILL_RULE)
             };
 
@@ -543,7 +505,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             _ = op;
 
-            _streamWrapper
+            InnerStream
                 .Write('n').NewLine();
 
             return this;
@@ -592,7 +554,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(StrokingColorSpaceOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.ColorSpace)
                 .Space()
                 .Write('C').Write('S')
@@ -608,7 +570,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(NonStrokingColorSpaceOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.ColorSpace)
                 .Space()
                 .Write('c').Write('s')
@@ -624,7 +586,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(GrayStrokingColorOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Color.Gray)
                 .Space()
                 .Write('G')
@@ -640,7 +602,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(GrayNonStrokingColorOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Color.Gray)
                 .Space()
                 .Write('g')
@@ -656,7 +618,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(RgbStrokingColorOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Color.Red)
                 .Space()
                 .Write(op.Color.Green)
@@ -677,7 +639,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(RgbNonStrokingColorOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Color.Red)
                 .Space()
                 .Write(op.Color.Green)
@@ -698,7 +660,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(CmykStrokingColorOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Color.Cyan)
                 .Space()
                 .Write(op.Color.Magenta)
@@ -720,7 +682,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(CmykNonStrokingColorOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Color.Cyan)
                 .Space()
                 .Write(op.Color.Magenta)
@@ -744,7 +706,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             var name = Resources.AddSeparation(op.Color.Separation);
 
-            _streamWrapper
+            InnerStream
                 .Write(name)
                 .Space()
                 .Write("CS")
@@ -766,7 +728,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         {
             var name = Resources.AddSeparation(op.Color.Separation);
 
-            _streamWrapper
+            InnerStream
                 .Write(name)
                 .Space()
                 .Write("cs")
@@ -786,7 +748,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(LineWidthOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Width)
                 .Space()
                 .Write('w')
@@ -802,7 +764,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(LineCapOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write((int)op.Style)
                 .Space()
                 .Write('J')
@@ -818,7 +780,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(LineJoinOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write((int)op.Style)
                 .Space()
                 .Write('j')
@@ -834,7 +796,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(MiterLimitOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Limit)
                 .Space()
                 .Write('M')
@@ -850,7 +812,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
         /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
         public ContentStream Write(DashOperator op)
         {
-            _streamWrapper
+            InnerStream
                 .Write(op.Array)
                 .Space()
                 .Write(op.Phase)
@@ -859,21 +821,6 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
                 .NewLine();
 
             return this;
-        }
-
-        internal uint WriteToStream(PdfStream stream)
-        {
-            if (IsWritten)
-            {
-                throw new InvalidOperationException("Object is already written to stream.");
-            }
-            var position = (uint)stream.Position;
-
-            _streamWrapper.InnerStream.Position = 0;
-            stream.IndirectStream(this, _streamWrapper.InnerStream);
-            IsWritten = true;
-
-            return position;
         }
     }
 }

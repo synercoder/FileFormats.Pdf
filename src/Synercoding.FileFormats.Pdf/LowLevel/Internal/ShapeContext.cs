@@ -1,8 +1,8 @@
-using Synercoding.FileFormats.Pdf.LowLevel;
+using Synercoding.FileFormats.Pdf.Internals;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
 using System;
 
-namespace Synercoding.FileFormats.Pdf.Internals
+namespace Synercoding.FileFormats.Pdf.LowLevel.Internal
 {
     internal sealed class ShapeContext : IShapeContext, IDisposable
     {

@@ -6,10 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Synercoding.FileFormats.Pdf.LowLevel
+namespace Synercoding.FileFormats.Pdf.LowLevel.Internal
 {
     internal sealed class PageResources : IDisposable
     {
+        private const string PREFIX_IMAGE = "Im";
+        private const string PREFIX_SEPARATION = "Sep";
+
         private readonly TableBuilder _tableBuilder;
         private readonly Map<PdfName, Image> _images;
         private readonly Dictionary<Separation, (PdfName Name, PdfReference Id)> _separations;
@@ -50,7 +53,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             if (_images.Reverse.Contains(image))
                 return _images.Reverse[image];
 
-            var key = "Im" + System.Threading.Interlocked.Increment(ref _imageCounter).ToString().PadLeft(6, '0');
+            var key = PREFIX_IMAGE + System.Threading.Interlocked.Increment(ref _imageCounter).ToString().PadLeft(6, '0');
 
             var pdfName = PdfName.Get(key);
 
@@ -72,7 +75,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel
             if (_separations.TryGetValue(separation, out var tuple))
                 return tuple.Name;
 
-            var key = "Sep" + System.Threading.Interlocked.Increment(ref _separationCounter).ToString().PadLeft(6, '0');
+            var key = PREFIX_SEPARATION + System.Threading.Interlocked.Increment(ref _separationCounter).ToString().PadLeft(6, '0');
             var name = PdfName.Get(key);
             _separations[separation] = (name, _tableBuilder.ReserveId());
 

@@ -13,7 +13,8 @@ charset = utf-8
 end_of_line = crlf
 indent_style = space
 indent_size = 4
-insert_final_newline = false
+tab_width = 4
+insert_final_newline = true
 trim_trailing_whitespace = true
 
 #########################
@@ -43,7 +44,6 @@ trim_trailing_whitespace = false
 # Web Files
 [*.{htm,html,js,ts,tsx,css,sass,scss,less,svg,vue}]
 indent_size = 2
-insert_final_newline = true
 
 ###########################
 # C# code style settings
@@ -72,6 +72,9 @@ csharp_style_expression_bodied_local_functions = false:silent
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#pattern-matching
 csharp_style_pattern_matching_over_is_with_cast_check = true:warning
 csharp_style_pattern_matching_over_as_with_null_check = true:warning
+csharp_style_prefer_pattern_matching = true:silent
+csharp_style_prefer_not_pattern = true:suggestion
+csharp_style_prefer_extended_property_pattern = true:suggestion
 
 # Inlined variable declarations
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#inlined-variable-declarations
@@ -104,6 +107,20 @@ csharp_style_prefer_range_operator = true:suggestion
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#miscellaneous-preferences
 csharp_style_deconstructed_variable_declaration = true:warning
 csharp_style_pattern_local_over_anonymous_function = true:none
+csharp_prefer_simple_using_statement = false:suggestion
+csharp_prefer_static_local_function = true:suggestion
+csharp_using_directive_placement = outside_namespace:silent
+csharp_style_namespace_declarations = file_scoped:suggestion
+csharp_style_prefer_method_group_conversion = true:silent
+csharp_style_prefer_null_check_over_type_check = true:suggestion
+csharp_style_prefer_local_over_anonymous_function = true:suggestion
+csharp_style_implicit_object_creation_when_type_is_apparent = false:suggestion
+csharp_style_prefer_tuple_swap = true:suggestion
+csharp_style_allow_embedded_statements_on_same_line_experimental = true:silent
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true:silent
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:silent
+csharp_style_prefer_parameter_null_checking = true:suggestion
+csharp_style_prefer_switch_expression = true:suggestion
 
 ###########################
 # .NET code style settings
@@ -147,14 +164,22 @@ dotnet_style_prefer_inferred_tuple_names = true:warning
 dotnet_style_prefer_inferred_anonymous_type_member_names = false:suggestion
 dotnet_style_prefer_auto_properties = true:warning
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
-dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
-dotnet_style_prefer_conditional_expression_over_return = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_prefer_compound_assignment = true:suggestion
 
 # Null-checking preferences
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#null-checking-preferences
 dotnet_style_coalesce_expression = true:warning
 dotnet_style_null_propagation = true:warning
+
+# Miscellaneous preferences
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+dotnet_style_namespace_match_folder = true:suggestion
+dotnet_style_allow_multiple_blank_lines_experimental = true:suggestion
+dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
 
 #############################
 # .NET code quality settings
@@ -249,8 +274,13 @@ dotnet_naming_symbols.private_static_readonly_fields.applicable_accessibilities 
 dotnet_naming_symbols.private_static_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.private_static_readonly_fields.required_modifiers = static, readonly
 
+# public_static_readonly_fields - Define static and readonly fields
+dotnet_naming_symbols.public_static_readonly_fields.applicable_accessibilities = public
+dotnet_naming_symbols.public_static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.public_static_readonly_fields.required_modifiers = static, readonly
+
 # non_private_static_readonly_fields - Define static and readonly fields
-dotnet_naming_symbols.non_private_static_readonly_fields.applicable_accessibilities = public, internal, protected
+dotnet_naming_symbols.non_private_static_readonly_fields.applicable_accessibilities = internal, protected
 dotnet_naming_symbols.non_private_static_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.non_private_static_readonly_fields.required_modifiers = static, readonly
 
@@ -317,7 +347,12 @@ dotnet_naming_rule.non_private_static_readonly_fields_must_be_pascal_case.severi
 dotnet_naming_rule.non_private_static_readonly_fields_must_be_pascal_case.symbols = non_private_static_readonly_fields
 dotnet_naming_rule.non_private_static_readonly_fields_must_be_pascal_case.style = pascal_case
 
-# Public, internal and protected readonly fields must be PascalCase
+# Public static readonly fields must be ALL_UPPER_CASE
+dotnet_naming_rule.public_static_readonly_fields_must_be_all_upper.severity = warning
+dotnet_naming_rule.public_static_readonly_fields_must_be_all_upper.symbols = public_static_readonly_fields
+dotnet_naming_rule.public_static_readonly_fields_must_be_all_upper.style = all_upper_with_underscore
+
+# Internal and protected readonly fields must be PascalCase
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.severity = warning
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.symbols = non_private_readonly_fields
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.style = pascal_case

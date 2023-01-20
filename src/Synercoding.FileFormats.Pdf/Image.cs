@@ -11,9 +11,7 @@ namespace Synercoding.FileFormats.Pdf
     /// </summary>
     public sealed class Image : IPdfObject, IDisposable
     {
-        private readonly Stream _imageStream;
         private bool _disposed;
-        private bool _isWritten;
 
         internal Image(PdfReference id, SixLabors.ImageSharp.Image image)
         {
@@ -28,7 +26,7 @@ namespace Synercoding.FileFormats.Pdf
             Width = image.Width;
             Height = image.Height;
             ms.Position = 0;
-            _imageStream = ms;
+            RawStream = ms;
         }
 
         internal Image(PdfReference id, Stream jpgStream, int width, int height)
@@ -37,8 +35,10 @@ namespace Synercoding.FileFormats.Pdf
 
             Width = width;
             Height = height;
-            _imageStream = jpgStream;
+            RawStream = jpgStream;
         }
+
+        internal Stream RawStream { get; private set; }
 
         /// <inheritdoc />
         public PdfReference Reference { get; private set; }
@@ -58,38 +58,9 @@ namespace Synercoding.FileFormats.Pdf
         {
             if (!_disposed)
             {
-                _imageStream.Dispose();
+                RawStream.Dispose();
                 _disposed = true;
             }
-        }
-
-        internal bool TryWriteToStream(PdfStream stream, out uint position)
-        {
-            position = 0;
-
-            if (_isWritten)
-                return false;
-            if (_disposed)
-                throw new ObjectDisposedException(nameof(_imageStream), "Internal image is already disposed");
-
-            position = (uint)stream.Position;
-
-            stream.IndirectStream(this, _imageStream, this, static (image, dictionary) =>
-            {
-                dictionary
-                    .Type(ObjectType.XObject)
-                    .SubType(XObjectSubType.Image)
-                    .Write(PdfName.Get("Width"), image.Width)
-                    .Write(PdfName.Get("Height"), image.Height)
-                    .Write(PdfName.Get("ColorSpace"), PdfName.Get("DeviceRGB"))
-                    .Write(PdfName.Get("BitsPerComponent"), 8)
-                    .Write(PdfName.Get("Decode"), 0f, 1f, 0f, 1f, 0f, 1f);
-            },
-            StreamFilter.DCTDecode);
-
-            _isWritten = true;
-
-            return true;
         }
     }
 }

@@ -1,5 +1,6 @@
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using System;
 using System.IO;
@@ -14,7 +15,7 @@ namespace Synercoding.FileFormats.Pdf
     public sealed class PdfWriter : IDisposable
     {
         private readonly bool _ownsStream;
-        private readonly PdfStream _stream;
+        private readonly ObjectStream _objectStream;
         private readonly TableBuilder _tableBuilder = new TableBuilder();
 
         private readonly PageTree _pageTree;
@@ -37,10 +38,11 @@ namespace Synercoding.FileFormats.Pdf
         /// <param name="ownsStream">If the stream is owned, then when this <see cref="PdfWriter"/> is disposed, the stream is also disposed.</param>
         public PdfWriter(Stream stream, bool ownsStream)
         {
-            _stream = new PdfStream(stream);
-            _writeHeader(_stream);
+            var pdfStream = new PdfStream(stream);
+            _writeHeader(pdfStream);
+            _objectStream = new ObjectStream(pdfStream, _tableBuilder);
 
-            _pageTree = new PageTree(_tableBuilder.ReserveId(), _tableBuilder);
+            _pageTree = new PageTree(_tableBuilder.ReserveId());
             _catalog = new Catalog(_tableBuilder.ReserveId(), _pageTree);
 
             DocumentInformation = new DocumentInformation(_tableBuilder.ReserveId())
@@ -69,10 +71,20 @@ namespace Synercoding.FileFormats.Pdf
         /// <param name="infoAction">Action used to set meta data</param>
         /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
         public PdfWriter SetDocumentInfo(Action<DocumentInformation> infoAction)
+            => SetDocumentInfo(infoAction, static (action, did) => action(did));
+
+        /// <summary>
+        /// Set meta information for this document
+        /// </summary>
+        /// <typeparam name="T">Type of data to pass to the action</typeparam>
+        /// <param name="data">Data to be used in the action</param>
+        /// <param name="infoAction">Action used to set meta data</param>
+        /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
+        public PdfWriter SetDocumentInfo<T>(T data, Action<T, DocumentInformation> infoAction)
         {
             _throwWhenEndingWritten();
 
-            infoAction(DocumentInformation);
+            infoAction(data, DocumentInformation);
 
             return this;
         }
@@ -98,8 +110,7 @@ namespace Synercoding.FileFormats.Pdf
             using (var page = new PdfPage(_tableBuilder, _pageTree))
             {
                 pageAction(data, page);
-
-                page.WriteToStream(_stream);
+                _writePageAndResourcesToObjectStream(page);
             }
 
             return this;
@@ -127,7 +138,7 @@ namespace Synercoding.FileFormats.Pdf
             {
                 await pageAction(data, page);
 
-                page.WriteToStream(_stream);
+                _writePageAndResourcesToObjectStream(page);
             }
 
             return this;
@@ -146,10 +157,7 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, image);
 
-            if (!pdfImage.TryWriteToStream(_stream, out uint position))
-                throw new InvalidOperationException("Image was just created but could not be written to stream.");
-
-            _tableBuilder.SetPosition(id, position);
+            _objectStream.Write(pdfImage);
 
             return pdfImage;
         }
@@ -172,10 +180,7 @@ namespace Synercoding.FileFormats.Pdf
 
             var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight);
 
-            if (!pdfImage.TryWriteToStream(_stream, out uint position))
-                throw new InvalidOperationException("Image was just created but could not be written to stream.");
-
-            _tableBuilder.SetPosition(id, position);
+            _objectStream.Write(pdfImage);
 
             return pdfImage;
         }
@@ -191,15 +196,14 @@ namespace Synercoding.FileFormats.Pdf
             if (_endingWritten)
                 return;
 
-            _writePageTree();
-
-            _writeCatalog();
-
-            _writeDocumentInformation();
+            _objectStream
+                .Write(_pageTree)
+                .Write(_catalog)
+                .Write(DocumentInformation);
 
             _writePdfEnding();
 
-            _stream.Flush();
+            _objectStream.InnerStream.Flush();
 
             _endingWritten = true;
         }
@@ -209,12 +213,28 @@ namespace Synercoding.FileFormats.Pdf
         {
             WriteTrailer();
 
-            _stream.Flush();
+            _objectStream.InnerStream.Flush();
 
             if (_ownsStream)
             {
-                _stream.Dispose();
+                _objectStream.InnerStream.Dispose();
             }
+        }
+
+        private void _writePageAndResourcesToObjectStream(PdfPage page)
+        {
+            _objectStream.Write(page);
+
+            foreach (var kv in page.Resources.Images)
+                _objectStream.Write(kv.Value);
+
+            foreach (var (font, refId) in page.Resources.FontReferences)
+                _objectStream.Write(refId, font);
+
+            foreach (var (separation, (_, refId)) in page.Resources.SeparationReferences)
+                _objectStream.Write(refId, separation);
+
+            _objectStream.Write(page.ContentStream);
         }
 
         private void _throwWhenEndingWritten()
@@ -243,36 +263,15 @@ namespace Synercoding.FileFormats.Pdf
             stream.WriteByte(0x0A); // LF
         }
 
-        private void _writeDocumentInformation()
-        {
-            _tableBuilder.SetPosition(DocumentInformation.Reference, (uint)_stream.Position);
-
-            DocumentInformation.WriteToStream(_stream);
-        }
-
-        private void _writePageTree()
-        {
-            _tableBuilder.SetPosition(_pageTree.Reference, (uint)_stream.Position);
-
-            _pageTree.WriteToStream(_stream);
-        }
-
-        private void _writeCatalog()
-        {
-            _tableBuilder.SetPosition(_catalog.Reference, (uint)_stream.Position);
-
-            _catalog.WriteToStream(_stream);
-        }
-
         private void _writePdfEnding()
         {
             if (!_tableBuilder.Validate())
                 throw new InvalidOperationException("XRef table is invalid.");
 
             var xRefTable = _tableBuilder.GetXRefTable();
-            uint xRefPosition = xRefTable.WriteToStream(_stream);
+            uint xRefPosition = xRefTable.WriteToStream(_objectStream.InnerStream);
 
-            _writeTrailer(_stream, xRefPosition, xRefTable.Section.ObjectCount, _catalog.Reference, DocumentInformation.Reference);
+            _writeTrailer(_objectStream.InnerStream, xRefPosition, xRefTable.Section.ObjectCount, _catalog.Reference, DocumentInformation.Reference);
         }
 
         private void _writeTrailer(PdfStream stream, uint startXRef, int size, PdfReference root, PdfReference documentInfo)

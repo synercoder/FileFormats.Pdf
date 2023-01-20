@@ -1,4 +1,5 @@
-﻿using System;
+using Synercoding.FileFormats.Pdf.LowLevel.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,12 +26,14 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.XRef
             return reference;
         }
 
-        public void SetPosition(PdfReference id, uint position)
+        public bool TrySetPosition(PdfReference id, uint position)
         {
             if (_positions[id] != -1)
-                throw new InvalidOperationException($"Reference {id} already has a position in the xref table.");
+                return false;
 
             _positions[id] = position;
+
+            return true;
         }
 
         public bool Validate()

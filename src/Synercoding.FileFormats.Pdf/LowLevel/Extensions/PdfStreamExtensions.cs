@@ -1,6 +1,8 @@
 using Synercoding.Primitives;
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
 {
@@ -130,6 +132,121 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
             return stream.Write(rectangle.LLX.Raw, rectangle.LLY.Raw, rectangle.URX.Raw, rectangle.URY.Raw);
         }
 
+        public static PdfStream Write(this PdfStream stream, DateTimeOffset dateTimeOffset)
+        {
+            stream
+                .Write('(')
+                .Write('D')
+                .Write(':');
+
+            stream.Write(dateTimeOffset.Year);
+
+            if (dateTimeOffset.Month < 10)
+                stream.Write('0');
+            stream.Write(dateTimeOffset.Month);
+
+            if (dateTimeOffset.Day < 10)
+                stream.Write('0');
+            stream.Write(dateTimeOffset.Day);
+
+            if (dateTimeOffset.Hour < 10)
+                stream.Write('0');
+            stream.Write(dateTimeOffset.Hour);
+
+            if (dateTimeOffset.Minute < 10)
+                stream.Write('0');
+            stream.Write(dateTimeOffset.Minute);
+
+            if (dateTimeOffset.Second < 10)
+                stream.Write('0');
+            stream.Write(dateTimeOffset.Second);
+
+            var hours = dateTimeOffset.Offset.Hours;
+            var minutes = dateTimeOffset.Offset.Minutes;
+            if (hours == 0 && minutes == 0)
+            {
+                stream
+                    .Write('Z')
+                    .Write('0')
+                    .Write('0')
+                    .Write('\'')
+                    .Write('0')
+                    .Write('0');
+            }
+            else
+            {
+                if (hours > 0 || ( hours == 0 && minutes > 0 ))
+                    stream.Write('+');
+                else
+                    stream.Write('-');
+
+                if (hours < 10)
+                    stream.Write('0');
+                stream.Write(hours);
+
+                stream.Write('\'');
+
+                if (minutes < 10)
+                    stream.Write('0');
+                stream.Write(minutes);
+            }
+
+            stream
+                .Write(')');
+
+            return stream;
+        }
+
+        public static PdfStream WriteHexadecimalString(this PdfStream stream, string value)
+        {
+            var bytes = System.Text.Encoding.ASCII.GetBytes(value);
+
+            stream.Write('<');
+            foreach (var b in bytes)
+            {
+                var (c1, c2) = _getByteAsHex(b);
+
+                stream
+                    .Write(c1)
+                    .Write(c2);
+            }
+            stream.Write('>');
+
+            return stream;
+
+            static (char C1, char C2) _getByteAsHex(byte b)
+            {
+                var c1 = _getHexCharForNumber(b % 16);
+                var c2 = _getHexCharForNumber(b / 16 % 16);
+
+                return (c1, c2);
+
+                static char _getHexCharForNumber(int number)
+                {
+                    return number switch
+                    {
+                        0 => '0',
+                        1 => '1',
+                        2 => '2',
+                        3 => '3',
+                        4 => '4',
+                        5 => '5',
+                        6 => '6',
+                        7 => '7',
+                        8 => '8',
+                        9 => '9',
+                        10 => 'A',
+                        11 => 'B',
+                        12 => 'C',
+                        13 => 'D',
+                        14 => 'E',
+                        15 => 'F',
+                        _ => throw new InvalidOperationException()
+                    };
+                }
+            }
+        }
+
         /// <summary>
         /// Write a text to the stream as a string literal
         /// </summary>
@@ -170,31 +287,31 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
             stream.WriteByte(0x29); // )
 
             return stream;
-        }
 
-        private static int _toOctal(int number)
-        {
-            if (number > 511)
-                throw new ArgumentOutOfRangeException(nameof(number), "Number is higher than octal 777 (dec 511).");
-            if (number < 0)
-                throw new ArgumentOutOfRangeException(nameof(number), "Only positive numbers can be converted.");
-
-            int resultNumber = 0;
-
-            int quotient = number;
-            int multiplier = 1;
-
-            do
+            static int _toOctal(int number)
             {
-                int remainder = quotient % 8;
-                quotient = quotient / 8;
+                if (number > 511)
+                    throw new ArgumentOutOfRangeException(nameof(number), "Number is higher than octal 777 (dec 511).");
+                if (number < 0)
+                    throw new ArgumentOutOfRangeException(nameof(number), "Only positive numbers can be converted.");
 
-                resultNumber += multiplier * remainder;
-                multiplier *= 10;
+                int resultNumber = 0;
+
+                int quotient = number;
+                int multiplier = 1;
+
+                do
+                {
+                    int remainder = quotient % 8;
+                    quotient = quotient / 8;
+
+                    resultNumber += multiplier * remainder;
+                    multiplier *= 10;
+                }
+                while (quotient != 0);
+
+                return resultNumber;
             }
-            while (quotient != 0);
-
-            return resultNumber;
         }
 
         internal static PdfStream StartObject(this PdfStream stream, PdfReference objectReference)
@@ -223,66 +340,9 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
                 .NewLine();
         }
 
-        internal static PdfStream IndirectStream<TPdfObject>(this PdfStream contentStream, TPdfObject pdfObject, Stream stream, params StreamFilter[] streamFilters)
-            where TPdfObject : IPdfObject
-            => contentStream.IndirectStream(pdfObject, stream, _ => { }, streamFilters);
-
-        internal static PdfStream IndirectStream<TPdfObject>(this PdfStream contentStream, TPdfObject pdfObject, Stream stream, Action<PdfDictionary> dictionaryAction, params StreamFilter[] streamFilters)
-            where TPdfObject : IPdfObject
-            => contentStream.IndirectStream(pdfObject, stream, dictionaryAction, static (action, dict) => action(dict), streamFilters);
-
-        internal static PdfStream IndirectStream<TPdfObject, TData>(this PdfStream contentStream, TPdfObject pdfObject, Stream stream, TData data, Action<TData, PdfDictionary> dictionaryAction, params StreamFilter[] streamFilters)
-            where TPdfObject : IPdfObject
-            where TData : notnull
-        {
-            contentStream
-                .StartObject(pdfObject.Reference)
-                .Dictionary((stream, data, dictionaryAction, streamFilters), static (tuple, dictionary) =>
-                {
-                    dictionary.Write(PdfName.Get("Length"), tuple.stream.Length);
-                    if (tuple.streamFilters != null && tuple.streamFilters.Length > 0)
-                    {
-                        if (tuple.streamFilters.Length == 1)
-                        {
-                            dictionary.Write(PdfName.Get("Filter"), tuple.streamFilters[0].ToPdfName());
-                        }
-                        else
-                        {
-                            dictionary.Write(PdfName.Get("Filter"), tuple.streamFilters, static (filters, streamPart) =>
-                            {
-                                streamPart
-                                    .WriteByte(0x5B) // [
-                                    .Space();
-
-                                foreach (var filter in filters)
-                                {
-                                    streamPart
-                                        .Write(filter.ToPdfName())
-                                        .Space();
-                                }
-
-                                streamPart
-                                    .WriteByte(0x5D); // ]
-                            });
-                        }
-                    }
-
-                    tuple.dictionaryAction(tuple.data, dictionary);
-                })
-                .Write("stream")
-                .NewLine()
-                .CopyFrom(stream)
-                .NewLine()
-                .Write("endstream")
-                .NewLine()
-                .EndObject()
-                .NewLine();
-
-            return contentStream;
-        }
-
         internal static PdfStream CopyFrom(this PdfStream stream, Stream data)
         {
+            data.Position = 0;
             data.CopyTo(stream.InnerStream);
             return stream;
         }

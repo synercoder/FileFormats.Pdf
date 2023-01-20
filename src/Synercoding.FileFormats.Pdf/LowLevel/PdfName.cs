@@ -1,4 +1,3 @@
-using Synercoding.FileFormats.Pdf.Internals;
 using System;
 using System.Collections.Generic;
 using System.Linq;

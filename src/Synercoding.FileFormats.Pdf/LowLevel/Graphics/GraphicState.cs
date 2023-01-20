@@ -1,4 +1,5 @@
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
+using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.Operators.Pathing.Painting;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics
