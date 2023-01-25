@@ -1,5 +1,5 @@
+using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
-using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
@@ -102,9 +102,9 @@ internal class ObjectStream
                 .Write(PdfName.Get("Subtype"), PdfName.Get("Image"))
                 .Write(PdfName.Get("Width"), image.Width)
                 .Write(PdfName.Get("Height"), image.Height)
-                .Write(PdfName.Get("ColorSpace"), PdfName.Get("DeviceRGB"))
+                .Write(PdfName.Get("ColorSpace"), image.ColorSpace)
                 .Write(PdfName.Get("BitsPerComponent"), 8)
-                .Write(PdfName.Get("Decode"), 0f, 1f, 0f, 1f, 0f, 1f);
+                .Write(PdfName.Get("Decode"), image.DecodeArray);
         }, StreamFilter.DCTDecode);
 
         return this;
@@ -124,7 +124,7 @@ internal class ObjectStream
                 .WriteIfNotNull(PdfName.Get("CropBox"), page.CropBox)
                 .WriteIfNotNull(PdfName.Get("BleedBox"), page.BleedBox)
                 .WriteIfNotNull(PdfName.Get("TrimBox"), page.TrimBox)
-                .WriteIfNotNull(PdfName.Get("Rotate"), page.Rotation);
+                .WriteIfNotNull(PdfName.Get("Rotate"), (int?)page.Rotation);
 
             // Resources
             dictionary.Write(PdfName.Get("Resources"), page.Resources, static (resources, stream) => stream.Dictionary(resources, static (resources, stream) =>
@@ -164,7 +164,7 @@ internal class ObjectStream
             }));
 
             // Content stream
-            dictionary.Write(PdfName.Get("Contents"), page.ContentStream.Reference);
+            dictionary.Write(PdfName.Get("Contents"), page.Content.RawContentStream.Reference);
         });
 
         return this;

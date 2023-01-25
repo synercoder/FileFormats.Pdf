@@ -9,7 +9,7 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics
         /// The outer edges of the strokes for the two segments shall be extended until they meet at an angle.
         /// </summary>
         /// <remarks>
-        /// If the segments meet at too sharp an angle (see <see cref="GraphicsState.MiterLimit"/>), a bevel join shall be used instead.
+        /// If the segments meet at too sharp an angle (see <see cref="IContentContext{TSelf}.MiterLimit"/>), a bevel join shall be used instead.
         /// </remarks>
         MiterJoin = 0,
         /// <summary>

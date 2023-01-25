@@ -1,4 +1,5 @@
 using Synercoding.FileFormats.Pdf.LowLevel;
+using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
@@ -171,14 +172,15 @@ namespace Synercoding.FileFormats.Pdf
         /// <param name="jpgStream">The <see cref="Stream"/> of the jpg image that needs to be added.</param>
         /// <param name="originalWidth">The width of the image in the <paramref name="jpgStream"/>.</param>
         /// <param name="originalHeight">The height of the image in the <paramref name="jpgStream"/>.</param>
+        /// <param name="colorSpace">The color space of the jpg image.</param>
         /// <returns>The image reference that can be used in pages</returns>
-        public Image AddJpgImageUnsafe(Stream jpgStream, int originalWidth, int originalHeight)
+        public Image AddJpgUnsafe(Stream jpgStream, int originalWidth, int originalHeight, ColorSpace colorSpace)
         {
             _throwWhenEndingWritten();
 
             var id = _tableBuilder.ReserveId();
 
-            var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight);
+            var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace);
 
             _objectStream.Write(pdfImage);
 
@@ -234,7 +236,7 @@ namespace Synercoding.FileFormats.Pdf
             foreach (var (separation, (_, refId)) in page.Resources.SeparationReferences)
                 _objectStream.Write(refId, separation);
 
-            _objectStream.Write(page.ContentStream);
+            _objectStream.Write(page.Content.RawContentStream);
         }
 
         private void _throwWhenEndingWritten()

@@ -65,32 +65,32 @@ namespace Synercoding.FileFormats.Pdf
         /// <summary>
         /// The A value
         /// </summary>
-        public double A { get; init; }
+        public double A { get; }
 
         /// <summary>
         /// The B value
         /// </summary>
-        public double B { get; init; }
+        public double B { get; }
 
         /// <summary>
         /// The C value
         /// </summary>
-        public double C { get; init; }
+        public double C { get; }
 
         /// <summary>
         /// The D value
         /// </summary>
-        public double D { get; init; }
+        public double D { get; }
 
         /// <summary>
         /// The E value
         /// </summary>
-        public double E { get; init; }
+        public double E { get; }
 
         /// <summary>
         /// The F value
         /// </summary>
-        public double F { get; init; }
+        public double F { get; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)

@@ -1,5 +1,5 @@
+using Synercoding.FileFormats.Pdf.LowLevel.Colors;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
-using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.Text
 {

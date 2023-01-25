@@ -1,6 +1,6 @@
 namespace Synercoding.FileFormats.Pdf.LowLevel.Internal
 {
-    internal class Catalog : IPdfObject
+    internal class Catalog
     {
         public Catalog(PdfReference id, PageTree pageTree)
         {
@@ -8,7 +8,9 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Internal
             PageTree = pageTree;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// A pdf reference object that can be used to reference to this object
+        /// </summary>
         public PdfReference Reference { get; }
 
         public PageTree PageTree { get; }

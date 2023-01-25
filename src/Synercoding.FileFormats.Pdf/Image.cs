@@ -1,6 +1,6 @@
 using SixLabors.ImageSharp;
 using Synercoding.FileFormats.Pdf.LowLevel;
-using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using System;
 using System.IO;
 
@@ -9,7 +9,7 @@ namespace Synercoding.FileFormats.Pdf
     /// <summary>
     /// Class representing an image inside a pdf
     /// </summary>
-    public sealed class Image : IPdfObject, IDisposable
+    public sealed class Image : IDisposable
     {
         private bool _disposed;
 
@@ -25,22 +25,47 @@ namespace Synercoding.FileFormats.Pdf
             });
             Width = image.Width;
             Height = image.Height;
+            ColorSpace = DeviceRGB.Instance.Name;
+            DecodeArray = new double[] { 0, 1, 0, 1, 0, 1 };
             ms.Position = 0;
             RawStream = ms;
         }
 
-        internal Image(PdfReference id, Stream jpgStream, int width, int height)
+        internal Image(PdfReference id, Stream jpgStream, int width, int height, ColorSpace colorSpace)
         {
             Reference = id;
 
             Width = width;
             Height = height;
             RawStream = jpgStream;
+
+            var (csName, decodeArray) = colorSpace switch
+            {
+                DeviceCMYK cmyk => (cmyk.Name, new double[] { 0, 1, 0, 1, 0, 1, 0, 1 }),
+                DeviceRGB rgb => (rgb.Name, new double[] { 0, 1, 0, 1, 0, 1 }),
+                _ => throw new ArgumentOutOfRangeException(nameof(colorSpace), $"The provided color space {colorSpace} is currently not supported.")
+            };
+
+            ColorSpace = csName;
+            DecodeArray = decodeArray;
+        }
+
+        internal Image(PdfReference id, Stream jpgStream, int width, int height, PdfName colorSpace, double[] decodeArray)
+        {
+            Reference = id;
+
+            Width = width;
+            Height = height;
+            RawStream = jpgStream;
+            ColorSpace = colorSpace;
+            DecodeArray = decodeArray;
         }
 
         internal Stream RawStream { get; private set; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// A pdf reference object that can be used to reference to this object
+        /// </summary>
         public PdfReference Reference { get; private set; }
 
         /// <summary>
@@ -52,6 +77,10 @@ namespace Synercoding.FileFormats.Pdf
         /// The height of this <see cref="Image"/>
         /// </summary>
         public int Height { get; }
+
+        public PdfName ColorSpace { get; }
+
+        public double[] DecodeArray { get; }
 
         /// <inheritdoc />
         public void Dispose()

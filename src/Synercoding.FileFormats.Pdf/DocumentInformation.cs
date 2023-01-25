@@ -7,7 +7,7 @@ namespace Synercoding.FileFormats.Pdf
     /// <summary>
     /// This class contains information about the document
     /// </summary>
-    public class DocumentInformation : IPdfObject
+    public class DocumentInformation
     {
         internal DocumentInformation(PdfReference id)
         {
@@ -54,7 +54,9 @@ namespace Synercoding.FileFormats.Pdf
         /// </summary>
         public DateTime? ModDate { get; set; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// A pdf reference object that can be used to reference to this object
+        /// </summary>
         public PdfReference Reference { get; }
 
         /// <summary>

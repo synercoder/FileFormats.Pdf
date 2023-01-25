@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.Internal
 {
-    internal class PageTree : IPdfObject
+    internal class PageTree
     {
         private readonly List<PdfPage> _pages = new List<PdfPage>();
 
@@ -11,7 +11,9 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Internal
             Reference = id;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// A pdf reference object that can be used to reference to this object
+        /// </summary>
         public PdfReference Reference { get; }
 
         public void AddPage(PdfPage pdfObject)

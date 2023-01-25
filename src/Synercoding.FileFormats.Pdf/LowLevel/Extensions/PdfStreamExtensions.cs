@@ -37,33 +37,6 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
             => stream.Write(name.ToString());
 
         /// <summary>
-        /// Write a <typeparamref name="TPdfObject"/> to the stream as a dictionary using <paramref name="dictionaryAction"/>
-        /// </summary>
-        /// <typeparam name="TPdfObject">The type with data to write to the stream</typeparam>
-        /// <param name="stream">The stream to write the data to</param>
-        /// <param name="pdfObject">The data to write</param>
-        /// <param name="dictionaryAction">The instructions for writing the type</param>
-        /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
-        public static PdfStream IndirectDictionary<TPdfObject>(this PdfStream stream, TPdfObject pdfObject, Action<TPdfObject, PdfDictionary> dictionaryAction)
-            where TPdfObject : IPdfObject
-        {
-            return stream
-                .StartObject(pdfObject.Reference)
-                .Dictionary(pdfObject, dictionaryAction)
-                .EndObject()
-                .NewLine();
-        }
-
-        internal static PdfStream IndirectDictionary<T>(this PdfStream stream, PdfReference reference, T data, Action<T, PdfDictionary> dictionaryAction)
-        {
-            return stream
-                .StartObject(reference)
-                .Dictionary(data, dictionaryAction)
-                .EndObject()
-                .NewLine();
-        }
-
-        /// <summary>
         /// Write a dictionary to the <see cref="PdfStream"/>
         /// </summary>
         /// <typeparam name="T">Type of data to use in the <paramref name="streamAction"/></typeparam>
@@ -216,8 +189,8 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
 
             static (char C1, char C2) _getByteAsHex(byte b)
             {
-                var c1 = _getHexCharForNumber(b % 16);
-                var c2 = _getHexCharForNumber(b / 16 % 16);
+                var c1 = _getHexCharForNumber(b / 16 % 16);
+                var c2 = _getHexCharForNumber(b % 16);
 
                 return (c1, c2);
 

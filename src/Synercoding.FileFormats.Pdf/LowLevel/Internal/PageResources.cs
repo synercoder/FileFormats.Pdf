@@ -1,5 +1,5 @@
 using Synercoding.FileFormats.Pdf.Internals;
-using Synercoding.FileFormats.Pdf.LowLevel.Graphics.Colors.ColorSpaces;
+using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
 using System;
@@ -46,6 +46,33 @@ namespace Synercoding.FileFormats.Pdf.LowLevel.Internal
                 kv.Value.Dispose();
 
             _images.Clear();
+        }
+
+        public PdfName AddJpgUnsafe(System.IO.Stream jpgStream, int originalWidth, int originalHeight, ColorSpace colorSpace)
+        {
+            var id = _tableBuilder.ReserveId();
+
+            var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace);
+
+            return AddImage(pdfImage);
+        }
+
+        public PdfName AddJpgUnsafe(System.IO.Stream jpgStream, int originalWidth, int originalHeight, PdfName colorSpace, double[] decodeArray)
+        {
+            var id = _tableBuilder.ReserveId();
+
+            var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, decodeArray);
+
+            return AddImage(pdfImage);
+        }
+
+        public PdfName AddImage(SixLabors.ImageSharp.Image image)
+        {
+            var id = _tableBuilder.ReserveId();
+
+            var pdfImage = new Image(id, image);
+
+            return AddImage(pdfImage);
         }
 
         public PdfName AddImage(Image image)
