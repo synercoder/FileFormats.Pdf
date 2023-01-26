@@ -1,95 +1,100 @@
 using SixLabors.ImageSharp;
 using Synercoding.FileFormats.Pdf.LowLevel;
-using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using System;
 using System.IO;
 
-namespace Synercoding.FileFormats.Pdf
+namespace Synercoding.FileFormats.Pdf;
+
+/// <summary>
+/// Class representing an image inside a pdf
+/// </summary>
+public sealed class Image : IDisposable
 {
-    /// <summary>
-    /// Class representing an image inside a pdf
-    /// </summary>
-    public sealed class Image : IPdfObject, IDisposable
+    private bool _disposed;
+
+    internal Image(PdfReference id, SixLabors.ImageSharp.Image image)
     {
-        private readonly Stream _imageStream;
-        private bool _disposed;
-        private bool _isWritten;
+        Reference = id;
 
-        internal Image(PdfReference id, SixLabors.ImageSharp.Image image)
+        var ms = new MemoryStream();
+        image.SaveAsJpeg(ms, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
         {
-            Reference = id;
+            Quality = 100,
+            ColorType = SixLabors.ImageSharp.Formats.Jpeg.JpegColorType.YCbCrRatio444
+        });
+        Width = image.Width;
+        Height = image.Height;
+        ColorSpace = DeviceRGB.Instance.Name;
+        DecodeArray = new double[] { 0, 1, 0, 1, 0, 1 };
+        ms.Position = 0;
+        RawStream = ms;
+    }
 
-            var ms = new MemoryStream();
-            image.SaveAsJpeg(ms, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
-            {
-                Quality = 100,
-                ColorType = SixLabors.ImageSharp.Formats.Jpeg.JpegColorType.YCbCrRatio444
-            });
-            Width = image.Width;
-            Height = image.Height;
-            ms.Position = 0;
-            _imageStream = ms;
-        }
+    internal Image(PdfReference id, Stream jpgStream, int width, int height, ColorSpace colorSpace)
+    {
+        Reference = id;
 
-        internal Image(PdfReference id, Stream jpgStream, int width, int height)
+        Width = width;
+        Height = height;
+        RawStream = jpgStream;
+
+        var (csName, decodeArray) = colorSpace switch
         {
-            Reference = id;
+            DeviceCMYK cmyk => (cmyk.Name, new double[] { 0, 1, 0, 1, 0, 1, 0, 1 }),
+            DeviceRGB rgb => (rgb.Name, new double[] { 0, 1, 0, 1, 0, 1 }),
+            _ => throw new ArgumentOutOfRangeException(nameof(colorSpace), $"The provided color space {colorSpace} is currently not supported.")
+        };
 
-            Width = width;
-            Height = height;
-            _imageStream = jpgStream;
-        }
+        ColorSpace = csName;
+        DecodeArray = decodeArray;
+    }
 
-        /// <inheritdoc />
-        public PdfReference Reference { get; private set; }
+    internal Image(PdfReference id, Stream jpgStream, int width, int height, PdfName colorSpace, double[] decodeArray)
+    {
+        Reference = id;
 
-        /// <summary>
-        /// The width of this <see cref="Image"/>
-        /// </summary>
-        public int Width { get; }
+        Width = width;
+        Height = height;
+        RawStream = jpgStream;
+        ColorSpace = colorSpace;
+        DecodeArray = decodeArray;
+    }
 
-        /// <summary>
-        /// The height of this <see cref="Image"/>
-        /// </summary>
-        public int Height { get; }
+    internal Stream RawStream { get; private set; }
 
-        /// <inheritdoc />
-        public void Dispose()
+    /// <summary>
+    /// A pdf reference object that can be used to reference to this object
+    /// </summary>
+    public PdfReference Reference { get; private set; }
+
+    /// <summary>
+    /// The width of this <see cref="Image"/>
+    /// </summary>
+    public int Width { get; }
+
+    /// <summary>
+    /// The height of this <see cref="Image"/>
+    /// </summary>
+    public int Height { get; }
+
+    /// <summary>
+    /// The name of the colorspace used in this <see cref="Image"/>
+    /// </summary>
+    public PdfName ColorSpace { get; }
+
+    /// <summary>
+    /// The decode array used in this <see cref="Image"/>
+    /// </summary>
+    public double[] DecodeArray { get; }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (!_disposed)
         {
-            if (!_disposed)
-            {
-                _imageStream.Dispose();
-                _disposed = true;
-            }
-        }
-
-        internal bool TryWriteToStream(PdfStream stream, out uint position)
-        {
-            position = 0;
-
-            if (_isWritten)
-                return false;
-            if (_disposed)
-                throw new ObjectDisposedException(nameof(_imageStream), "Internal image is already disposed");
-
-            position = (uint)stream.Position;
-
-            stream.IndirectStream(this, _imageStream, this, static (image, dictionary) =>
-            {
-                dictionary
-                    .Type(ObjectType.XObject)
-                    .SubType(XObjectSubType.Image)
-                    .Write(PdfName.Get("Width"), image.Width)
-                    .Write(PdfName.Get("Height"), image.Height)
-                    .Write(PdfName.Get("ColorSpace"), PdfName.Get("DeviceRGB"))
-                    .Write(PdfName.Get("BitsPerComponent"), 8)
-                    .Write(PdfName.Get("Decode"), 0f, 1f, 0f, 1f, 0f, 1f);
-            },
-            StreamFilter.DCTDecode);
-
-            _isWritten = true;
-
-            return true;
+            RawStream.Dispose();
+            _disposed = true;
         }
     }
 }
