@@ -70,7 +70,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetFill(Color fill)
     {
-        GraphicState.FillColor = fill;
+        GraphicState.Fill = fill;
 
         RawContentStream.SetFillColor(fill);
 
@@ -79,7 +79,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetStroke(Color stroke)
     {
-        GraphicState.StrokeColor = stroke;
+        GraphicState.Stroke = stroke;
 
         RawContentStream.SetStrokeColor(stroke);
 

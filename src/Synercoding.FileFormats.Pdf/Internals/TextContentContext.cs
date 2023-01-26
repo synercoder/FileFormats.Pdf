@@ -38,7 +38,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetFill(Color fill)
     {
-        GraphicState.FillColor = fill;
+        GraphicState.Fill = fill;
 
         RawContentStream.SetFillColor(fill);
 
@@ -47,7 +47,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetStroke(Color stroke)
     {
-        GraphicState.StrokeColor = stroke;
+        GraphicState.Stroke = stroke;
 
         RawContentStream.SetStrokeColor(stroke);
 

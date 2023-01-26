@@ -233,6 +233,11 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Write text to the content stream using the Tj operator
+    /// </summary>
+    /// <param name="line">The text to write</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream ShowTextTj(string line)
     {
         InnerStream
@@ -244,6 +249,11 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Write text to the content stream using the ' operator
+    /// </summary>
+    /// <param name="line">The text to write</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream MoveNextLineShowText(string line)
     {
         InnerStream
@@ -255,6 +265,10 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Move to the next line using the T* operator
+    /// </summary>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream MoveNextLine()
     {
         InnerStream
@@ -264,6 +278,13 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Write text to the content stream and use certain character and word spacing using the " operator.
+    /// </summary>
+    /// <param name="line">The text to write</param>
+    /// <param name="wordSpacing">The word spacing to set</param>
+    /// <param name="characterSpacing">The character spacing to set</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream MoveNextLineShowText(string line, double wordSpacing, double characterSpacing)
     {
         InnerStream
@@ -801,6 +822,11 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Write the line width to the content stream
+    /// </summary>
+    /// <param name="width">The line width to write</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream SetLineWidth(double width)
     {
         InnerStream
@@ -812,6 +838,11 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Write the line cap style to the content stream
+    /// </summary>
+    /// <param name="lineCap">The style to write</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream SetLineCap(LineCapStyle lineCap)
     {
         InnerStream
@@ -823,6 +854,11 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Write the line join style to the content stream
+    /// </summary>
+    /// <param name="lineJoin">The style to write</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream SetLineJoin(LineJoinStyle lineJoin)
     {
         InnerStream
@@ -834,6 +870,11 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Write the miter limit to the content stream
+    /// </summary>
+    /// <param name="miterLimit">The miter limit to write</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream SetMiterLimit(double miterLimit)
     {
         InnerStream
@@ -845,6 +886,11 @@ public sealed class ContentStream : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Write the dash pattern to the content stream
+    /// </summary>
+    /// <param name="dashPattern">The dash pattern to write</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
     public ContentStream SetDashPattern(Dash dashPattern)
     {
         InnerStream
