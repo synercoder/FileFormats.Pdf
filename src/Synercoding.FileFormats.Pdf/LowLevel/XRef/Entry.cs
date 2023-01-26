@@ -33,12 +33,7 @@ internal readonly struct Entry
         bytes[19] = 0x0A;
     }
 
-    public int ByteSize()
-    {
-        return 20;
-    }
-
-    private void _fillSpanLeadingZero(Span<byte> span, uint data)
+    private static void _fillSpanLeadingZero(Span<byte> span, uint data)
     {
         uint val = data;
         for (int i = span.Length - 1; i >= 0; i--)
@@ -48,7 +43,7 @@ internal readonly struct Entry
         }
     }
 
-    private void _fillSpanLeadingZero(Span<byte> span, ushort data)
+    private static void _fillSpanLeadingZero(Span<byte> span, ushort data)
     {
         int val = data;
         for (int i = span.Length - 1; i >= 0; i--)

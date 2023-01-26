@@ -49,7 +49,6 @@ public class PdfName
         { "XObject", new PdfName("XObject") },
     };
 
-    private readonly string _raw;
     private readonly string _encoded;
 
     private PdfName(string raw)
@@ -58,7 +57,6 @@ public class PdfName
             throw new ArgumentOutOfRangeException(nameof(raw), "The name is too long. Max length of 127 is allowed.");
         if (raw.Any(c => c > 0xff))
             throw new ArgumentOutOfRangeException(nameof(raw), "The name contains non-ascii characters, and is thus not allowed.");
-        _raw = raw;
         _encoded = _encode(raw);
     }
 

@@ -13,7 +13,7 @@ internal class Section
 
     public int FirstObjectNumber { get; }
     public int ObjectCount => Entries.Length;
-    public Entry[] Entries { get; } = new Entry[0];
+    public Entry[] Entries { get; } = Array.Empty<Entry>();
 
     public void FillSpan(Span<byte> bytes)
     {

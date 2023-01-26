@@ -276,7 +276,7 @@ public sealed class PdfWriter : IDisposable
         _writeTrailer(_objectStream.InnerStream, xRefPosition, xRefTable.Section.ObjectCount, _catalog.Reference, DocumentInformation.Reference);
     }
 
-    private void _writeTrailer(PdfStream stream, uint startXRef, int size, PdfReference root, PdfReference documentInfo)
+    private static void _writeTrailer(PdfStream stream, uint startXRef, int size, PdfReference root, PdfReference documentInfo)
     {
         stream
             .Write("trailer")
