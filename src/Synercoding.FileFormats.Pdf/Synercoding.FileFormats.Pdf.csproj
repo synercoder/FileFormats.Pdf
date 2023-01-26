@@ -3,8 +3,8 @@
   <Import Project="$(MSBuildThisFileDirectory)\PackageDetails.props" />
   
   <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
-    <PackageReference Include="Synercoding.Primitives" Version="1.0.0-rc08" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="Synercoding.Primitives" />
   </ItemGroup>
 
 </Project>

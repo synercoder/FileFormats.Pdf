@@ -32,7 +32,6 @@ public static class StandardFonts
     public static Type1StandardFont TimesRomanBoldItalic { get; }
         = new Type1StandardFont(PdfName.Get("Times-BoldItalic"), PdfName.Get("StdFont-Times-Roman-Bold-Italic"));
 
-
     /// <summary>
     /// A type 1 standard font for Helvetica
     /// </summary>
@@ -56,7 +55,6 @@ public static class StandardFonts
     /// </summary>
     public static Type1StandardFont HelveticaBoldOblique { get; }
         = new Type1StandardFont(PdfName.Get("Helvetica-BoldOblique"), PdfName.Get("StdFont-Helvetica-BoldOblique"));
-
 
     /// <summary>
     /// A type 1 standard font for Courier

@@ -22,7 +22,11 @@ public sealed class Type1StandardFont : Font, IEquatable<Type1StandardFont>
 
     /// <inheritdoc />
     public override bool Equals(object? obj)
-        => obj is Type1StandardFont font && Equals(font);
+        => Equals(obj as Type1StandardFont);
+
+    /// <inheritdoc/>
+    public override bool Equals(Font? other)
+        => Equals(other as Type1StandardFont);
 
     /// <inheritdoc />
     public bool Equals(Type1StandardFont? other)

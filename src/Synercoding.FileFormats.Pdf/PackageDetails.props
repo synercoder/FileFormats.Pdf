@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Upgraded ImageSharp and added initial text support.</PackageReleaseNotes>
+    <PackageReleaseNotes>Rewritten most of the API surface to provide a uniform way to interact with the content.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
