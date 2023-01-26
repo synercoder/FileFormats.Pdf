@@ -16,7 +16,7 @@ public class SpotColor : Color, IEquatable<SpotColor>
     /// <exception cref="ArgumentOutOfRangeException">Throws if the <paramref name="tint"/> &lt; 0 or &gt; 1</exception>
     public SpotColor(Separation separation, double tint)
     {
-        if (tint < 0 || tint > 1)
+        if (tint is < 0 or > 1)
             throw new ArgumentOutOfRangeException(nameof(tint), $"Parameter {nameof(tint)} must be between 0.0 and 1.0 (inclusive).");
         Separation = separation;
         Tint = tint;

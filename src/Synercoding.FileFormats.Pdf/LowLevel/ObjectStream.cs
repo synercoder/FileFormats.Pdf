@@ -76,7 +76,7 @@ internal class ObjectStream
 
     public ObjectStream Write(PageTree pageTree)
     {
-        if(!_tableBuilder.TrySetPosition(pageTree.Reference, InnerStream.Position))
+        if (!_tableBuilder.TrySetPosition(pageTree.Reference, InnerStream.Position))
             return this;
 
         _indirectDictionary(pageTree.Reference, pageTree, static (pageTree, dictionary) =>

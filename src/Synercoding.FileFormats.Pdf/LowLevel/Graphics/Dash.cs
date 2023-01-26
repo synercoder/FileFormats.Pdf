@@ -29,10 +29,7 @@ public class Dash
     public IReadOnlyList<double> Array
     {
         get => _array;
-        init
-        {
-            _array = value ?? throw new System.ArgumentNullException(nameof(value));
-        }
+        init => _array = value ?? throw new System.ArgumentNullException(nameof(value));
     }
 
     /// <summary>

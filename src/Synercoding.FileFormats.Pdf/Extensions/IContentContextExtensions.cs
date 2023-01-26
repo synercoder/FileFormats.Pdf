@@ -9,6 +9,6 @@ public static class IContentContextExtensions
         => context.WrapInState(contentOperations, static (operations, context) => operations(context));
 
     public static Task<TContext> WrapInStateAsync<TContext>(this TContext context, Func<TContext, Task> contentOperations)
-        where TContext: IContentContext<TContext>
+        where TContext : IContentContext<TContext>
         => context.WrapInStateAsync(contentOperations, static (operations, context) => operations(context));
 }

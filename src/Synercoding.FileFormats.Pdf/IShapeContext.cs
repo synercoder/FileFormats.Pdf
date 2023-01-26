@@ -1,5 +1,4 @@
 using Synercoding.FileFormats.Pdf.LowLevel;
-using Synercoding.Primitives;
 
 namespace Synercoding.FileFormats.Pdf;
 
@@ -11,7 +10,7 @@ public interface IShapeContext : IContentContext<IShapeContext>
     /// </summary>
     /// <param name="x">The X coordinate of the move</param>
     /// <param name="y">The Y coordinate of the move</param>
-    /// <returns>The calling <see cref="IPath"/> to support chaining operations.</returns>
+    /// <returns>The calling <see cref="IShapeContext"/> to support chaining operations.</returns>
     IShapeContext Move(double x, double y);
 
 

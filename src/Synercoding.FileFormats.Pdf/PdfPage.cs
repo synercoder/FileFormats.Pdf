@@ -6,95 +6,94 @@ using Synercoding.Primitives;
 using Synercoding.Primitives.Extensions;
 using System;
 
-namespace Synercoding.FileFormats.Pdf
+namespace Synercoding.FileFormats.Pdf;
+
+/// <summary>
+/// This class represents a page in a pdf
+/// </summary>
+public sealed class PdfPage : IDisposable
 {
-    /// <summary>
-    /// This class represents a page in a pdf
-    /// </summary>
-    public sealed class PdfPage : IDisposable
+    private readonly TableBuilder _tableBuilder;
+    private readonly PageTree _parent;
+
+    private PageRotation? _rotation;
+
+    internal PdfPage(TableBuilder tableBuilder, PageTree parent)
     {
-        private readonly TableBuilder _tableBuilder;
-        private readonly PageTree _parent;
+        _tableBuilder = tableBuilder;
+        _parent = parent;
+        _parent.AddPage(this);
 
-        private PageRotation? _rotation;
+        PageNumber = _parent.PageCount;
+        Reference = tableBuilder.ReserveId();
+        Resources = new PageResources(_tableBuilder);
+        var contentStream = new ContentStream(tableBuilder.ReserveId(), Resources);
 
-        internal PdfPage(TableBuilder tableBuilder, PageTree parent)
+        Content = new PageContentContext(contentStream);
+    }
+
+    internal PdfReference Parent
+        => _parent.Reference;
+
+    internal PageResources Resources { get; }
+
+    /// <summary>
+    /// The number of the page
+    /// </summary>
+    public int PageNumber { get; }
+
+    public IPageContentContext Content { get; }
+
+    /// <summary>
+    /// A pdf reference object that can be used to reference to this object
+    /// </summary>
+    public PdfReference Reference { get; }
+
+    /// <summary>
+    /// The rotation of how the page is displayed, must be in increments of 90
+    /// </summary>
+    public PageRotation? Rotation
+    {
+        get => _rotation;
+        set
         {
-            _tableBuilder = tableBuilder;
-            _parent = parent;
-            _parent.AddPage(this);
+            if (value is not null && !Enum.IsDefined(value.Value))
+                throw new ArgumentOutOfRangeException(nameof(Rotation), value, "The provided value can only be increments of 90.");
 
-            PageNumber = _parent.PageCount;
-            Reference = tableBuilder.ReserveId();
-            Resources = new PageResources(_tableBuilder);
-            var contentStream = new ContentStream(tableBuilder.ReserveId(), Resources);
-
-            Content = new PageContentContext(contentStream);
+            _rotation = value;
         }
+    }
 
-        internal PdfReference Parent
-            => _parent.Reference;
+    /// <summary>
+    /// The media box of the <see cref="PdfPage"/>
+    /// </summary>
+    public Rectangle MediaBox { get; set; } = Sizes.A4.AsRectangle();
 
-        internal PageResources Resources { get; }
+    /// <summary>
+    /// The cropbox of the <see cref="PdfPage"/>, defaults to <see cref="MediaBox"/>
+    /// </summary>
+    public Rectangle? CropBox { get; set; }
 
-        /// <summary>
-        /// The number of the page
-        /// </summary>
-        public int PageNumber { get; }
+    /// <summary>
+    /// The bleed box of the <see cref="PdfPage"/>
+    /// </summary>
+    public Rectangle? BleedBox { get; set; }
 
-        public IPageContentContext Content { get; }
+    /// <summary>
+    /// The trim box of the <see cref="PdfPage"/>
+    /// </summary>
+    public Rectangle? TrimBox { get; set; }
 
-        /// <summary>
-        /// A pdf reference object that can be used to reference to this object
-        /// </summary>
-        public PdfReference Reference { get; }
+    /// <summary>
+    /// The art box of the <see cref="PdfPage"/>
+    /// </summary>
+    public Rectangle? Art { get; set; }
 
-        /// <summary>
-        /// The rotation of how the page is displayed, must be in increments of 90
-        /// </summary>
-        public PageRotation? Rotation
-        {
-            get => _rotation;
-            set
-            {
-                if (value is not null && !Enum.IsDefined(value.Value))
-                    throw new ArgumentOutOfRangeException(nameof(Rotation), value, "The provided value can only be increments of 90.");
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Resources.Dispose();
 
-                _rotation = value;
-            }
-        }
-
-        /// <summary>
-        /// The media box of the <see cref="PdfPage"/>
-        /// </summary>
-        public Rectangle MediaBox { get; set; } = Sizes.A4.AsRectangle();
-
-        /// <summary>
-        /// The cropbox of the <see cref="PdfPage"/>, defaults to <see cref="MediaBox"/>
-        /// </summary>
-        public Rectangle? CropBox { get; set; }
-
-        /// <summary>
-        /// The bleed box of the <see cref="PdfPage"/>
-        /// </summary>
-        public Rectangle? BleedBox { get; set; }
-
-        /// <summary>
-        /// The trim box of the <see cref="PdfPage"/>
-        /// </summary>
-        public Rectangle? TrimBox { get; set; }
-
-        /// <summary>
-        /// The art box of the <see cref="PdfPage"/>
-        /// </summary>
-        public Rectangle? Art { get; set; }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            Resources.Dispose();
-
-            Content.RawContentStream.Dispose();
-        }
+        Content.RawContentStream.Dispose();
     }
 }

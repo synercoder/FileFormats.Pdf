@@ -1,16 +1,15 @@
 ﻿using System;
 
-namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions
+namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions;
+
+internal static class StreamFilterExtensions
 {
-    internal static class StreamFilterExtensions
+    public static PdfName ToPdfName(this StreamFilter streamFilter)
     {
-        public static PdfName ToPdfName(this StreamFilter streamFilter)
+        return streamFilter switch
         {
-            return streamFilter switch
-            {
-                StreamFilter.DCTDecode => PdfName.Get("DCTDecode"),
-                _ => throw new NotImplementedException(),
-            };
-        }
+            StreamFilter.DCTDecode => PdfName.Get("DCTDecode"),
+            _ => throw new NotImplementedException(),
+        };
     }
 }

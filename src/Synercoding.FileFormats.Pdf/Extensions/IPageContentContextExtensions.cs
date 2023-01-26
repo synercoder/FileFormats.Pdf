@@ -87,10 +87,7 @@ public static class IPageContentContextExtensions
         => context.AddText(text, font, size, ops => { });
 
     public static IPageContentContext AddText(this IPageContentContext context, string text, Font font, double size, Point location)
-        => context.AddText(text, font, size, location, static (location, ops) =>
-        {
-            ops.MoveToStartNextLine(location.X.AsRaw(Unit.Points), location.Y.AsRaw(Unit.Points));
-        });
+        => context.AddText(text, font, size, location, static (location, ops) => ops.MoveToStartNextLine(location.X.AsRaw(Unit.Points), location.Y.AsRaw(Unit.Points)));
 
     public static IPageContentContext AddText(this IPageContentContext context, string text, Font font, double size, Action<ITextContentContext> extraOperations)
         => context.AddText(text, font, size, extraOperations, static (extraOperations, context) => extraOperations(context));
@@ -113,13 +110,9 @@ public static class IPageContentContextExtensions
             for (int i = 0; i < lines.Length; i++)
             {
                 if (i == 0)
-                {
                     context.ShowText(lines[i]);
-                }
                 else
-                {
                     context.ShowTextOnNextLine(lines[i]);
-                }
             }
         });
     }

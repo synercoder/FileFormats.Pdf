@@ -6,107 +6,106 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Synercoding.FileFormats.Pdf.LowLevel.Internal
+namespace Synercoding.FileFormats.Pdf.LowLevel.Internal;
+
+internal sealed class PageResources : IDisposable
 {
-    internal sealed class PageResources : IDisposable
+    private const string PREFIX_IMAGE = "Im";
+    private const string PREFIX_SEPARATION = "Sep";
+
+    private readonly TableBuilder _tableBuilder;
+    private readonly Map<PdfName, Image> _images;
+    private readonly Dictionary<Separation, (PdfName Name, PdfReference Id)> _separations;
+    private readonly Dictionary<Type1StandardFont, PdfReference> _standardFonts;
+
+    private int _separationCounter = 0;
+    private int _imageCounter = 0;
+
+    internal PageResources(TableBuilder tableBuilder)
     {
-        private const string PREFIX_IMAGE = "Im";
-        private const string PREFIX_SEPARATION = "Sep";
+        _tableBuilder = tableBuilder;
+        _images = new Map<PdfName, Image>();
+        _separations = new Dictionary<Separation, (PdfName Name, PdfReference Id)>();
+        _standardFonts = new Dictionary<Type1StandardFont, PdfReference>();
+    }
 
-        private readonly TableBuilder _tableBuilder;
-        private readonly Map<PdfName, Image> _images;
-        private readonly Dictionary<Separation, (PdfName Name, PdfReference Id)> _separations;
-        private readonly Dictionary<Type1StandardFont, PdfReference> _standardFonts;
+    public IReadOnlyDictionary<PdfName, Image> Images
+        => _images.Forward;
 
-        private int _separationCounter = 0;
-        private int _imageCounter = 0;
+    internal IReadOnlyDictionary<Separation, (PdfName Name, PdfReference Id)> SeparationReferences
+        => _separations;
 
-        internal PageResources(TableBuilder tableBuilder)
-        {
-            _tableBuilder = tableBuilder;
-            _images = new Map<PdfName, Image>();
-            _separations = new Dictionary<Separation, (PdfName Name, PdfReference Id)>();
-            _standardFonts = new Dictionary<Type1StandardFont, PdfReference>();
-        }
+    internal IReadOnlyCollection<(Type1StandardFont Font, PdfReference Reference)> FontReferences
+        => _standardFonts
+                .Select(kv => (kv.Key, kv.Value))
+                .ToArray();
 
-        public IReadOnlyDictionary<PdfName, Image> Images
-            => _images.Forward;
+    public void Dispose()
+    {
+        foreach (var kv in _images)
+            kv.Value.Dispose();
 
-        internal IReadOnlyDictionary<Separation, (PdfName Name, PdfReference Id)> SeparationReferences
-            => _separations;
+        _images.Clear();
+    }
 
-        internal IReadOnlyCollection<(Type1StandardFont Font, PdfReference Reference)> FontReferences
-            => _standardFonts
-                    .Select(kv => (kv.Key, kv.Value))
-                    .ToArray();
+    public PdfName AddJpgUnsafe(System.IO.Stream jpgStream, int originalWidth, int originalHeight, ColorSpace colorSpace)
+    {
+        var id = _tableBuilder.ReserveId();
 
-        public void Dispose()
-        {
-            foreach (var kv in _images)
-                kv.Value.Dispose();
+        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace);
 
-            _images.Clear();
-        }
+        return AddImage(pdfImage);
+    }
 
-        public PdfName AddJpgUnsafe(System.IO.Stream jpgStream, int originalWidth, int originalHeight, ColorSpace colorSpace)
-        {
-            var id = _tableBuilder.ReserveId();
+    public PdfName AddJpgUnsafe(System.IO.Stream jpgStream, int originalWidth, int originalHeight, PdfName colorSpace, double[] decodeArray)
+    {
+        var id = _tableBuilder.ReserveId();
 
-            var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace);
+        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, decodeArray);
 
-            return AddImage(pdfImage);
-        }
+        return AddImage(pdfImage);
+    }
 
-        public PdfName AddJpgUnsafe(System.IO.Stream jpgStream, int originalWidth, int originalHeight, PdfName colorSpace, double[] decodeArray)
-        {
-            var id = _tableBuilder.ReserveId();
+    public PdfName AddImage(SixLabors.ImageSharp.Image image)
+    {
+        var id = _tableBuilder.ReserveId();
 
-            var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, decodeArray);
+        var pdfImage = new Image(id, image);
 
-            return AddImage(pdfImage);
-        }
+        return AddImage(pdfImage);
+    }
 
-        public PdfName AddImage(SixLabors.ImageSharp.Image image)
-        {
-            var id = _tableBuilder.ReserveId();
+    public PdfName AddImage(Image image)
+    {
+        if (_images.Reverse.Contains(image))
+            return _images.Reverse[image];
 
-            var pdfImage = new Image(id, image);
+        var key = PREFIX_IMAGE + System.Threading.Interlocked.Increment(ref _imageCounter).ToString().PadLeft(6, '0');
 
-            return AddImage(pdfImage);
-        }
+        var pdfName = PdfName.Get(key);
 
-        public PdfName AddImage(Image image)
-        {
-            if (_images.Reverse.Contains(image))
-                return _images.Reverse[image];
+        _images.Add(pdfName, image);
 
-            var key = PREFIX_IMAGE + System.Threading.Interlocked.Increment(ref _imageCounter).ToString().PadLeft(6, '0');
+        return pdfName;
+    }
 
-            var pdfName = PdfName.Get(key);
+    internal PdfName AddStandardFont(Type1StandardFont font)
+    {
+        if (!_standardFonts.ContainsKey(font))
+            _standardFonts[font] = _tableBuilder.ReserveId();
 
-            _images.Add(pdfName, image);
+        return font.LookupName;
+    }
 
-            return pdfName;
-        }
+    internal PdfName AddSeparation(Separation separation)
+    {
+        if (_separations.TryGetValue(separation, out var tuple))
+            return tuple.Name;
 
-        internal PdfName AddStandardFont(Type1StandardFont font)
-        {
-            if (!_standardFonts.ContainsKey(font))
-                _standardFonts[font] = _tableBuilder.ReserveId();
+        var key = PREFIX_SEPARATION + System.Threading.Interlocked.Increment(ref _separationCounter).ToString().PadLeft(6, '0');
+        var name = PdfName.Get(key);
+        _separations[separation] = (name, _tableBuilder.ReserveId());
 
-            return font.LookupName;
-        }
-
-        internal PdfName AddSeparation(Separation separation)
-        {
-            if (_separations.TryGetValue(separation, out var tuple))
-                return tuple.Name;
-
-            var key = PREFIX_SEPARATION + System.Threading.Interlocked.Increment(ref _separationCounter).ToString().PadLeft(6, '0');
-            var name = PdfName.Get(key);
-            _separations[separation] = (name, _tableBuilder.ReserveId());
-
-            return name;
-        }
+        return name;
     }
 }
