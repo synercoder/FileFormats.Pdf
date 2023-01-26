@@ -1,18 +1,9 @@
-﻿using Synercoding.FileFormats.Pdf.LowLevel.Text;
+using Synercoding.FileFormats.Pdf.LowLevel.Text;
 
 namespace Synercoding.FileFormats.Pdf;
 
 public interface ITextContentContext : IContentContext<ITextContentContext>
 {
-    double CharacterSpacing { get; }
-    double WordSpacing { get; }
-    double HorizontalScaling { get; }
-    double TextLeading { get; }
-    Font? Font { get; }
-    double? FontSize { get; }
-    TextRenderingMode TextRenderingMode { get; }
-    double TextRise { get; }
-
     ITextContentContext SetCharacterSpacing(double spacing);
     ITextContentContext SetWordSpacing(double spacing);
     ITextContentContext SetHorizontalScaling(double scaling);

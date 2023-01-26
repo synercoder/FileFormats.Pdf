@@ -78,8 +78,14 @@ public sealed class Image : IDisposable
     /// </summary>
     public int Height { get; }
 
+    /// <summary>
+    /// The name of the colorspace used in this <see cref="Image"/>
+    /// </summary>
     public PdfName ColorSpace { get; }
 
+    /// <summary>
+    /// The decode array used in this <see cref="Image"/>
+    /// </summary>
     public double[] DecodeArray { get; }
 
     /// <inheritdoc />

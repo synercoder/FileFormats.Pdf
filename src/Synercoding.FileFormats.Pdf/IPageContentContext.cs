@@ -10,6 +10,6 @@ public interface IPageContentContext : IContentContext<IPageContentContext>
     IPageContentContext AddText<T>(T data, Action<T, ITextContentContext> textOperations);
     Task<IPageContentContext> AddTextAsync<T>(T data, Func<T, ITextContentContext, Task> textOperations);
 
-    IPageContentContext AddShapes<T>(T data, Action<T, IShapeContext> shapeOperations);
-    Task<IPageContentContext> AddShapesAsync<T>(T data, Func<T, IShapeContext, Task> shapeOperations);
+    IPageContentContext AddShapes<T>(T data, Action<T, IShapeContentContext> shapeOperations);
+    Task<IPageContentContext> AddShapesAsync<T>(T data, Func<T, IShapeContentContext, Task> shapeOperations);
 }

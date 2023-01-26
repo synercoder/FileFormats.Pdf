@@ -103,6 +103,12 @@ public static class PdfStreamExtensions
         return stream.Write(rectangle.LLX.Raw, rectangle.LLY.Raw, rectangle.URX.Raw, rectangle.URY.Raw);
     }
 
+    /// <summary>
+    /// Write a <see cref="DateTimeOffset"/> to the <see cref="PdfStream"/>
+    /// </summary>
+    /// <param name="stream">The <see cref="PdfStream"/> to write to.</param>
+    /// <param name="dateTimeOffset">The <see cref="DateTimeOffset"/> to write.</param>
+    /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
     public static PdfStream Write(this PdfStream stream, DateTimeOffset dateTimeOffset)
     {
         stream
@@ -168,6 +174,12 @@ public static class PdfStreamExtensions
         return stream;
     }
 
+    /// <summary>
+    /// Write a text to the stream as a hexadecimal string
+    /// </summary>
+    /// <param name="stream">The stream to write to</param>
+    /// <param name="value">The string to write</param>
+    /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
     public static PdfStream WriteHexadecimalString(this PdfStream stream, string value)
     {
         var bytes = System.Text.Encoding.ASCII.GetBytes(value);

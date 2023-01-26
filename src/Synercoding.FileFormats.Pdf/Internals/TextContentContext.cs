@@ -9,79 +9,19 @@ namespace Synercoding.FileFormats.Pdf.Internals;
 
 internal class TextContentContext : ITextContentContext
 {
-    private readonly IPageContentContext _parent;
-
-    public TextContentContext(ContentStream contentStream, IPageContentContext parent)
+    public TextContentContext(ContentStream contentStream, GraphicState graphicState)
     {
         RawContentStream = contentStream;
-        _parent = parent;
+        GraphicState = graphicState;
     }
 
     public ContentStream RawContentStream { get; }
 
-    private Matrix? _ctm;
-    public Matrix CTM
-        => _ctm ?? _parent?.CTM ?? Matrix.Identity;
-
-    private Color? _fill;
-    public Color FillColor
-        => _fill ?? _parent?.FillColor ?? PredefinedColors.Black;
-
-    private Color? _stroke;
-    public Color StrokeColor
-        => _stroke ?? _parent?.StrokeColor ?? PredefinedColors.Black;
-
-    private double? _lineWidth;
-    public double LineWidth
-        => _lineWidth ?? _parent?.LineWidth ?? 1.0;
-
-    private LineCapStyle? _lineCap;
-    public LineCapStyle LineCap
-        => _lineCap ?? _parent?.LineCap ?? LineCapStyle.ButtCap;
-
-    private LineJoinStyle? _lineJoin;
-    public LineJoinStyle LineJoin
-        => _lineJoin ?? _parent?.LineJoin ?? LineJoinStyle.MiterJoin;
-
-    private double? _miterLimit;
-    public double MiterLimit
-        => _miterLimit ?? _parent?.MiterLimit ?? 10.0;
-
-    private Dash? _dashPattern;
-    public Dash DashPattern
-        => _dashPattern ?? _parent?.DashPattern ?? new Dash();
-
-    private double? _characterSpacing;
-    public double CharacterSpacing
-        => _characterSpacing ?? 0.0;
-
-    private double? _wordSpacing;
-    public double WordSpacing
-        => _wordSpacing ?? 0.0;
-
-    private double? _horizontalScale;
-    public double HorizontalScaling
-        => _horizontalScale ?? 100.0;
-
-    private double? _textLeading;
-    public double TextLeading
-        => _textLeading ?? 0.0;
-
-    public Font? Font { get; private set; }
-
-    public double? FontSize { get; private set; }
-
-    private TextRenderingMode? _textRenderingMode;
-    public TextRenderingMode TextRenderingMode
-        => _textRenderingMode ?? TextRenderingMode.Fill;
-
-    private double? _textRise;
-    public double TextRise
-        => _textRise ?? 0.0;
+    public GraphicState GraphicState { get; }
 
     public ITextContentContext ConcatenateMatrix(Matrix matrix)
     {
-        _ctm = CTM.Multiply(matrix);
+        GraphicState.CTM = GraphicState.CTM.Multiply(matrix);
         RawContentStream.CTM(matrix);
 
         return this;
@@ -89,7 +29,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetDashPattern(Dash dashPattern)
     {
-        _dashPattern = dashPattern;
+        GraphicState.DashPattern = dashPattern;
 
         RawContentStream.SetDashPattern(dashPattern);
 
@@ -98,7 +38,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetFill(Color fill)
     {
-        _fill = fill;
+        GraphicState.FillColor = fill;
 
         RawContentStream.SetFillColor(fill);
 
@@ -107,7 +47,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetStroke(Color stroke)
     {
-        _stroke = stroke;
+        GraphicState.StrokeColor = stroke;
 
         RawContentStream.SetStrokeColor(stroke);
 
@@ -116,7 +56,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetLineCap(LineCapStyle lineCap)
     {
-        _lineCap = lineCap;
+        GraphicState.LineCap = lineCap;
 
         RawContentStream.SetLineCap(lineCap);
 
@@ -125,7 +65,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetLineJoin(LineJoinStyle lineJoin)
     {
-        _lineJoin = lineJoin;
+        GraphicState.LineJoin = lineJoin;
 
         RawContentStream.SetLineJoin(lineJoin);
 
@@ -134,7 +74,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetLineWidth(double lineWidth)
     {
-        _lineWidth = lineWidth;
+        GraphicState.LineWidth = lineWidth;
 
         RawContentStream.SetLineWidth(lineWidth);
 
@@ -143,7 +83,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetMiterLimit(double miterLimit)
     {
-        _miterLimit = miterLimit;
+        GraphicState.MiterLimit = miterLimit;
 
         RawContentStream.SetMiterLimit(miterLimit);
 
@@ -153,8 +93,8 @@ internal class TextContentContext : ITextContentContext
     public ITextContentContext WrapInState<T>(T data, Action<T, ITextContentContext> contentOperations)
     {
         RawContentStream.SaveState();
-        var state = new WrappedTextContentContext(RawContentStream, this);
-        contentOperations(data, state);
+        var wrappedContext = new TextContentContext(RawContentStream, GraphicState.Clone());
+        contentOperations(data, wrappedContext);
         RawContentStream.RestoreState();
 
         return this;
@@ -163,8 +103,8 @@ internal class TextContentContext : ITextContentContext
     public async Task<ITextContentContext> WrapInStateAsync<T>(T data, Func<T, ITextContentContext, Task> contentOperations)
     {
         RawContentStream.SaveState();
-        var state = new WrappedTextContentContext(RawContentStream, this);
-        await contentOperations(data, state);
+        var wrappedContext = new TextContentContext(RawContentStream, GraphicState.Clone());
+        await contentOperations(data, wrappedContext);
         RawContentStream.RestoreState();
 
         return this;
@@ -172,7 +112,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetCharacterSpacing(double spacing)
     {
-        _characterSpacing = spacing;
+        GraphicState.CharacterSpacing = spacing;
 
         RawContentStream.SetCharacterSpacing(spacing);
 
@@ -181,7 +121,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetWordSpacing(double spacing)
     {
-        _wordSpacing = spacing;
+        GraphicState.WordSpacing = spacing;
 
         RawContentStream.SetWordSpacing(spacing);
 
@@ -190,7 +130,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetHorizontalScaling(double scaling)
     {
-        _horizontalScale = scaling;
+        GraphicState.HorizontalScaling = scaling;
 
         RawContentStream.SetHorizontalScaling(scaling);
 
@@ -199,7 +139,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetTextLeading(double leading)
     {
-        _textLeading = leading;
+        GraphicState.TextLeading = leading;
 
         RawContentStream.SetTextLeading(leading);
 
@@ -214,8 +154,8 @@ internal class TextContentContext : ITextContentContext
             _ => throw new NotImplementedException($"Font of type {font?.GetType()} is currently not implemented.")
         };
 
-        Font = font;
-        FontSize = size;
+        GraphicState.Font = font;
+        GraphicState.FontSize = size;
         RawContentStream.SetFontAndSize(fontName, size);
 
         return this;
@@ -223,7 +163,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetTextRenderingMode(TextRenderingMode mode)
     {
-        _textRenderingMode = mode;
+        GraphicState.TextRenderingMode = mode;
 
         RawContentStream.SetTextRenderMode(mode);
 
@@ -232,7 +172,7 @@ internal class TextContentContext : ITextContentContext
 
     public ITextContentContext SetTextRise(double rise)
     {
-        _textRise = rise;
+        GraphicState.TextRise = rise;
 
         RawContentStream.SetTextRise(rise);
 

@@ -29,7 +29,7 @@ public sealed class PdfPage : IDisposable
         Resources = new PageResources(_tableBuilder);
         var contentStream = new ContentStream(tableBuilder.ReserveId(), Resources);
 
-        Content = new PageContentContext(contentStream);
+        Content = new PageContentContext(contentStream, new GraphicState());
     }
 
     internal PdfReference Parent
@@ -42,6 +42,9 @@ public sealed class PdfPage : IDisposable
     /// </summary>
     public int PageNumber { get; }
 
+    /// <summary>
+    /// The <see cref="IPageContentContext"/> to add content to the page.
+    /// </summary>
     public IPageContentContext Content { get; }
 
     /// <summary>

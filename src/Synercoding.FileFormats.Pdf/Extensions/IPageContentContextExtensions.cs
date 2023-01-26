@@ -71,10 +71,10 @@ public static class IPageContentContextExtensions
         });
     }
 
-    public static IPageContentContext AddShapes(this IPageContentContext context, Action<IShapeContext> shapeOperations)
+    public static IPageContentContext AddShapes(this IPageContentContext context, Action<IShapeContentContext> shapeOperations)
         => context.AddShapes(shapeOperations, static (operations, context) => operations(context));
 
-    public static Task<IPageContentContext> AddShapesAsync(this IPageContentContext context, Func<IShapeContext, Task> shapeOperations)
+    public static Task<IPageContentContext> AddShapesAsync(this IPageContentContext context, Func<IShapeContentContext, Task> shapeOperations)
         => context.AddShapesAsync(shapeOperations, static (operations, context) => operations(context));
 
     public static IPageContentContext AddText(this IPageContentContext context, Action<ITextContentContext> textOperations)
@@ -104,7 +104,7 @@ public static class IPageContentContextExtensions
             var lines = StringHelper.SplitOnNewLines(text).ToArray();
 
             // if no leading parameter is set, and the text spans multiple lines, set textleading to the font size.
-            if (lines.Length > 1 && context.TextLeading == default)
+            if (lines.Length > 1 && context.GraphicState.TextLeading == default)
                 context.SetTextLeading(size);
 
             for (int i = 0; i < lines.Length; i++)

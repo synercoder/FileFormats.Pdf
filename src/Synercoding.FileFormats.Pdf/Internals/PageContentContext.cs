@@ -8,51 +8,15 @@ namespace Synercoding.FileFormats.Pdf.Internals;
 
 internal class PageContentContext : IPageContentContext
 {
-    private readonly PageContentContext? _parent;
-
-    public PageContentContext(ContentStream contentStream)
-        : this(contentStream, null)
-    { }
-
-    public PageContentContext(ContentStream contentStream, PageContentContext? parent)
+    public PageContentContext(ContentStream contentStream, GraphicState graphicState)
     {
         RawContentStream = contentStream;
-        _parent = parent;
+        GraphicState = graphicState;
     }
 
     public ContentStream RawContentStream { get; }
 
-    private Matrix? _ctm;
-    public Matrix CTM
-        => _ctm ?? _parent?.CTM ?? Matrix.Identity;
-
-    private Color? _fill;
-    public Color FillColor
-        => _fill ?? _parent?.FillColor ?? PredefinedColors.Black;
-
-    private Color? _stroke;
-    public Color StrokeColor
-        => _stroke ?? _parent?.StrokeColor ?? PredefinedColors.Black;
-
-    private double? _lineWidth;
-    public double LineWidth
-        => _lineWidth ?? _parent?.LineWidth ?? 1.0;
-
-    private LineCapStyle? _lineCap;
-    public LineCapStyle LineCap
-        => _lineCap ?? _parent?.LineCap ?? LineCapStyle.ButtCap;
-
-    private LineJoinStyle? _lineJoin;
-    public LineJoinStyle LineJoin
-        => _lineJoin ?? _parent?.LineJoin ?? LineJoinStyle.MiterJoin;
-
-    private double? _miterLimit;
-    public double MiterLimit
-        => _miterLimit ?? _parent?.MiterLimit ?? 10.0;
-
-    private Dash? _dashPattern;
-    public Dash DashPattern
-        => _dashPattern ?? _parent?.DashPattern ?? new Dash();
+    public GraphicState GraphicState { get; }
 
     public IPageContentContext AddImage(Image image)
     {
@@ -67,7 +31,7 @@ internal class PageContentContext : IPageContentContext
     {
         RawContentStream.BeginText();
 
-        var state = new TextContentContext(RawContentStream, this);
+        var state = new TextContentContext(RawContentStream, GraphicState);
         textOperations(data, state);
 
         RawContentStream.EndText();
@@ -79,7 +43,7 @@ internal class PageContentContext : IPageContentContext
     {
         RawContentStream.BeginText();
 
-        var state = new TextContentContext(RawContentStream, this);
+        var state = new TextContentContext(RawContentStream, GraphicState);
         await textOperations(data, state);
 
         RawContentStream.EndText();
@@ -89,7 +53,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext ConcatenateMatrix(Matrix matrix)
     {
-        _ctm = CTM.Multiply(matrix);
+        GraphicState.CTM = GraphicState.CTM.Multiply(matrix);
         RawContentStream.CTM(matrix);
 
         return this;
@@ -97,7 +61,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetDashPattern(Dash dashPattern)
     {
-        _dashPattern = dashPattern;
+        GraphicState.DashPattern = dashPattern;
 
         RawContentStream.SetDashPattern(dashPattern);
 
@@ -106,7 +70,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetFill(Color fill)
     {
-        _fill = fill;
+        GraphicState.FillColor = fill;
 
         RawContentStream.SetFillColor(fill);
 
@@ -115,7 +79,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetStroke(Color stroke)
     {
-        _stroke = stroke;
+        GraphicState.StrokeColor = stroke;
 
         RawContentStream.SetStrokeColor(stroke);
 
@@ -124,7 +88,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetLineCap(LineCapStyle lineCap)
     {
-        _lineCap = lineCap;
+        GraphicState.LineCap = lineCap;
 
         RawContentStream.SetLineCap(lineCap);
 
@@ -133,7 +97,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetLineJoin(LineJoinStyle lineJoin)
     {
-        _lineJoin = lineJoin;
+        GraphicState.LineJoin = lineJoin;
 
         RawContentStream.SetLineJoin(lineJoin);
 
@@ -142,7 +106,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetLineWidth(double lineWidth)
     {
-        _lineWidth = lineWidth;
+        GraphicState.LineWidth = lineWidth;
 
         RawContentStream.SetLineWidth(lineWidth);
 
@@ -151,7 +115,7 @@ internal class PageContentContext : IPageContentContext
 
     public IPageContentContext SetMiterLimit(double miterLimit)
     {
-        _miterLimit = miterLimit;
+        GraphicState.MiterLimit = miterLimit;
 
         RawContentStream.SetMiterLimit(miterLimit);
 
@@ -161,7 +125,7 @@ internal class PageContentContext : IPageContentContext
     public IPageContentContext WrapInState<T>(T data, Action<T, IPageContentContext> contentOperations)
     {
         RawContentStream.SaveState();
-        var state = new PageContentContext(RawContentStream, this);
+        var state = new PageContentContext(RawContentStream, GraphicState.Clone());
         contentOperations(data, state);
         RawContentStream.RestoreState();
 
@@ -171,24 +135,24 @@ internal class PageContentContext : IPageContentContext
     public async Task<IPageContentContext> WrapInStateAsync<T>(T data, Func<T, IPageContentContext, Task> contentOperations)
     {
         RawContentStream.SaveState();
-        var state = new PageContentContext(RawContentStream, this);
+        var state = new PageContentContext(RawContentStream, GraphicState.Clone());
         await contentOperations(data, state);
         RawContentStream.RestoreState();
 
         return this;
     }
 
-    public IPageContentContext AddShapes<T>(T data, Action<T, IShapeContext> shapeOperations)
+    public IPageContentContext AddShapes<T>(T data, Action<T, IShapeContentContext> shapeOperations)
     {
-        var state = new ShapesContext(RawContentStream, this);
+        var state = new ShapesContentContext(RawContentStream, GraphicState);
         shapeOperations(data, state);
 
         return this;
     }
 
-    public async Task<IPageContentContext> AddShapesAsync<T>(T data, Func<T, IShapeContext, Task> shapeOperations)
+    public async Task<IPageContentContext> AddShapesAsync<T>(T data, Func<T, IShapeContentContext, Task> shapeOperations)
     {
-        var state = new ShapesContext(RawContentStream, this);
+        var state = new ShapesContentContext(RawContentStream, GraphicState);
         await shapeOperations(data, state);
 
         return this;

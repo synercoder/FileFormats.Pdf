@@ -196,6 +196,12 @@ public class PdfDictionary
         return this;
     }
 
+    /// <summary>
+    /// Write a date to the dictionary
+    /// </summary>
+    /// <param name="key">The key of the item in the dictionary</param>
+    /// <param name="value">The date to write</param>
+    /// <returns>The <see cref="PdfDictionary"/> to support chaining operations.</returns>
     public PdfDictionary Write(PdfName key, DateTimeOffset value)
     {
         _stream
@@ -316,6 +322,12 @@ public class PdfDictionary
         ? Write(key, value.Value)
         : this;
 
+    /// <summary>
+    /// Write a date to the dictionary if it is not null
+    /// </summary>
+    /// <param name="key">The key of the item in the dictionary</param>
+    /// <param name="value">The date to write</param>
+    /// <returns>The <see cref="PdfDictionary"/> to support chaining operations.</returns>
     public PdfDictionary WriteIfNotNull(PdfName key, DateTimeOffset? value)
         => value.HasValue
         ? Write(key, value.Value)

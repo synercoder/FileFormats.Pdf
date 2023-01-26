@@ -11,18 +11,11 @@ public interface IContentContext<TSelf>
 {
     ContentStream RawContentStream { get; }
 
+    GraphicState GraphicState { get; }
+
     TSelf WrapInState<T>(T data, Action<T, TSelf> contentOperations);
 
     Task<TSelf> WrapInStateAsync<T>(T data, Func<T, TSelf, Task> contentOperations);
-
-    Matrix CTM { get; }
-    Color FillColor { get; }
-    Color StrokeColor { get; }
-    double LineWidth { get; }
-    LineCapStyle LineCap { get; }
-    LineJoinStyle LineJoin { get; }
-    double MiterLimit { get; }
-    Dash DashPattern { get; }
 
     TSelf ConcatenateMatrix(Matrix matrix);
 
