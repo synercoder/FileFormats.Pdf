@@ -60,8 +60,14 @@ public sealed class PdfPage : IDisposable
         get => _rotation;
         set
         {
+            const string ARGUMENT_OUT_OF_RANGE_MESSAGE = "The provided value can only be increments of 90.";
+#if SUPPORTS_TYPED_ENUM_ISDEFINED
             if (value is not null && !Enum.IsDefined(value.Value))
-                throw new ArgumentOutOfRangeException(nameof(Rotation), value, "The provided value can only be increments of 90.");
+                throw new ArgumentOutOfRangeException(nameof(Rotation), value, ARGUMENT_OUT_OF_RANGE_MESSAGE);
+#else
+            if (value is not null && !Enum.IsDefined(typeof(PageRotation), value.Value))
+                throw new ArgumentOutOfRangeException(nameof(Rotation), value, ARGUMENT_OUT_OF_RANGE_MESSAGE);
+#endif
 
             _rotation = value;
         }
