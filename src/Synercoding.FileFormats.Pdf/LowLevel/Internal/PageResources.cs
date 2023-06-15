@@ -2,9 +2,6 @@ using Synercoding.FileFormats.Pdf.Internals;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.Internal;
 

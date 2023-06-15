@@ -4,11 +4,6 @@ using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
-using Synercoding.Primitives;
-using Synercoding.Primitives.Extensions;
-using System;
-using System.IO;
-using System.Linq;
 using Color = Synercoding.FileFormats.Pdf.LowLevel.Colors.Color;
 using Point = Synercoding.Primitives.Point;
 

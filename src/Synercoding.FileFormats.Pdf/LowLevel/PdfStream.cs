@@ -1,7 +1,5 @@
 using Synercoding.FileFormats.Pdf.Internals;
-using System;
 using System.Globalization;
-using System.IO;
 using System.Text;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel;

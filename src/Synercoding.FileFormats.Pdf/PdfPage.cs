@@ -2,9 +2,6 @@ using Synercoding.FileFormats.Pdf.Internals;
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
-using Synercoding.Primitives;
-using Synercoding.Primitives.Extensions;
-using System;
 
 namespace Synercoding.FileFormats.Pdf;
 
@@ -61,13 +58,8 @@ public sealed class PdfPage : IDisposable
         set
         {
             const string ARGUMENT_OUT_OF_RANGE_MESSAGE = "The provided value can only be increments of 90.";
-#if SUPPORTS_TYPED_ENUM_ISDEFINED
             if (value is not null && !Enum.IsDefined(value.Value))
                 throw new ArgumentOutOfRangeException(nameof(Rotation), value, ARGUMENT_OUT_OF_RANGE_MESSAGE);
-#else
-            if (value is not null && !Enum.IsDefined(typeof(PageRotation), value.Value))
-                throw new ArgumentOutOfRangeException(nameof(Rotation), value, ARGUMENT_OUT_OF_RANGE_MESSAGE);
-#endif
 
             _rotation = value;
         }

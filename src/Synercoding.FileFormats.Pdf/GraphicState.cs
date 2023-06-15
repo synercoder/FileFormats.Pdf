@@ -1,7 +1,6 @@
 using Synercoding.FileFormats.Pdf.LowLevel.Colors;
 using Synercoding.FileFormats.Pdf.LowLevel.Graphics;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
-using System.Linq;
 
 namespace Synercoding.FileFormats.Pdf;
 

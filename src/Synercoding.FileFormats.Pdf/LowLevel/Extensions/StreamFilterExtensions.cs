@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 
 internal static class StreamFilterExtensions

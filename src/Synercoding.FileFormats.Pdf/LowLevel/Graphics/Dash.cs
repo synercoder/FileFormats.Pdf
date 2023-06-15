@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Synercoding.FileFormats.Pdf.LowLevel.Graphics;
 
 /// <summary>

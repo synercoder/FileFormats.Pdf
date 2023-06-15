@@ -3,10 +3,7 @@ using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
-using System;
-using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Synercoding.FileFormats.Pdf;
 

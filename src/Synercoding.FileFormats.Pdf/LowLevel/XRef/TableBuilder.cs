@@ -1,6 +1,4 @@
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.XRef;
 
