@@ -1,6 +1,4 @@
 using Synercoding.FileFormats.Pdf.LowLevel;
-using System;
-using System.Threading.Tasks;
 
 namespace Synercoding.FileFormats.Pdf;
 

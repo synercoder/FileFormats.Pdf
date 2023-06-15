@@ -7,8 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Update="SixLabors.ImageSharp" Version="2.1.*" />
-    <PackageReference Update="Synercoding.Primitives" Version="1.0.0-rc09" />
+    <PackageReference Update="SixLabors.ImageSharp" Version="3.0.*" />
+  </ItemGroup>
+
+  <!-- Disable auto imports/usings from ImageSharp -->
+  <ItemGroup>
+    <Using Remove="SixLabors.ImageSharp" />
+    <Using Remove="SixLabors.ImageSharp.PixelFormats" />
+    <Using Remove="SixLabors.ImageSharp.Processing" />
+  </ItemGroup>
+  
+  <!-- For ease of use -->
+  <ItemGroup>
+    <PackageReference Include="Synercoding.Primitives" Version="1.0.0-rc09" />
+    <Using Static="true" Include="Synercoding.Primitives.ValueCreator" />
+    <Using Include="Synercoding.Primitives" />
+    <Using Include="Synercoding.Primitives.Extensions" />
   </ItemGroup>
 
 </Project>

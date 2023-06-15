@@ -1,11 +1,6 @@
 using Synercoding.FileFormats.Pdf.Internals;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
-using Synercoding.Primitives;
-using Synercoding.Primitives.Extensions;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Synercoding.FileFormats.Pdf.Extensions;
 

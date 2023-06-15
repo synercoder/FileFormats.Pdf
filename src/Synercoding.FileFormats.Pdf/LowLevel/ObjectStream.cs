@@ -3,9 +3,6 @@ using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel;
 

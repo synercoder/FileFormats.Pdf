@@ -1,8 +1,6 @@
 using SixLabors.ImageSharp;
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
-using System;
-using System.IO;
 
 namespace Synercoding.FileFormats.Pdf;
 
@@ -21,7 +19,7 @@ public sealed class Image : IDisposable
         image.SaveAsJpeg(ms, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
         {
             Quality = 100,
-            ColorType = SixLabors.ImageSharp.Formats.Jpeg.JpegColorType.YCbCrRatio444
+            ColorType = SixLabors.ImageSharp.Formats.Jpeg.JpegEncodingColor.YCbCrRatio444
         });
         Width = image.Width;
         Height = image.Height;
