@@ -1,5 +1,4 @@
 using Synercoding.FileFormats.Pdf.Internals;
-using System;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.XRef;
 

@@ -1,6 +1,3 @@
-using Synercoding.Primitives;
-using Synercoding.Primitives.Extensions;
-
 namespace Synercoding.FileFormats.Pdf.Extensions;
 
 /// <summary>

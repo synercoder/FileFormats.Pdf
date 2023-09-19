@@ -45,12 +45,7 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Features>strict</Features>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)','net5.0'))">
-    <DefineConstants>$(DefineConstants);SUPPORTS_MEMBERNOTNULL</DefineConstants>
-    <DefineConstants>$(DefineConstants);SUPPORTS_INIT</DefineConstants>
-    <DefineConstants>$(DefineConstants);SUPPORTS_TYPED_ENUM_ISDEFINED</DefineConstants>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 </Project>

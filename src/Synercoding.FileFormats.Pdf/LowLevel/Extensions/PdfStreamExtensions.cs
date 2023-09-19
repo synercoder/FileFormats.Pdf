@@ -1,7 +1,3 @@
-using Synercoding.Primitives;
-using System;
-using System.IO;
-
 namespace Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 
 /// <summary>
@@ -259,8 +255,16 @@ public static class PdfStreamExtensions
                 stream.Write('\\').Write(')');
             else if (c == '\\')
                 stream.Write('\\').Write('\\');
-            else if (c > 0x7F && c < 0x200)
-                stream.Write('\\').Write(_toOctal(c));
+            else if (c > 0x7F && c <= 0xFF)
+            {
+                var octal = _toOctal(c);
+                _ = octal switch
+                {
+                    < 10 => stream.Write('\\').Write('0').Write('0').Write(octal),
+                    < 100 => stream.Write('\\').Write('0').Write(octal),
+                    _ => stream.Write('\\').Write(octal)
+                };
+            }
             else if (c <= 0x7F)
                 stream.Write(c);
             else

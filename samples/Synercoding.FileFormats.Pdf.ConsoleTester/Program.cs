@@ -2,11 +2,6 @@ using Synercoding.FileFormats.Pdf.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
-using Synercoding.Primitives;
-using Synercoding.Primitives.Extensions;
-using System;
-using System.IO;
-using static Synercoding.Primitives.ValueCreator;
 
 namespace Synercoding.FileFormats.Pdf.ConsoleTester;
 

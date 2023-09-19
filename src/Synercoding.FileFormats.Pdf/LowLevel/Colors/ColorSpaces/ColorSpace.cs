@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 
 /// <summary>

@@ -3,9 +3,6 @@ using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel;
 
@@ -124,6 +121,7 @@ internal class ObjectStream
                 .WriteIfNotNull(PdfName.Get("CropBox"), page.CropBox)
                 .WriteIfNotNull(PdfName.Get("BleedBox"), page.BleedBox)
                 .WriteIfNotNull(PdfName.Get("TrimBox"), page.TrimBox)
+                .WriteIfNotNull(PdfName.Get("ArtBox"), page.ArtBox)
                 .WriteIfNotNull(PdfName.Get("Rotate"), (int?)page.Rotation);
 
             // Resources
