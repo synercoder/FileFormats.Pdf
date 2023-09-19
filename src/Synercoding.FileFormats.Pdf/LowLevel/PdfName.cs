@@ -93,25 +93,13 @@ public class PdfName
             // 0xff because only ascii is supported in pdf names
             var encoded = c switch
             {
-                // Pdf reserved characters
-                ' ' => "#20",
-                '#' => "#23",
-                '%' => "#25",
-                '(' => "#28",
-                ')' => "#29",
-                '/' => "#2f",
-                '<' => "#3c",
-                '>' => "#3e",
-                '[' => "#5b",
-                ']' => "#5d",
-                '{' => "#7b",
-                '}' => "#7d",
+                (char)0 => throw new InvalidOperationException("NULL character is not allowed in a pdf name."),
+                var cc when cc >= 'a' && cc <= 'z' => cc.ToString(),
+                var cc when cc >= 'A' && cc <= 'Z' => cc.ToString(),
+                var cc when cc >= '0' && cc <= '9' => cc.ToString(),
                 // special characters
                 var cc when cc < 16 => $"#0{Convert.ToString(cc, 16)}",
-                var cc when cc < 32 => '#' + Convert.ToString(cc, 16),
-                var cc when cc > 126 => '#' + Convert.ToString(cc, 16),
-                // "readable characters"
-                var cc => cc.ToString()
+                var cc => '#' + Convert.ToString(cc, 16),
             };
             pdfName.Append(encoded);
         }

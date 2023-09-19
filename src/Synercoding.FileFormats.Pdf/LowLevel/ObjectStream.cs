@@ -121,6 +121,7 @@ internal class ObjectStream
                 .WriteIfNotNull(PdfName.Get("CropBox"), page.CropBox)
                 .WriteIfNotNull(PdfName.Get("BleedBox"), page.BleedBox)
                 .WriteIfNotNull(PdfName.Get("TrimBox"), page.TrimBox)
+                .WriteIfNotNull(PdfName.Get("ArtBox"), page.ArtBox)
                 .WriteIfNotNull(PdfName.Get("Rotate"), (int?)page.Rotation);
 
             // Resources
