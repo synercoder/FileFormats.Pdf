@@ -88,7 +88,7 @@ public sealed class PdfPage : IDisposable
     /// <summary>
     /// The art box of the <see cref="PdfPage"/>
     /// </summary>
-    public Rectangle? Art { get; set; }
+    public Rectangle? ArtBox { get; set; }
 
     /// <inheritdoc />
     public void Dispose()

@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Rewritten most of the API surface to provide a uniform way to interact with the content.</PackageReleaseNotes>
+    <PackageReleaseNotes>A fix with octal literal string encoding, and rewritten pdfname encoding, renamed art to artbox, and encoded artbox in resulting pdf.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
