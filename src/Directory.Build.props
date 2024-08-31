@@ -2,19 +2,20 @@
 <Project>
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileDirectory)..\Directory.Build.props</MSBuildAllProjects>
     <SynercodingProjectCategory>src</SynercodingProjectCategory>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='RELEASE'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='DEBUG'">
     <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
 </Project>
