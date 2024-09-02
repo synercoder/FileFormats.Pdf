@@ -15,5 +15,9 @@ public enum TokenType
     EndDictionary,
     Reference,
     Null,
+    Obj,
+    EndObj,
+    Stream,
+    EndStream,
     Other
 }

@@ -40,9 +40,14 @@ public class Tokenizer
                 var (b, _) when b == ByteUtils.PARENTHESIS_OPEN => _readStringLiteral(),
                 var (b, _) when b == ByteUtils.LESS_THAN_SIGN => _readStringHex(),
                 var (b1, b2) when b1 == 0x52 && ByteUtils.IsDelimiterorWhiteSpace(b2) => _readReference(),
-                _ when _pdfBytesProvider.IsNullNext() => _readNull(),
-                _ when _pdfBytesProvider.IsTrueNext() => _readBoolean(true),
-                _ when _pdfBytesProvider.IsFalseNext() => _readBoolean(false),
+                _ when _pdfBytesProvider.IsNullNext(read: false) => _readNull(),
+                _ when _pdfBytesProvider.IsTrueNext(read: false) => _readBoolean(true),
+                _ when _pdfBytesProvider.IsFalseNext(read: false) => _readBoolean(false),
+                _ when _pdfBytesProvider.IsObjNext(read: false) => _read(TokenType.Obj),
+                _ when _pdfBytesProvider.IsEndObjNext(read: false) => _read(TokenType.EndObj),
+                _ when _pdfBytesProvider.IsStreamNext(read: false) => _read(TokenType.Stream),
+                _ when _pdfBytesProvider.IsEndStreamNext(read: false) => _read(TokenType.EndStream),
+                _ when _pdfBytesProvider.IsNullNext(read: false) => _read(TokenType.Null),
                 _ => _readOtherToken(),
             };
         }
@@ -345,5 +350,21 @@ public class Tokenizer
         _pdfBytesProvider.Skip(value ? 4 : 5);
 
         return new TokenBoolean(value);
+    }
+
+    private Token _read(TokenType tokenType)
+    {
+        if (tokenType == TokenType.Null && _pdfBytesProvider.IsNullNext(read: true))
+            return new Token(tokenType);
+        if (tokenType == TokenType.Obj && _pdfBytesProvider.IsObjNext(read: true))
+            return new Token(tokenType);
+        if (tokenType == TokenType.EndObj && _pdfBytesProvider.IsEndObjNext(read: true))
+            return new Token(tokenType);
+        if (tokenType == TokenType.Stream && _pdfBytesProvider.IsStreamNext(read: true))
+            return new Token(tokenType);
+        if (tokenType == TokenType.EndStream && _pdfBytesProvider.IsEndStreamNext(read: true))
+            return new Token(tokenType);
+
+        throw new ParseException($"Expected {tokenType} was not found.");
     }
 }
