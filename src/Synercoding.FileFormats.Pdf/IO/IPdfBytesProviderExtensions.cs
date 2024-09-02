@@ -7,27 +7,70 @@ namespace Synercoding.FileFormats.Pdf.IO;
 
 internal static class IPdfBytesProviderExtensions
 {
-    public static bool IsTrueNext(this IPdfBytesProvider pdfBytesProvider)
-        => pdfBytesProvider.TryPeek(4, out var possibleTrue)
+    public static bool IsTrueNext(this IPdfBytesProvider pdfBytesProvider, bool read)
+        => pdfBytesProvider.TryPeekOrRead(4, out var possibleTrue, read)
             && possibleTrue[3] == 0x65  // e
             && possibleTrue[0] == 0x74  // t
             && possibleTrue[1] == 0x72  // r
             && possibleTrue[2] == 0x75; // u
 
-    public static bool IsNullNext(this IPdfBytesProvider pdfBytesProvider)
-        => pdfBytesProvider.TryPeek(4, out var possibleNull)
+    public static bool IsNullNext(this IPdfBytesProvider pdfBytesProvider, bool read)
+        => pdfBytesProvider.TryPeekOrRead(4, out var possibleNull, read)
             && possibleNull[3] == 0x6C  // l
             && possibleNull[0] == 0x6E  // n
             && possibleNull[1] == 0x75  // u
             && possibleNull[2] == 0x6C; // l
 
-    public static bool IsFalseNext(this IPdfBytesProvider pdfBytesProvider)
-        => pdfBytesProvider.TryPeek(5, out var possibleFalse)
+    public static bool IsFalseNext(this IPdfBytesProvider pdfBytesProvider, bool read)
+        => pdfBytesProvider.TryPeekOrRead(5, out var possibleFalse, read)
             && possibleFalse[4] == 0x65  // e
             && possibleFalse[0] == 0x66  // f
             && possibleFalse[1] == 0x61  // a
             && possibleFalse[2] == 0x6C  // l
             && possibleFalse[3] == 0x73; // s
+
+    public static bool IsObjNext(this IPdfBytesProvider pdfBytesProvider, bool read)
+        => pdfBytesProvider.TryPeekOrRead(3, out var possibleFalse, read)
+            && possibleFalse[2] == 0x6A  // j
+            && possibleFalse[0] == 0x6F  // o
+            && possibleFalse[1] == 0x62; // b 
+
+    public static bool IsEndObjNext(this IPdfBytesProvider pdfBytesProvider, bool read)
+        => pdfBytesProvider.TryPeekOrRead(6, out var possibleFalse, read)
+            && possibleFalse[5] == 0x6A  // j
+            && possibleFalse[0] == 0x65  // e
+            && possibleFalse[1] == 0x6E  // n 
+            && possibleFalse[2] == 0x64  // d
+            && possibleFalse[3] == 0x6F  // o
+            && possibleFalse[4] == 0x62; // b
+
+    public static bool IsStreamNext(this IPdfBytesProvider pdfBytesProvider, bool read)
+        => pdfBytesProvider.TryPeekOrRead(6, out var possibleFalse, read)
+            && possibleFalse[5] == 0x6D  // m
+            && possibleFalse[0] == 0x73  // s
+            && possibleFalse[1] == 0x74  // t
+            && possibleFalse[2] == 0x72  // r
+            && possibleFalse[3] == 0x65  // e
+            && possibleFalse[4] == 0x61; // a;
+
+    public static bool IsEndStreamNext(this IPdfBytesProvider pdfBytesProvider, bool read)
+        => pdfBytesProvider.TryPeekOrRead(9, out var possibleFalse, read)
+            && possibleFalse[8] == 0x6D  // m
+            && possibleFalse[0] == 0x65  // e
+            && possibleFalse[1] == 0x6E  // n
+            && possibleFalse[2] == 0x64  // d
+            && possibleFalse[3] == 0x73  // s
+            && possibleFalse[4] == 0x74  // t
+            && possibleFalse[5] == 0x72  // r
+            && possibleFalse[6] == 0x65  // e
+            && possibleFalse[7] == 0x61; // a
+
+    public static bool TryPeekOrRead(this IPdfBytesProvider pdfBytesProvider, int length, [NotNullWhen(true)] out byte[] bytes, bool read)
+    {
+        return read
+            ? TryRead(pdfBytesProvider, length, out bytes)
+            : TryPeek(pdfBytesProvider, length, out bytes);
+    }
 
     public static IPdfBytesProvider Skip(this IPdfBytesProvider pdfBytesProvider, int amount = 1)
     {

@@ -7,6 +7,11 @@ namespace Synercoding.FileFormats.Pdf.Tests.Parsing;
 public class TokeniserTests
 {
     [Theory]
+    [InlineData("obj", TokenType.Obj)]
+    [InlineData("endobj", TokenType.EndObj)]
+    [InlineData("stream", TokenType.Stream)]
+    [InlineData("endstream", TokenType.EndStream)]
+    [InlineData("null", TokenType.Null)]
     [InlineData("[", TokenType.BeginArray)]
     [InlineData("true", TokenType.Boolean)]
     [InlineData("false", TokenType.Boolean)]
