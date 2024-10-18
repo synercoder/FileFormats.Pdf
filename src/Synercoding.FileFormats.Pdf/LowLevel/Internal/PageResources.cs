@@ -15,7 +15,7 @@ internal sealed class PageResources : IDisposable
     private readonly Map<PdfName, Image> _images;
     private readonly Dictionary<Separation, (PdfName Name, PdfReference Id)> _separations;
     private readonly Dictionary<Type1StandardFont, PdfReference> _standardFonts;
-    private readonly Dictionary<ExtendedGraphicsState, PdfName> _extendedGraphicsStates;
+    private readonly Dictionary<ExtendedGraphicsState, (PdfName Name, PdfReference Id)> _extendedGraphicsStates;
 
     private int _stateCounter = 0;
     private int _separationCounter = 0;
@@ -27,13 +27,13 @@ internal sealed class PageResources : IDisposable
         _images = new Map<PdfName, Image>();
         _separations = new Dictionary<Separation, (PdfName Name, PdfReference Id)>();
         _standardFonts = new Dictionary<Type1StandardFont, PdfReference>();
-        _extendedGraphicsStates = new Dictionary<ExtendedGraphicsState, PdfName>();
+        _extendedGraphicsStates = new Dictionary<ExtendedGraphicsState, (PdfName Name, PdfReference Id)>();
     }
 
     public IReadOnlyDictionary<PdfName, Image> Images
         => _images.Forward;
 
-    public IReadOnlyDictionary<ExtendedGraphicsState, PdfName> ExtendedGraphicsStates
+    public IReadOnlyDictionary<ExtendedGraphicsState, (PdfName Name, PdfReference Id)> ExtendedGraphicsStates
         => _extendedGraphicsStates;
 
     internal IReadOnlyDictionary<Separation, (PdfName Name, PdfReference Id)> SeparationReferences
@@ -115,12 +115,12 @@ internal sealed class PageResources : IDisposable
 
     internal PdfName AddExtendedGraphicsState(ExtendedGraphicsState extendedGraphicsState)
     {
-        if (_extendedGraphicsStates.TryGetValue(extendedGraphicsState, out var name))
-            return name;
+        if (_extendedGraphicsStates.TryGetValue(extendedGraphicsState, out var tuple))
+            return tuple.Name;
 
-        var key = PREFIX_SEPARATION + Interlocked.Increment(ref _stateCounter).ToString().PadLeft(6, '0');
-        name = PdfName.Get(key);
-        _extendedGraphicsStates[extendedGraphicsState] = name;
+        var key = PREFIX_EXTGSTATE + Interlocked.Increment(ref _stateCounter).ToString().PadLeft(6, '0');
+        var name = PdfName.Get(key);
+        _extendedGraphicsStates[extendedGraphicsState] = (name, _tableBuilder.ReserveId());
 
         return name;
     }

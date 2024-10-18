@@ -216,6 +216,10 @@ public class Program
 
                     page.Content.AddShapes(trimBox, static (trim, context) =>
                     {
+                        context.SetExtendedGraphicsState(new ExtendedGraphicsState()
+                        {
+                            Overprint = true
+                        });
                         context.SetStroke(new SpotColor(new Separation(LowLevel.PdfName.Get("CutContour"), PredefinedColors.Magenta), 1));
                         context.Rectangle(trim);
                         context.Stroke();
