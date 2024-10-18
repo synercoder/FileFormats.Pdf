@@ -388,6 +388,20 @@ public sealed class ContentStream : IDisposable
     }
 
     /// <summary>
+    /// Set an extended graphics state (ExtGState) dictionary using a gs operator..
+    /// </summary>
+    /// <param name="state">The state to apply.</param>
+    /// <returns>The <see cref="ContentStream"/> to support chaining operations.</returns>
+    public ContentStream SetExtendedGraphicsState(ExtendedGraphicsState state)
+    {
+        var name = Resources.AddExtendedGraphicsState(state);
+
+        InnerStream.Write(name).Space().Write("gs").NewLine();
+
+        return this;
+    }
+
+    /// <summary>
     /// Write the operator (m) to the stream
     /// </summary>
     /// <param name="x">The x coordinate of the target point.</param>

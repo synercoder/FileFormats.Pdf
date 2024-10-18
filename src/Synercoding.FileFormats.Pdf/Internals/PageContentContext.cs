@@ -6,7 +6,7 @@ namespace Synercoding.FileFormats.Pdf.Internals;
 
 internal class PageContentContext : IPageContentContext
 {
-    public PageContentContext(ContentStream contentStream, GraphicState graphicState)
+    public PageContentContext(ContentStream contentStream, GraphicsState graphicState)
     {
         RawContentStream = contentStream;
         GraphicState = graphicState;
@@ -14,7 +14,7 @@ internal class PageContentContext : IPageContentContext
 
     public ContentStream RawContentStream { get; }
 
-    public GraphicState GraphicState { get; }
+    public GraphicsState GraphicState { get; }
 
     public IPageContentContext AddImage(Image image)
     {
@@ -152,6 +152,13 @@ internal class PageContentContext : IPageContentContext
     {
         var state = new ShapesContentContext(RawContentStream, GraphicState);
         await shapeOperations(data, state);
+
+        return this;
+    }
+
+    public IPageContentContext SetExtendedGraphicsState(ExtendedGraphicsState extendedGraphicsState)
+    {
+        RawContentStream.SetExtendedGraphicsState(extendedGraphicsState);
 
         return this;
     }

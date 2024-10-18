@@ -159,6 +159,18 @@ internal class ObjectStream
                         }
                     }));
                 }
+
+                if (resources.ExtendedGraphicsStates.Count != 0)
+                {
+                    stream.Write(PdfName.Get("ExtGState"), resources.ExtendedGraphicsStates.Values, static (extGStates, stream) => stream.Dictionary(extGStates, static (extendedGStates, dict) =>
+                    {
+                        foreach (var (name, reference) in extendedGStates)
+                        {
+                            dict.Write(name, reference);
+                        }
+                    }));
+                }
+
             }));
 
             // Content stream
@@ -213,6 +225,22 @@ internal class ObjectStream
             .WriteByte(BRACKET_CLOSE)
             .EndObject()
             .NewLine();
+
+        return this;
+    }
+
+    public ObjectStream Write(PdfReference reference, ExtendedGraphicsState state)
+    {
+        if (!_tableBuilder.TrySetPosition(reference, InnerStream.Position))
+            return this;
+
+        _indirectDictionary(reference, state, static (state, dict) =>
+        {
+            if (state.Overprint.HasValue)
+                dict.Write(PdfName.Get("OP"), state.Overprint.Value);
+            if (state.OverprintNonStroking.HasValue)
+                dict.Write(PdfName.Get("op"), state.OverprintNonStroking.Value);
+        });
 
         return this;
     }

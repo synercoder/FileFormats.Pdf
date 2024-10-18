@@ -233,6 +233,9 @@ public sealed class PdfWriter : IDisposable
         foreach (var (separation, (_, refId)) in page.Resources.SeparationReferences)
             _objectStream.Write(refId, separation);
 
+        foreach (var (state, (_, refId)) in page.Resources.ExtendedGraphicsStates)
+            _objectStream.Write(refId, state);
+
         _objectStream.Write(page.Content.RawContentStream);
     }
 
