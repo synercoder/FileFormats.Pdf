@@ -57,6 +57,18 @@ public class PdfStream : IDisposable
     }
 
     /// <summary>
+    /// Write a <see cref="bool"/> to the stream
+    /// </summary>
+    /// <param name="b">The boolean to write.</param>
+    /// <returns>The calling <see cref="PdfStream"/> to support chaining operations.</returns>
+    public PdfStream Write(bool b)
+    {
+        return b
+            ? Write("true")
+            : Write("false");
+    }
+
+    /// <summary>
     /// Write a <see cref="int"/> to the stream
     /// </summary>
     /// <param name="value">The integer to write</param>

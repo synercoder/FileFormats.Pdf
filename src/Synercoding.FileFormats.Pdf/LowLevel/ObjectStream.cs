@@ -159,6 +159,27 @@ internal class ObjectStream
                         }
                     }));
                 }
+
+                if (resources.ExtendedGraphicsStates.Count != 0)
+                {
+                    stream.Write(PdfName.Get("ExtGState"), resources.ExtendedGraphicsStates, static (extGStates, stream) => stream.Dictionary(extGStates, static (extendedGStates, extgstateDictionary) =>
+                    {
+                        foreach(var (state, name) in extendedGStates)
+                        {
+                            extgstateDictionary.Write(name, state, static (state, raw) =>
+                            {
+                                raw.Dictionary(state, static (state, dict) =>
+                                {
+                                    if (state.Overprint.HasValue)
+                                        dict.Write(PdfName.Get("OP"), state.Overprint.Value);
+                                    if (state.OverprintNonStroking.HasValue)
+                                        dict.Write(PdfName.Get("op"), state.OverprintNonStroking.Value);
+                                });
+                            });
+                        }
+                    }));
+                }
+
             }));
 
             // Content stream

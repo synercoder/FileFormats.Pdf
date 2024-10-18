@@ -7,9 +7,9 @@ namespace Synercoding.FileFormats.Pdf;
 /// <summary>
 /// Class representing the grahpic state of a PDF at a certain moment in time.
 /// </summary>
-public sealed class GraphicState
+public sealed class GraphicsState
 {
-    internal GraphicState()
+    internal GraphicsState()
     {
         CTM = Matrix.Identity;
         Fill = PredefinedColors.Black;
@@ -111,9 +111,9 @@ public sealed class GraphicState
     /// </summary>
     public double TextRise { get; internal set; }
 
-    internal GraphicState Clone()
+    internal GraphicsState Clone()
     {
-        return new GraphicState()
+        return new GraphicsState()
         {
             CTM = CTM,
             Fill = Fill,

@@ -26,7 +26,7 @@ public sealed class PdfPage : IDisposable
         Resources = new PageResources(_tableBuilder);
         var contentStream = new ContentStream(tableBuilder.ReserveId(), Resources);
 
-        Content = new PageContentContext(contentStream, new GraphicState());
+        Content = new PageContentContext(contentStream, new GraphicsState());
     }
 
     internal PdfReference Parent

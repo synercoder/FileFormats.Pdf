@@ -147,6 +147,22 @@ public class PdfDictionary
     }
 
     /// <summary>
+    /// Write a boolean to the dictionary
+    /// </summary>
+    /// <param name="key">The key of the item in the dictionary</param>
+    /// <param name="value">The boolean to write</param>
+    /// <returns>The <see cref="PdfDictionary"/> to support chaining operations.</returns>
+    public PdfDictionary Write(PdfName key, bool value)
+    {
+        _stream
+            .Write(key)
+            .Space()
+            .Write(value);
+
+        return this;
+    }
+
+    /// <summary>
     /// Write a text to the dictionary
     /// </summary>
     /// <param name="key">The key of the item in the dictionary</param>
