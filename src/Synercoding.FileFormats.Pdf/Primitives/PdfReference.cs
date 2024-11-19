@@ -20,4 +20,10 @@ public readonly struct PdfReference : IPdfPrimitive, IEquatable<PdfReference>
     [DebuggerStepThrough]
     public override string ToString()
         => $"[Pdf Reference] {Id.Id} {Id.Generation} R";
+
+    public static bool operator ==(PdfReference left, PdfReference right)
+        => left.Equals(right);
+
+    public static bool operator !=(PdfReference left, PdfReference right)
+        => !( left == right );
 }

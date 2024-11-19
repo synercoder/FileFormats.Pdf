@@ -32,4 +32,10 @@ public readonly struct PdfBoolean : IPdfPrimitive, IEquatable<PdfBoolean>
     public static implicit operator bool(PdfBoolean d) => d.Value;
 
     public static explicit operator PdfBoolean(bool b) => new PdfBoolean(b);
+
+    public static bool operator ==(PdfBoolean left, PdfBoolean right)
+        => left.Equals(right);
+
+    public static bool operator !=(PdfBoolean left, PdfBoolean right)
+        => !( left == right );
 }

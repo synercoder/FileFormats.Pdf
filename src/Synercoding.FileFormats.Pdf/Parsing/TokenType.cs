@@ -3,8 +3,7 @@ namespace Synercoding.FileFormats.Pdf.Parsing;
 public enum TokenType
 {
     Boolean,
-    Integer,
-    Real,
+    Number,
     StringLiteral,
     StringHex,
     BeginArray,
@@ -19,5 +18,6 @@ public enum TokenType
     EndObj,
     Stream,
     EndStream,
+    Trailer,
     Other
 }

@@ -1,32 +1,109 @@
 using Synercoding.FileFormats.Pdf.Exceptions;
 using Synercoding.FileFormats.Pdf.IO;
+using Synercoding.FileFormats.Pdf.Logging;
 using Synercoding.FileFormats.Pdf.Primitives;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace Synercoding.FileFormats.Pdf.Parsing;
 
 public class Tokenizer
 {
-    private readonly IPdfBytesProvider _pdfBytesProvider;
+    private readonly IPdfLogger? _logger;
 
     public Tokenizer(IPdfBytesProvider pdfBytesProvider)
+        : this(pdfBytesProvider, null)
+    { }
+
+    public Tokenizer(IPdfBytesProvider pdfBytesProvider, IPdfLogger? logger)
     {
-        _pdfBytesProvider = pdfBytesProvider ?? throw new ArgumentNullException(nameof(pdfBytesProvider));
+        PdfBytesProvider = pdfBytesProvider ?? throw new ArgumentNullException(nameof(pdfBytesProvider));
+        _logger = logger;
     }
+
+    internal IPdfBytesProvider PdfBytesProvider { get; }
 
     public long Position
     {
-        get => _pdfBytesProvider.Position;
-        set => _pdfBytesProvider.Seek(value, SeekOrigin.Begin);
+        get => PdfBytesProvider.Position;
+        set => PdfBytesProvider.Seek(value, SeekOrigin.Begin);
+    }
+
+    public bool TryPeekNextTokenType([NotNullWhen(true)] out TokenType? tokenType, bool skipComments = true)
+    {
+        var position = Position;
+
+        try
+        {
+            _logger.LogTrace<Tokenizer>("Peeking next token at {Position}", position);
+
+            tokenType = null;
+
+            PdfBytesProvider.SkipWhiteSpace();
+
+            if (PdfBytesProvider.TryPeek(2, out var peekedBytes))
+            {
+                tokenType = (peekedBytes[0], peekedBytes[1]) switch
+                {
+                    var (b, _) when b == ByteUtils.PERCENT_SIGN => TokenType.Comment,
+                    var (b, _) when b == ByteUtils.SOLIDUS => TokenType.Name,
+                    var (b, _) when b == 0x2B || b == 0x2D || b == 0x2E || ( b >= 0x30 && b <= 0x39 ) => TokenType.Number,
+                    var (b1, b2) when b1 == ByteUtils.LESS_THAN_SIGN && b2 == ByteUtils.LESS_THAN_SIGN => TokenType.BeginDictionary,
+                    var (b1, b2) when b1 == ByteUtils.GREATER_THAN_SIGN && b2 == ByteUtils.GREATER_THAN_SIGN => TokenType.EndDictionary,
+                    var (b, _) when b == ByteUtils.LEFT_SQUARE_BRACKET => TokenType.BeginArray,
+                    var (b, _) when b == ByteUtils.RIGHT_SQUARE_BRACKET => TokenType.EndArray,
+                    var (b, _) when b == ByteUtils.PARENTHESIS_OPEN => TokenType.StringLiteral,
+                    var (b, _) when b == ByteUtils.LESS_THAN_SIGN => TokenType.StringHex,
+                    var (b1, b2) when b1 == 0x52 && ByteUtils.IsDelimiterorWhiteSpace(b2) => TokenType.Reference,
+                    _ when PdfBytesProvider.IsTrueNext(read: false) => TokenType.Boolean,
+                    _ when PdfBytesProvider.IsFalseNext(read: false) => TokenType.Boolean,
+                    _ when PdfBytesProvider.IsObjNext(read: false) => TokenType.Obj,
+                    _ when PdfBytesProvider.IsEndObjNext(read: false) => TokenType.EndObj,
+                    _ when PdfBytesProvider.IsStreamNext(read: false) => TokenType.Stream,
+                    _ when PdfBytesProvider.IsEndStreamNext(read: false) => TokenType.EndStream,
+                    _ when PdfBytesProvider.IsNullNext(read: false) => TokenType.Null,
+                    _ when PdfBytesProvider.IsTrailerNext(read: false) => TokenType.Trailer,
+                    _ => TokenType.Other
+                };
+            }
+            else if (PdfBytesProvider.TryPeek(out var peek))
+            {
+                tokenType = peek switch
+                {
+                    var b when b == ByteUtils.PERCENT_SIGN => TokenType.Comment,
+                    var b when b == ByteUtils.SOLIDUS => TokenType.Name,
+                    var b when b == 0x2B || b == 0x2D || b == 0x2E || ( b >= 0x30 && b <= 0x39 ) => TokenType.Number,
+                    var b when b == ByteUtils.LEFT_SQUARE_BRACKET => TokenType.BeginArray,
+                    var b when b == ByteUtils.RIGHT_SQUARE_BRACKET => TokenType.EndArray,
+                    var b when b == 0x52 => TokenType.Reference,
+                    _ => TokenType.Other
+                };
+            }
+
+            _logger.LogTrace<Tokenizer>("Peeked at {TokenType}", tokenType);
+
+            if (skipComments && tokenType == TokenType.Comment)
+            {
+                _logger.LogTrace<Tokenizer>("Token was a comment we can skip, peeking again.");
+                return TryPeekNextTokenType(out tokenType, skipComments: true);
+            }
+
+            return tokenType is not null;
+        }
+        finally
+        {
+            _logger.LogTrace<Tokenizer>("Return to position {Position}", position);
+            Position = position;
+        }
     }
 
     public bool TryGetNextToken([NotNullWhen(true)] out Token? token, bool skipComments = true)
     {
         token = null;
 
-        _skipWhiteSpace();
+        PdfBytesProvider.SkipWhiteSpace();
 
-        if (_pdfBytesProvider.TryPeek(2, out var peekedBytes))
+        if (PdfBytesProvider.TryPeek(2, out var peekedBytes))
         {
             token = (peekedBytes[0], peekedBytes[1]) switch
             {
@@ -40,18 +117,19 @@ public class Tokenizer
                 var (b, _) when b == ByteUtils.PARENTHESIS_OPEN => _readStringLiteral(),
                 var (b, _) when b == ByteUtils.LESS_THAN_SIGN => _readStringHex(),
                 var (b1, b2) when b1 == 0x52 && ByteUtils.IsDelimiterorWhiteSpace(b2) => _readReference(),
-                _ when _pdfBytesProvider.IsNullNext(read: false) => _readNull(),
-                _ when _pdfBytesProvider.IsTrueNext(read: false) => _readBoolean(true),
-                _ when _pdfBytesProvider.IsFalseNext(read: false) => _readBoolean(false),
-                _ when _pdfBytesProvider.IsObjNext(read: false) => _read(TokenType.Obj),
-                _ when _pdfBytesProvider.IsEndObjNext(read: false) => _read(TokenType.EndObj),
-                _ when _pdfBytesProvider.IsStreamNext(read: false) => _read(TokenType.Stream),
-                _ when _pdfBytesProvider.IsEndStreamNext(read: false) => _read(TokenType.EndStream),
-                _ when _pdfBytesProvider.IsNullNext(read: false) => _read(TokenType.Null),
+                _ when PdfBytesProvider.IsNullNext(read: false) => _readNull(),
+                _ when PdfBytesProvider.IsTrueNext(read: false) => _readBoolean(true),
+                _ when PdfBytesProvider.IsFalseNext(read: false) => _readBoolean(false),
+                _ when PdfBytesProvider.IsObjNext(read: false) => _read(TokenType.Obj),
+                _ when PdfBytesProvider.IsEndObjNext(read: false) => _read(TokenType.EndObj),
+                _ when PdfBytesProvider.IsStreamNext(read: false) => _read(TokenType.Stream),
+                _ when PdfBytesProvider.IsEndStreamNext(read: false) => _read(TokenType.EndStream),
+                _ when PdfBytesProvider.IsNullNext(read: false) => _read(TokenType.Null),
+                _ when PdfBytesProvider.IsTrailerNext(read: false) => _read(TokenType.Trailer),
                 _ => _readOtherToken(),
             };
         }
-        else if (_pdfBytesProvider.TryPeek(out var peek))
+        else if (PdfBytesProvider.TryPeek(out var peek))
         {
             token = peek switch
             {
@@ -67,15 +145,19 @@ public class Tokenizer
             };
         }
 
-        if (skipComments && token?.TokenType == TokenType.Comment)
+        if (skipComments && token is TokenBytes tokenBytes && tokenBytes.TokenType == TokenType.Comment)
+        {
+            _logger.LogTrace<Tokenizer>("Found comment token: {Comment}", Encoding.ASCII.GetString(tokenBytes.Bytes));
             return TryGetNextToken(out token, skipComments: true);
+        }
 
+        _logger.LogTrace<Tokenizer>("Found token {Token}", token);
         return token is not null;
     }
 
     public bool TryPeek([MaybeNullWhen(false)] out Token token)
     {
-        var position = _pdfBytesProvider.Position;
+        var position = PdfBytesProvider.Position;
 
         try
         {
@@ -83,19 +165,13 @@ public class Tokenizer
         }
         finally
         {
-            _pdfBytesProvider.Seek(position, SeekOrigin.Begin);
+            PdfBytesProvider.Seek(position, SeekOrigin.Begin);
         }
-    }
-
-    private void _skipWhiteSpace()
-    {
-        while (_pdfBytesProvider.TryPeek(out byte b) && ByteUtils.IsWhiteSpace(b))
-            _pdfBytesProvider.Skip();
     }
 
     private Token _readBeginDictionary()
     {
-        _pdfBytesProvider
+        PdfBytesProvider
             .SkipOrThrow(ByteUtils.LESS_THAN_SIGN)
             .SkipOrThrow(ByteUtils.LESS_THAN_SIGN);
 
@@ -104,7 +180,7 @@ public class Tokenizer
 
     private Token _readEndDictionary()
     {
-        _pdfBytesProvider
+        PdfBytesProvider
             .SkipOrThrow(ByteUtils.GREATER_THAN_SIGN)
             .SkipOrThrow(ByteUtils.GREATER_THAN_SIGN);
 
@@ -113,7 +189,7 @@ public class Tokenizer
 
     private Token _readBeginArray()
     {
-        _pdfBytesProvider
+        PdfBytesProvider
             .SkipOrThrow(ByteUtils.LEFT_SQUARE_BRACKET);
 
         return new Token(TokenType.BeginArray);
@@ -121,7 +197,7 @@ public class Tokenizer
 
     private Token _readEndArray()
     {
-        _pdfBytesProvider
+        PdfBytesProvider
             .SkipOrThrow(ByteUtils.RIGHT_SQUARE_BRACKET);
 
         return new Token(TokenType.EndArray);
@@ -129,13 +205,13 @@ public class Tokenizer
 
     private TokenName _readName()
     {
-        _pdfBytesProvider
+        PdfBytesProvider
             .SkipOrThrow(ByteUtils.SOLIDUS);
 
         var bytes = new List<byte>();
-        while (_pdfBytesProvider.TryPeek(out byte b) && !ByteUtils.IsDelimiterorWhiteSpace(b))
+        while (PdfBytesProvider.TryPeek(out byte b) && !ByteUtils.IsDelimiterorWhiteSpace(b))
         {
-            bytes.Add(_pdfBytesProvider.ReadByte());
+            bytes.Add(PdfBytesProvider.ReadByte());
         }
 
         var name = new PdfName(bytes.ToArray());
@@ -145,23 +221,23 @@ public class Tokenizer
 
     private Token _readReference()
     {
-        _pdfBytesProvider
+        PdfBytesProvider
             .SkipOrThrow(0x52); // capital R
 
         return new Token(TokenType.Reference);
     }
 
-    private Token _readNumber()
+    private TokenNumber _readNumber()
     {
         var negative = false;
 
-        if (!_pdfBytesProvider.TryPeek(out byte possibleSign))
-            ParseException.ThrowUnexpectedEOF();
+        if (!PdfBytesProvider.TryPeek(out byte possibleSign))
+            throw ParseException.UnexpectedEOF();
 
         if (possibleSign == 0x2D || possibleSign == 0x2B) // minus and plus signs
         {
             // Eat the sign
-            _pdfBytesProvider.Skip();
+            PdfBytesProvider.Skip();
             negative = possibleSign == 0x2D;
         }
 
@@ -170,26 +246,26 @@ public class Tokenizer
         int fractions = 0;
         while (true)
         {
-            if (!_pdfBytesProvider.TryPeek(out byte peek) || ByteUtils.IsDelimiter(peek) || ByteUtils.IsWhiteSpace(peek))
+            if (!PdfBytesProvider.TryPeek(out byte peek) || ByteUtils.IsDelimiter(peek) || ByteUtils.IsWhiteSpace(peek))
             {
                 if (fractions > 0)
                 {
                     return negative
-                        ? new TokenReal(( number + fraction ) * -1)
-                        : new TokenReal(number + fraction);
+                        ? new TokenNumber(( number + fraction ) * -1, true)
+                        : new TokenNumber(number + fraction, true);
                 }
                 else
                 {
                     return negative
-                        ? new TokenInteger(number * -1)
-                        : new TokenInteger(number);
+                        ? new TokenNumber(number * -1, false)
+                        : new TokenNumber(number, false);
                 }
             }
 
             if (peek == 0x2E && fractions > 0)
                 throw new ParseException($"Found multiple fractional points in the same number.");
 
-            var b = _pdfBytesProvider.ReadByte();
+            var b = PdfBytesProvider.ReadByte();
             if (b == 0x2E)
             {
                 fractions = 1;
@@ -197,7 +273,7 @@ public class Tokenizer
             }
 
             if (b < 0x30 || b > 0x39)
-                ParseException.ThrowUnexpectedByte(0x30, 0x39, b);
+                throw new ParseException(0x30, 0x39, b);
 
             if (fractions > 0)
             {
@@ -214,56 +290,56 @@ public class Tokenizer
 
     private Token _readStringLiteral()
     {
-        if (_pdfBytesProvider.ReadByte() is byte b && b != ByteUtils.PARENTHESIS_OPEN)
-            ParseException.ThrowUnexpectedByte(ByteUtils.PARENTHESIS_OPEN, b);
+        if (PdfBytesProvider.ReadByte() is byte b && b != ByteUtils.PARENTHESIS_OPEN)
+            throw new ParseException(ByteUtils.PARENTHESIS_OPEN, b);
 
         int parenthesisLevel = 0;
         var bytes = new List<byte>();
 
-        while (_pdfBytesProvider.TryRead(out byte b1))
+        while (PdfBytesProvider.TryRead(out byte b1))
         {
             if (b1 == ByteUtils.REVERSE_SOLIDUS)
             {
-                if (!_pdfBytesProvider.TryPeek(out byte b2))
-                    ParseException.ThrowUnexpectedEOF();
+                if (!PdfBytesProvider.TryPeek(out byte b2))
+                    throw ParseException.UnexpectedEOF();
 
                 switch (b2)
                 {
                     case (byte)'n':
                         bytes.Add(ByteUtils.LINE_FEED);
-                        _pdfBytesProvider.Skip();
+                        PdfBytesProvider.Skip();
                         break;
                     case (byte)'r':
                         bytes.Add(ByteUtils.CARRIAGE_RETURN);
-                        _pdfBytesProvider.Skip();
+                        PdfBytesProvider.Skip();
                         break;
                     case (byte)'t':
                         bytes.Add(ByteUtils.HORIZONTAL_TAB);
-                        _pdfBytesProvider.Skip();
+                        PdfBytesProvider.Skip();
                         break;
                     case (byte)'b':
                         bytes.Add(0x09); // backspace charactr
-                        _pdfBytesProvider.Skip();
+                        PdfBytesProvider.Skip();
                         break;
                     case (byte)'f':
                         bytes.Add(ByteUtils.FORM_FEED);
-                        _pdfBytesProvider.Skip();
+                        PdfBytesProvider.Skip();
                         break;
                     case (byte)'(':
                     case (byte)')':
                     case (byte)'\\':
-                        bytes.Add(_pdfBytesProvider.ReadByte());
+                        bytes.Add(PdfBytesProvider.ReadByte());
                         break;
                     case byte next when ByteUtils.IsOctal(next):
-                        bytes.Add(_pdfBytesProvider.ReadOctalAsByte());
+                        bytes.Add(PdfBytesProvider.ReadOctalAsByte());
                         break;
                     case (byte)'\n':
-                        _pdfBytesProvider.Skip();
+                        PdfBytesProvider.Skip();
                         break;
                     case (byte)'\r'
-                        when _pdfBytesProvider.TryPeek(2, out var crlf)
+                        when PdfBytesProvider.TryPeek(2, out var crlf)
                         && crlf[1] == ByteUtils.LINE_FEED:
-                        _pdfBytesProvider.Skip(2);
+                        PdfBytesProvider.Skip(2);
                         break;
                 }
             }
@@ -294,16 +370,16 @@ public class Tokenizer
 
     private TokenBytes _readStringHex()
     {
-        if (_pdfBytesProvider.ReadByte() is byte b && b != ByteUtils.LESS_THAN_SIGN)
-            ParseException.ThrowUnexpectedByte(ByteUtils.LESS_THAN_SIGN, b);
+        if (PdfBytesProvider.ReadByte() is byte b && b != ByteUtils.LESS_THAN_SIGN)
+            throw new ParseException(ByteUtils.LESS_THAN_SIGN, b);
 
         var bytes = new List<byte>();
-        while (_pdfBytesProvider.ReadByte() is byte h && h != ByteUtils.GREATER_THAN_SIGN)
+        while (PdfBytesProvider.ReadByte() is byte h && h != ByteUtils.GREATER_THAN_SIGN)
         {
             if (ByteUtils.IsHex(h))
                 bytes.Add(h);
             else
-                ParseException.ThrowUnexpectedByte(h, "Expected hex byte value.");
+                throw new ParseException(h, "Expected hex byte value.");
         }
 
         return new TokenBytes(TokenType.StringHex, bytes.ToArray());
@@ -311,13 +387,13 @@ public class Tokenizer
 
     private TokenBytes _readComment()
     {
-        if (_pdfBytesProvider.ReadByte() is byte b && b != ByteUtils.PERCENT_SIGN)
-            ParseException.ThrowUnexpectedByte(ByteUtils.PERCENT_SIGN, b);
+        if (PdfBytesProvider.ReadByte() is byte b && b != ByteUtils.PERCENT_SIGN)
+            throw new ParseException(ByteUtils.PERCENT_SIGN, b);
 
         var bytes = new List<byte>();
-        while (_pdfBytesProvider.TryRead(out byte c))
+        while (PdfBytesProvider.TryRead(out byte c))
         {
-            if (c == ByteUtils.CARRIAGE_RETURN && _pdfBytesProvider.TryPeek(out byte peek) && peek == ByteUtils.LINE_FEED)
+            if (c == ByteUtils.CARRIAGE_RETURN && PdfBytesProvider.TryPeek(out byte peek) && peek == ByteUtils.LINE_FEED)
                 break;
             if (c == ByteUtils.LINE_FEED)
                 break;
@@ -331,9 +407,9 @@ public class Tokenizer
     private TokenBytes _readOtherToken()
     {
         var bytes = new List<byte>();
-        while (_pdfBytesProvider.TryPeek(out byte b) && !ByteUtils.IsDelimiterorWhiteSpace(b))
+        while (PdfBytesProvider.TryPeek(out byte b) && !ByteUtils.IsDelimiterorWhiteSpace(b))
         {
-            bytes.Add(_pdfBytesProvider.ReadByte());
+            bytes.Add(PdfBytesProvider.ReadByte());
         }
 
         return new TokenBytes(TokenType.Other, bytes.ToArray());
@@ -341,28 +417,30 @@ public class Tokenizer
 
     private Token _readNull()
     {
-        _pdfBytesProvider.Skip(4);
+        PdfBytesProvider.Skip(4);
         return new Token(TokenType.Null);
     }
 
     private TokenBoolean _readBoolean(bool value)
     {
-        _pdfBytesProvider.Skip(value ? 4 : 5);
+        PdfBytesProvider.Skip(value ? 4 : 5);
 
         return new TokenBoolean(value);
     }
 
     private Token _read(TokenType tokenType)
     {
-        if (tokenType == TokenType.Null && _pdfBytesProvider.IsNullNext(read: true))
+        if (tokenType == TokenType.Null && PdfBytesProvider.IsNullNext(read: true))
             return new Token(tokenType);
-        if (tokenType == TokenType.Obj && _pdfBytesProvider.IsObjNext(read: true))
+        if (tokenType == TokenType.Obj && PdfBytesProvider.IsObjNext(read: true))
             return new Token(tokenType);
-        if (tokenType == TokenType.EndObj && _pdfBytesProvider.IsEndObjNext(read: true))
+        if (tokenType == TokenType.EndObj && PdfBytesProvider.IsEndObjNext(read: true))
             return new Token(tokenType);
-        if (tokenType == TokenType.Stream && _pdfBytesProvider.IsStreamNext(read: true))
+        if (tokenType == TokenType.Stream && PdfBytesProvider.IsStreamNext(read: true))
             return new Token(tokenType);
-        if (tokenType == TokenType.EndStream && _pdfBytesProvider.IsEndStreamNext(read: true))
+        if (tokenType == TokenType.EndStream && PdfBytesProvider.IsEndStreamNext(read: true))
+            return new Token(tokenType);
+        if (tokenType == TokenType.Trailer && PdfBytesProvider.IsTrailerNext(read: true))
             return new Token(tokenType);
 
         throw new ParseException($"Expected {tokenType} was not found.");

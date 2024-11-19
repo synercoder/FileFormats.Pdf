@@ -15,12 +15,12 @@ public class TokeniserTests
     [InlineData("[", TokenType.BeginArray)]
     [InlineData("true", TokenType.Boolean)]
     [InlineData("false", TokenType.Boolean)]
-    [InlineData("123", TokenType.Integer)]
+    [InlineData("123", TokenType.Number)]
     [InlineData("/Test", TokenType.Name)]
     [InlineData("(Hello world!)", TokenType.StringLiteral)]
     [InlineData("<48656C6C6F20776F726C6421>", TokenType.StringHex)]
     [InlineData("<<", TokenType.BeginDictionary)]
-    [InlineData("1.2", TokenType.Real)]
+    [InlineData("1.2", TokenType.Number)]
     [InlineData(">>", TokenType.EndDictionary)]
     [InlineData("]", TokenType.EndArray)]
     [InlineData("% this is a comment", TokenType.Comment)]
@@ -55,8 +55,8 @@ public class TokeniserTests
         if (!tokeniser.TryGetNextToken(out Token? token))
             Assert.Fail("Could not get the next token.");
 
-        if (token is TokenReal real)
-            Assert.Equal(expected, real.Number, tolerance: 0.00000000001);
+        if (token is TokenNumber number)
+            Assert.Equal(expected, number.Value, tolerance: 0.00000000001);
         else
             Assert.Fail($"Did not retrieve a real token, instead got a {token.GetType().Name}.");
     }

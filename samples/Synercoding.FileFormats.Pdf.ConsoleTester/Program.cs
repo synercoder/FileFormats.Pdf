@@ -3,12 +3,32 @@
 //using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 //using Synercoding.FileFormats.Pdf.LowLevel.Text;
 
+using Synercoding.FileFormats.Pdf.Logging;
+using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.FileFormats.Pdf.Primitives.Extensions;
+
 namespace Synercoding.FileFormats.Pdf.ConsoleTester;
 
 public class Program
 {
     public static void Main(string[] args)
     {
+        var settings = new ReaderSettings()
+        {
+            Logger = new MultiLogger(new ConsoleLogger(), new DebugLogger())
+        };
+
+        using (var fs = File.OpenRead(@"D:\tmp_Jobs\ChrisRussell_Jobs\1331114\31-08-2024-00_26_48\Cover.pdf"))
+        using (var reader = new ObjectReader(fs, settings))
+        {
+            if (reader.TryGet<IPdfStreamObject>(new PdfObjectId(12, 0), out var streamObj))
+            {
+                var decodedData = streamObj.DecodeData(reader);
+
+                File.WriteAllBytes("obj12.bin", decodedData);
+            }
+        }
+
         //var fileName = "out.pdf";
 
         //if (File.Exists(fileName))

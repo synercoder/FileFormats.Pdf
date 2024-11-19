@@ -1,6 +1,3 @@
-using Synercoding.FileFormats.Pdf.Exceptions;
-using System.Diagnostics.CodeAnalysis;
-
 namespace Synercoding.FileFormats.Pdf.IO;
 
 public static class ByteUtils
