@@ -36,12 +36,15 @@ public readonly struct PdfReference : IEquatable<PdfReference>
     /// </summary>
     public int Generation { get; }
 
+    /// <inheritdoc />
     public bool Equals(PdfReference other)
         => ObjectId == other.ObjectId && Generation == other.Generation;
 
+    /// <inheritdoc />
     public override bool Equals([NotNullWhen(true)] object? obj)
         => obj is PdfReference pdfRef && Equals(pdfRef);
 
+    /// <inheritdoc />
     public override int GetHashCode()
         => HashCode.Combine(ObjectId, Generation);
 
@@ -49,8 +52,10 @@ public readonly struct PdfReference : IEquatable<PdfReference>
     public override string ToString()
         => $"{ObjectId} {Generation}";
 
+    /// <inheritdoc />
     public static bool operator ==(PdfReference left, PdfReference right)
         => left.Equals(right);
 
+    /// <inheritdoc />
     public static bool operator !=(PdfReference left, PdfReference right) => !( left == right );
 }
