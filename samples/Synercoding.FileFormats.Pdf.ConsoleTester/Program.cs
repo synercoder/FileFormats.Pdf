@@ -1,3 +1,4 @@
+using SixLabors.ImageSharp.PixelFormats;
 using Synercoding.FileFormats.Pdf.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
@@ -63,7 +64,7 @@ public class Program
                         });
 
                         using (var forestStream = File.OpenRead("Pexels_com/android-wallpaper-art-backlit-1114897.jpg"))
-                        using (var forestImage = SixLabors.ImageSharp.Image.Load(forestStream))
+                        using (var forestImage = SixLabors.ImageSharp.Image.Load<Rgba32>(forestStream))
                         {
                             var scale = (double)forestImage.Width / forestImage.Height;
 
@@ -81,7 +82,7 @@ public class Program
                     page.TrimBox = trimBox;
 
                     using (var barrenStream = File.OpenRead("Pexels_com/arid-barren-desert-1975514.jpg"))
-                    using (var barrenImage = SixLabors.ImageSharp.Image.Load(barrenStream))
+                    using (var barrenImage = SixLabors.ImageSharp.Image.Load<Rgba32>(barrenStream))
                     {
                         var scale = (double)barrenImage.Width / barrenImage.Height;
 
@@ -175,7 +176,7 @@ public class Program
                     page.TrimBox = trimBox;
 
                     using (var forestStream = File.OpenRead("Pexels_com/android-wallpaper-art-backlit-1114897.jpg"))
-                    using (var forestImage = SixLabors.ImageSharp.Image.Load(forestStream))
+                    using (var forestImage = SixLabors.ImageSharp.Image.Load<Rgba32>(forestStream))
                     {
                         var scale = (double)forestImage.Width / forestImage.Height;
 
@@ -187,7 +188,7 @@ public class Program
                 });
 
             using (var blurStream = File.OpenRead("Pexels_com/4k-wallpaper-blur-bokeh-1484253.jpg"))
-            using (var blurImage = SixLabors.ImageSharp.Image.Load(blurStream))
+            using (var blurImage = SixLabors.ImageSharp.Image.Load<Rgba32>(blurStream))
             {
                 var reusedImage = writer.AddImage(blurImage);
 
@@ -216,9 +217,40 @@ public class Program
 
                     page.Content.AddShapes(trimBox, static (trim, context) =>
                     {
+                        context.SetExtendedGraphicsState(new ExtendedGraphicsState()
+                        {
+                            Overprint = true
+                        });
                         context.SetStroke(new SpotColor(new Separation(LowLevel.PdfName.Get("CutContour"), PredefinedColors.Magenta), 1));
                         context.Rectangle(trim);
                         context.Stroke();
+                    });
+                });
+            }
+
+            using (var pantherPngStream = File.OpenRead("FreePngImage_com/59872-jaguar-panther-royalty-free-cougar-black-cheetah.png"))
+            using (var pantherImage = SixLabors.ImageSharp.Image.Load<Rgba32>(pantherPngStream))
+            {
+                var pantherImg = writer.AddImage(pantherImage);
+                var transparentPanther = writer.AddSeparationImage(new Separation(LowLevel.PdfName.Get("White"), PredefinedColors.Yellow), pantherImage, GrayScaleMethod.AlphaChannel);
+
+                writer.AddPage(page =>
+                {
+                    page.MediaBox = mediaBox;
+                    page.TrimBox = trimBox;
+
+                    var scale = (double)transparentPanther.Width / transparentPanther.Height;
+                    var pantherSize = new Rectangle(0, 0, 216, 216 / scale, Unit.Millimeters);
+
+                    page.Content.AddImage(pantherImage, pantherSize);
+
+                    page.Content.WrapInState(pantherImage, (image, content) =>
+                    {
+                        content.SetExtendedGraphicsState(new ExtendedGraphicsState()
+                        {
+                            Overprint = true
+                        });
+                        content.AddImage(transparentPanther, pantherSize);
                     });
                 });
             }

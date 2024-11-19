@@ -19,7 +19,7 @@ public interface IContentContext<TSelf>
     /// <summary>
     /// Represents the current graphic state
     /// </summary>
-    GraphicState GraphicState { get; }
+    GraphicsState GraphicState { get; }
 
     /// <summary>
     /// Wrap the <paramref name="contentOperations"/> in save and restore state operators
@@ -40,7 +40,7 @@ public interface IContentContext<TSelf>
     Task<TSelf> WrapInStateAsync<T>(T data, Func<T, TSelf, Task> contentOperations);
 
     /// <summary>
-    /// Concatenate a matrix to <see cref="GraphicState.CTM"/>
+    /// Concatenate a matrix to <see cref="GraphicsState.CTM"/>
     /// </summary>
     /// <param name="matrix">The matrix to concat</param>
     /// <returns>This <see cref="IContentContext{TSelf}"/> to enable chaining operations</returns>
@@ -94,5 +94,12 @@ public interface IContentContext<TSelf>
     /// <param name="dashPattern">The dash pattern to set</param>
     /// <returns>This <see cref="IContentContext{TSelf}"/> to enable chaining operations</returns>
     TSelf SetDashPattern(Dash dashPattern);
+
+    /// <summary>
+    /// Set an extended graphics state (ExtGState) dictionary.
+    /// </summary>
+    /// <param name="extendedGraphicsState">The state to apply.</param>
+    /// <returns>This <see cref="IContentContext{TSelf}"/> to enable chaining operations</returns>
+    TSelf SetExtendedGraphicsState(ExtendedGraphicsState extendedGraphicsState);
 }
 

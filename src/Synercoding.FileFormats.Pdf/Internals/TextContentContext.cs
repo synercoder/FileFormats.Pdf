@@ -7,7 +7,7 @@ namespace Synercoding.FileFormats.Pdf.Internals;
 
 internal class TextContentContext : ITextContentContext
 {
-    public TextContentContext(ContentStream contentStream, GraphicState graphicState)
+    public TextContentContext(ContentStream contentStream, GraphicsState graphicState)
     {
         RawContentStream = contentStream;
         GraphicState = graphicState;
@@ -15,7 +15,7 @@ internal class TextContentContext : ITextContentContext
 
     public ContentStream RawContentStream { get; }
 
-    public GraphicState GraphicState { get; }
+    public GraphicsState GraphicState { get; }
 
     public ITextContentContext ConcatenateMatrix(Matrix matrix)
     {
@@ -222,6 +222,13 @@ internal class TextContentContext : ITextContentContext
     public ITextContentContext ShowTextOnNextLine(string text, double wordSpacing, double characterSpacing)
     {
         RawContentStream.MoveNextLineShowText(text, wordSpacing, characterSpacing);
+
+        return this;
+    }
+
+    public ITextContentContext SetExtendedGraphicsState(ExtendedGraphicsState extendedGraphicsState)
+    {
+        RawContentStream.SetExtendedGraphicsState(extendedGraphicsState);
 
         return this;
     }

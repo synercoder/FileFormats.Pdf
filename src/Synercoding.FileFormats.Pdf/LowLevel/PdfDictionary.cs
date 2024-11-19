@@ -147,6 +147,22 @@ public class PdfDictionary
     }
 
     /// <summary>
+    /// Write a boolean to the dictionary
+    /// </summary>
+    /// <param name="key">The key of the item in the dictionary</param>
+    /// <param name="value">The boolean to write</param>
+    /// <returns>The <see cref="PdfDictionary"/> to support chaining operations.</returns>
+    public PdfDictionary Write(PdfName key, bool value)
+    {
+        _stream
+            .Write(key)
+            .Space()
+            .Write(value);
+
+        return this;
+    }
+
+    /// <summary>
     /// Write a text to the dictionary
     /// </summary>
     /// <param name="key">The key of the item in the dictionary</param>
@@ -299,7 +315,18 @@ public class PdfDictionary
         : this;
 
     /// <summary>
-    /// Write a number to the stream if it is not null
+    /// Writes a pdf reference to the dictionary if it is not null
+    /// </summary>
+    /// <param name="key">The key of the item in the dictionary</param>
+    /// <param name="value">The reference to add.</param>
+    /// <returns>The <see cref="PdfDictionary"/> to support chaining operations.</returns>
+    public PdfDictionary WriteIfNotNull(PdfName key, PdfReference? value)
+        => value.HasValue
+        ? Write(key, value.Value)
+        : this;
+
+    /// <summary>
+    /// Write a number to the dictionary if it is not null
     /// </summary>
     /// <param name="key">The key of the item in the dictionary</param>
     /// <param name="value">The number to write.</param>
@@ -310,7 +337,7 @@ public class PdfDictionary
         : this;
 
     /// <summary>
-    /// Write a number to the stream if it is not null
+    /// Write a number to the dictionary if it is not null
     /// </summary>
     /// <param name="key">The key of the item in the dictionary</param>
     /// <param name="value">The number to write.</param>

@@ -101,7 +101,7 @@ public interface ITextContentContext : IContentContext<ITextContentContext>
     ITextContentContext ShowTextOnNextLine(string text);
 
     /// <summary>
-    /// Operation to show text on the next line and setting the <see cref="GraphicState.WordSpacing"/> and <see cref="GraphicState.CharacterSpacing"/>
+    /// Operation to show text on the next line and setting the <see cref="GraphicsState.WordSpacing"/> and <see cref="GraphicsState.CharacterSpacing"/>
     /// </summary>
     /// <param name="text">The text to show</param>
     /// <param name="wordSpacing">The word spacing to set</param>

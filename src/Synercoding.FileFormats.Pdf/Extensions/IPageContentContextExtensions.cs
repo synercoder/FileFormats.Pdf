@@ -1,3 +1,4 @@
+using SixLabors.ImageSharp.PixelFormats;
 using Synercoding.FileFormats.Pdf.Internals;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
@@ -61,7 +62,7 @@ public static class IPageContentContextExtensions
     /// <returns>The same <paramref name="context"/> to enable chaining operations.</returns>
     public static IPageContentContext AddImage(this IPageContentContext context, System.IO.Stream stream)
     {
-        using var image = SixLabors.ImageSharp.Image.Load(stream);
+        using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(stream);
 
         return context.AddImage(image);
     }
@@ -73,7 +74,7 @@ public static class IPageContentContextExtensions
     /// <param name="image">The image to place</param>
     /// <param name="matrix">The placement matrix to use</param>
     /// <returns>The same <paramref name="context"/> to enable chaining operations.</returns>
-    public static IPageContentContext AddImage(this IPageContentContext context, SixLabors.ImageSharp.Image image, Matrix matrix)
+    public static IPageContentContext AddImage(this IPageContentContext context, SixLabors.ImageSharp.Image<Rgba32> image, Matrix matrix)
     {
         return context.WrapInState((image, matrix), static (tuple, context) =>
         {
@@ -89,7 +90,7 @@ public static class IPageContentContextExtensions
     /// <param name="image">The image to place</param>
     /// <param name="rectangle">The rectangle of where to place the image.</param>
     /// <returns>The same <paramref name="context"/> to enable chaining operations.</returns>
-    public static IPageContentContext AddImage(this IPageContentContext context, SixLabors.ImageSharp.Image image, Rectangle rectangle)
+    public static IPageContentContext AddImage(this IPageContentContext context, SixLabors.ImageSharp.Image<Rgba32> image, Rectangle rectangle)
         => context.AddImage(image, rectangle.AsPlacementMatrix());
 
     /// <summary>
@@ -98,7 +99,7 @@ public static class IPageContentContextExtensions
     /// <param name="context">The context to add the image to.</param>
     /// <param name="image">The image to place</param>
     /// <returns>The same <paramref name="context"/> to enable chaining operations.</returns>
-    public static IPageContentContext AddImage(this IPageContentContext context, SixLabors.ImageSharp.Image image)
+    public static IPageContentContext AddImage(this IPageContentContext context, SixLabors.ImageSharp.Image<Rgba32> image)
     {
         var name = context.RawContentStream.Resources.AddImage(image);
 

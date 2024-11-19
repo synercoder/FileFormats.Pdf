@@ -6,7 +6,7 @@ namespace Synercoding.FileFormats.Pdf.Internals;
 
 internal class ShapesContentContext : IShapeContentContext
 {
-    public ShapesContentContext(ContentStream contentStream, GraphicState graphicState)
+    public ShapesContentContext(ContentStream contentStream, GraphicsState graphicState)
     {
         RawContentStream = contentStream;
         GraphicState = graphicState;
@@ -14,7 +14,7 @@ internal class ShapesContentContext : IShapeContentContext
 
     public ContentStream RawContentStream { get; }
 
-    public GraphicState GraphicState { get; }
+    public GraphicsState GraphicState { get; }
 
     public IShapeContentContext ConcatenateMatrix(Matrix matrix)
     {
@@ -201,6 +201,13 @@ internal class ShapesContentContext : IShapeContentContext
     public IShapeContentContext EndPathNoStrokeNoFill()
     {
         RawContentStream.EndPath();
+
+        return this;
+    }
+
+    public IShapeContentContext SetExtendedGraphicsState(ExtendedGraphicsState extendedGraphicsState)
+    {
+        RawContentStream.SetExtendedGraphicsState(extendedGraphicsState);
 
         return this;
     }

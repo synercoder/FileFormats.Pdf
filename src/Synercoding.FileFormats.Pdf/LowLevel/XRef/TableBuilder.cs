@@ -1,3 +1,4 @@
+using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel.XRef;
@@ -6,6 +7,18 @@ internal class TableBuilder
 {
     private readonly IdGenerator _idGen = new IdGenerator();
     private readonly Dictionary<PdfReference, long> _positions = new Dictionary<PdfReference, long>();
+    private readonly Dictionary<Separation, PdfReference> _addedSeparations = new Dictionary<Separation, PdfReference>();
+
+    public PdfReference GetSeparationId(Separation separation)
+    {
+        if (_addedSeparations.TryGetValue(separation, out var id))
+            return id;
+
+        id = ReserveId();
+        _addedSeparations.Add(separation, id);
+        return id;
+
+    }
 
     public PdfReference ReserveId()
     {

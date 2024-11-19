@@ -41,7 +41,10 @@ The PDF files created in this library are not fully PDF 1.7 compliant, because t
 This shortcoming shall be remedied when broader font support is implemented.
 
 ### Sample program images
-The sample project called *Synercoding.FileFormats.Pdf.ConsoleTester* uses multiple images. Those images were taken from [Pexels.com](https://www.pexels.com/royalty-free-images/) and are licensed under the [Pexels License](https://www.pexels.com/photo-license/).
+The sample project called *Synercoding.FileFormats.Pdf.ConsoleTester* uses multiple images. 
+Those images were taken from:
+- [Pexels.com](https://www.pexels.com/royalty-free-images/) and are licensed under the [Pexels License](https://www.pexels.com/photo-license/)
+- [FreePngImg.com](https://freepngimg.com/png/59872-jaguar-panther-royalty-free-cougar-black-cheetah) and are licensed under [Creative Commons (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/)
 
 ## Sample usage
 
