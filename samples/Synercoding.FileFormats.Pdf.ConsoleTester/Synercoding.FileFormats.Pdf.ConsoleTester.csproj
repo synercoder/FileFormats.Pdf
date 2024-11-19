@@ -15,4 +15,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="FreePngImage_com\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

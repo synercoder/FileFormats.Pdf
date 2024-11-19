@@ -3,6 +3,7 @@ using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
+using System.IO.Compression;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel;
 
@@ -26,7 +27,8 @@ internal class ObjectStream
         if (!_tableBuilder.TrySetPosition(contentStream.Reference, InnerStream.Position))
             return this;
 
-        _indirectStream(contentStream.Reference, contentStream.InnerStream.InnerStream);
+        using (var flateStream = PdfWriter.FlateEncode(contentStream.InnerStream.InnerStream))
+            _indirectStream(contentStream.Reference, flateStream, StreamFilter.FlateDecode);
 
         return this;
     }
@@ -92,19 +94,43 @@ internal class ObjectStream
         if (!_tableBuilder.TrySetPosition(image.Reference, InnerStream.Position))
             return this;
 
-        _indirectStream(image.Reference, image.RawStream, image, static (image, dictionary) =>
+        _indirectStream(image.Reference, image.RawStream, (image, _tableBuilder), static (tuple, dictionary) =>
         {
+            var (image, tableBuilder) = tuple;
             dictionary
                 .Write(PdfName.Get("Type"), PdfName.Get("XObject"))
                 .Write(PdfName.Get("Subtype"), PdfName.Get("Image"))
                 .Write(PdfName.Get("Width"), image.Width)
                 .Write(PdfName.Get("Height"), image.Height)
-                .Write(PdfName.Get("ColorSpace"), image.ColorSpace)
                 .Write(PdfName.Get("BitsPerComponent"), 8)
-                .Write(PdfName.Get("Decode"), image.DecodeArray);
-        }, StreamFilter.DCTDecode);
+                .Write(PdfName.Get("Decode"), _decodeArray(image.ColorSpace))
+                .WriteIfNotNull(PdfName.Get("SMask"), image.SoftMask?.Reference);
+
+
+            if (image.ColorSpace is Separation separation)
+            {
+                var sepId = tableBuilder.GetSeparationId(separation);
+                dictionary.Write(PdfName.Get("ColorSpace"), sepId);
+            }
+            else
+            {
+                dictionary.Write(PdfName.Get("ColorSpace"), image.ColorSpace.Name);
+            }
+        }, image.Filters);
+
+        if (image.SoftMask != null)
+            Write(image.SoftMask);
+
+        if(image.ColorSpace is Separation separation)
+            Write(separation);
 
         return this;
+
+        static double[] _decodeArray(ColorSpace colorSpace)
+            => Enumerable.Range(0, colorSpace.Components)
+                .Select(_ => new double[] { 0, 1 })
+                .SelectMany(x => x)
+                .ToArray();
     }
 
     public ObjectStream Write(PdfPage page)
@@ -196,13 +222,15 @@ internal class ObjectStream
         return this;
     }
 
-    public ObjectStream Write(PdfReference reference, Separation separation)
+    public ObjectStream Write(Separation separation)
     {
-        if (!_tableBuilder.TrySetPosition(reference, InnerStream.Position))
+        var id = _tableBuilder.GetSeparationId(separation);
+
+        if (!_tableBuilder.TrySetPosition(id, InnerStream.Position))
             return this;
 
         InnerStream
-            .StartObject(reference)
+            .StartObject(id)
             .WriteByte(BRACKET_OPEN)
             .Write(PdfName.Get("Separation"))
             .Write(separation.Name)
