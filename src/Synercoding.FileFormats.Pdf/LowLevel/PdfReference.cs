@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Synercoding.FileFormats.Pdf.LowLevel;
 
 /// <summary>
 /// A struct representing a reference
 /// </summary>
-public readonly struct PdfReference
+public readonly struct PdfReference : IEquatable<PdfReference>
 {
     /// <summary>
     /// Constructor for <see cref="PdfReference"/> that uses generation 0
@@ -34,9 +36,21 @@ public readonly struct PdfReference
     /// </summary>
     public int Generation { get; }
 
+    public bool Equals(PdfReference other)
+        => ObjectId == other.ObjectId && Generation == other.Generation;
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+        => obj is PdfReference pdfRef && Equals(pdfRef);
+
+    public override int GetHashCode()
+        => HashCode.Combine(ObjectId, Generation);
+
     /// <inheritdoc />
     public override string ToString()
-    {
-        return $"{ObjectId} {Generation}";
-    }
+        => $"{ObjectId} {Generation}";
+
+    public static bool operator ==(PdfReference left, PdfReference right)
+        => left.Equals(right);
+
+    public static bool operator !=(PdfReference left, PdfReference right) => !( left == right );
 }

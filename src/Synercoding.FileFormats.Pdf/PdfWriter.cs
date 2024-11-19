@@ -1,3 +1,5 @@
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using Synercoding.FileFormats.Pdf.LowLevel;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
@@ -147,13 +149,28 @@ public sealed class PdfWriter : IDisposable
     /// </summary>
     /// <param name="image">The image that needs to be added.</param>
     /// <returns>The image reference that can be used in pages</returns>
-    public Image AddImage(SixLabors.ImageSharp.Image image)
+    public Image AddImage(Image<Rgba32> image)
+    {
+        _throwWhenEndingWritten();
+
+        var pdfImage = Image.Get(_tableBuilder, image);
+
+        _objectStream.Write(pdfImage);
+
+        return pdfImage;
+    }
+
+    public SeparationImage AddSeparationImage(Separation separation, Image<Rgba32> image, GrayScaleMethod grayScaleMethod)
     {
         _throwWhenEndingWritten();
 
         var id = _tableBuilder.ReserveId();
 
-        var pdfImage = new Image(id, image);
+        var mask = Image.GetMask(_tableBuilder, image);
+
+        var imageStream = Image.AsImageByteStream(image, grayScaleMethod);
+
+        var pdfImage = new SeparationImage(id, imageStream, image.Width, image.Height, separation, mask);
 
         _objectStream.Write(pdfImage);
 
@@ -177,7 +194,7 @@ public sealed class PdfWriter : IDisposable
 
         var id = _tableBuilder.ReserveId();
 
-        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace);
+        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, null);
 
         _objectStream.Write(pdfImage);
 
@@ -230,8 +247,8 @@ public sealed class PdfWriter : IDisposable
         foreach (var (font, refId) in page.Resources.FontReferences)
             _objectStream.Write(refId, font);
 
-        foreach (var (separation, (_, refId)) in page.Resources.SeparationReferences)
-            _objectStream.Write(refId, separation);
+        foreach (var (separation, _) in page.Resources.SeparationReferences)
+            _objectStream.Write(separation);
 
         foreach (var (state, (_, refId)) in page.Resources.ExtendedGraphicsStates)
             _objectStream.Write(refId, state);

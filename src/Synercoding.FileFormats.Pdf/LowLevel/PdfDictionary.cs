@@ -314,6 +314,11 @@ public class PdfDictionary
         ? Write(key, rectangle.Value)
         : this;
 
+    public PdfDictionary WriteIfNotNull(PdfName key, PdfReference? value)
+        => value.HasValue
+        ? Write(key, value.Value)
+        : this;
+
     /// <summary>
     /// Write a number to the stream if it is not null
     /// </summary>

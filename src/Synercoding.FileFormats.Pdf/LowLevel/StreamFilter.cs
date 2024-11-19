@@ -9,5 +9,5 @@ internal enum StreamFilter
     /// Decompress data encoded using a DCT (discrete cosine transform) technique based on the JPEG standard,
     /// reproducing image sample data that approximates the original data.
     /// </summary>
-    DCTDecode
+    DCTDecode,
 }

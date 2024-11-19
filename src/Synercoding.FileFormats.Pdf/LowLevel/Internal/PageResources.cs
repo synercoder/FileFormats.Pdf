@@ -1,3 +1,4 @@
+using SixLabors.ImageSharp.PixelFormats;
 using Synercoding.FileFormats.Pdf.Internals;
 using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
@@ -56,7 +57,7 @@ internal sealed class PageResources : IDisposable
     {
         var id = _tableBuilder.ReserveId();
 
-        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace);
+        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, null);
 
         return AddImage(pdfImage);
     }
@@ -65,16 +66,14 @@ internal sealed class PageResources : IDisposable
     {
         var id = _tableBuilder.ReserveId();
 
-        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, decodeArray);
+        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, decodeArray, null);
 
         return AddImage(pdfImage);
     }
 
-    public PdfName AddImage(SixLabors.ImageSharp.Image image)
+    public PdfName AddImage(SixLabors.ImageSharp.Image<Rgba32> image)
     {
-        var id = _tableBuilder.ReserveId();
-
-        var pdfImage = new Image(id, image);
+        var pdfImage = Image.Get(_tableBuilder, image);
 
         return AddImage(pdfImage);
     }
@@ -108,7 +107,7 @@ internal sealed class PageResources : IDisposable
 
         var key = PREFIX_SEPARATION + System.Threading.Interlocked.Increment(ref _separationCounter).ToString().PadLeft(6, '0');
         var name = PdfName.Get(key);
-        _separations[separation] = (name, _tableBuilder.ReserveId());
+        _separations[separation] = (name, _tableBuilder.GetSeparationId(separation));
 
         return name;
     }

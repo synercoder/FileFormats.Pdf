@@ -89,6 +89,11 @@ internal class ObjectStream
 
     public ObjectStream Write(Image image)
     {
+        if (image is SeparationImage spotImage)
+            return Write(spotImage);
+        if (image is SoftMask maskImage)
+            return Write(maskImage);
+
         if (!_tableBuilder.TrySetPosition(image.Reference, InnerStream.Position))
             return this;
 
@@ -101,8 +106,60 @@ internal class ObjectStream
                 .Write(PdfName.Get("Height"), image.Height)
                 .Write(PdfName.Get("ColorSpace"), image.ColorSpace)
                 .Write(PdfName.Get("BitsPerComponent"), 8)
-                .Write(PdfName.Get("Decode"), image.DecodeArray);
+                .Write(PdfName.Get("Decode"), image.DecodeArray)
+                .WriteIfNotNull(PdfName.Get("SMask"), image.SoftMask?.Reference);
         }, StreamFilter.DCTDecode);
+
+        if (image.SoftMask != null)
+            Write(image.SoftMask);
+
+        return this;
+    }
+
+    public ObjectStream Write(SeparationImage spotImage)
+    {
+        if (!_tableBuilder.TrySetPosition(spotImage.Reference, InnerStream.Position))
+            return this;
+
+        var separationId = _tableBuilder.GetSeparationId(spotImage.Separation);
+
+        _indirectStream(spotImage.Reference, spotImage.RawStream, (spotImage, separationId), static (tuple, dictionary) =>
+        {
+            var (image, sepId) = tuple;
+
+            dictionary
+                .Write(PdfName.Get("Type"), PdfName.Get("XObject"))
+                .Write(PdfName.Get("Subtype"), PdfName.Get("Image"))
+                .Write(PdfName.Get("Width"), image.Width)
+                .Write(PdfName.Get("Height"), image.Height)
+                .Write(PdfName.Get("ColorSpace"), sepId)
+                .Write(PdfName.Get("BitsPerComponent"), 8)
+                .Write(PdfName.Get("Decode"), image.DecodeArray)
+                .WriteIfNotNull(PdfName.Get("SMask"), image.SoftMask?.Reference);
+        });
+
+        if(spotImage.SoftMask != null)
+            Write(spotImage.SoftMask);
+
+        return Write(spotImage.Separation);
+    }
+
+    public ObjectStream Write(SoftMask softMask)
+    {
+        if (!_tableBuilder.TrySetPosition(softMask.Reference, InnerStream.Position))
+            return this;
+
+        _indirectStream(softMask.Reference, softMask.RawStream, softMask, static (image, dictionary) =>
+        {
+            dictionary
+                .Write(PdfName.Get("Type"), PdfName.Get("XObject"))
+                .Write(PdfName.Get("Subtype"), PdfName.Get("Image"))
+                .Write(PdfName.Get("Width"), image.Width)
+                .Write(PdfName.Get("Height"), image.Height)
+                .Write(PdfName.Get("ColorSpace"), DeviceGray.Instance.Name)
+                .Write(PdfName.Get("BitsPerComponent"), 8)
+                .Write(PdfName.Get("Decode"), image.DecodeArray);
+        });
 
         return this;
     }
@@ -196,13 +253,15 @@ internal class ObjectStream
         return this;
     }
 
-    public ObjectStream Write(PdfReference reference, Separation separation)
+    public ObjectStream Write(Separation separation)
     {
-        if (!_tableBuilder.TrySetPosition(reference, InnerStream.Position))
+        var id = _tableBuilder.GetSeparationId(separation);
+
+        if (!_tableBuilder.TrySetPosition(id, InnerStream.Position))
             return this;
 
         InnerStream
-            .StartObject(reference)
+            .StartObject(id)
             .WriteByte(BRACKET_OPEN)
             .Write(PdfName.Get("Separation"))
             .Write(separation.Name)
