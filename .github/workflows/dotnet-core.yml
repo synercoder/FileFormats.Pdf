@@ -58,10 +58,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: nupkg
+          path: ./nupkg
       - name: Setup .NET Core @ Latest
         uses: actions/setup-dotnet@v1
-      - name: list
-        run: ls -R .
       - name: Publish Nuget to GitHub registry
         run: dotnet nuget push ./nupkg/*.nupkg -k ${GITHUB_TOKEN} -s ${GITHUB_FEED} --skip-duplicate
         env:
