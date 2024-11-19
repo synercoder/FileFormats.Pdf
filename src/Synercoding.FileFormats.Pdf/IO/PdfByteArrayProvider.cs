@@ -1,6 +1,3 @@
-using Synercoding.FileFormats.Pdf.Exceptions;
-using System.Diagnostics.CodeAnalysis;
-
 namespace Synercoding.FileFormats.Pdf.IO;
 
 public class PdfByteArrayProvider : IPdfBytesProvider
@@ -12,7 +9,7 @@ public class PdfByteArrayProvider : IPdfBytesProvider
         _bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
     }
 
-    public long Position { get; private set; }
+    public long Position { get; set; }
 
     public long Length => _bytes.LongLength;
 

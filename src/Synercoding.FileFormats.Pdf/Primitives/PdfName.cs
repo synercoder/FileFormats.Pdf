@@ -1,8 +1,6 @@
 using Synercoding.FileFormats.Pdf.IO;
-using System.Buffers;
 using System.Diagnostics;
 using System.Text;
-using System.Xml.Linq;
 
 namespace Synercoding.FileFormats.Pdf.Primitives;
 
@@ -58,7 +56,10 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         if (_reservedNames.TryGetValue(name, out var value))
             return value;
 
-        Debug.WriteLine($"{{ \"{name}\", new PdfName(\"{name}\", true) }},");
+#if DEBUG
+        Debug.WriteLine($"{{ \"{name}\", new PdfName(\"{name}\") }},");
+        Debug.WriteLine($"public static PdfName {name} => PdfName.Get(\"{name}\");");
+#endif
 
         return new PdfName(name);
     }
@@ -93,13 +94,13 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
 
     [DebuggerStepThrough]
     public override string ToString()
-        => $"[Pdf Name] /{Encoding.ASCII.GetString(Raw)}";
+        => $"[Pdf Name] /{Encoding.UTF8.GetString(Raw)}";
 
     private static byte[] _unescape(byte[] input)
     {
         var output = new List<byte>(input.Length);
 
-        for(int index = 0; index < input.Length; index++)
+        for (int index = 0; index < input.Length; index++)
         {
             if (input[index] == 0x23)
             {
@@ -116,14 +117,14 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
 
         static byte FromHex(byte b1, byte b2)
         {
-            return (byte)( HexToNumber(b1) << 4 | HexToNumber(b2) );
+            return (byte)( (HexToNumber(b1) << 4) | HexToNumber(b2) );
 
             static byte HexToNumber(byte b)
                 => b switch
                 {
-                    >= (byte)'0' and <= (byte)'9' => (byte)(b - '0'),
-                    >= (byte)'A' and <= (byte)'F' => (byte)(b - 'A' + 10),
-                    >= (byte)'a' and <= (byte)'f' => (byte)(b - 'a' + 10),
+                    >= (byte)'0' and <= (byte)'9' => (byte)( b - '0' ),
+                    >= (byte)'A' and <= (byte)'F' => (byte)( b - 'A' + 10 ),
+                    >= (byte)'a' and <= (byte)'f' => (byte)( b - 'a' + 10 ),
                     _ => throw new InvalidOperationException("All hex values should be covered.")
                 };
         }
@@ -133,9 +134,9 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
     {
         var output = new List<byte>();
 
-        foreach(var b in input)
+        foreach (var b in input)
         {
-            switch(b)
+            switch (b)
             {
                 case 0x00:
                     throw new InvalidOperationException("NULL character is not allowed in a pdf name.");
@@ -161,8 +162,17 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         static byte ToHex(int input)
             => input switch
             {
-                int i when i <= 9 => (byte)(i + '0'),
-                int i => (byte)( ( i - 10 ) + 'A' )
+                int i when i <= 9 => (byte)( i + '0' ),
+                int i => (byte)( i - 10 + 'A' )
             };
     }
+
+    public static explicit operator PdfName(string name)
+        => Get(name);
+
+    public static bool operator ==(PdfName left, PdfName right)
+        => left.Equals(right);
+
+    public static bool operator !=(PdfName left, PdfName right)
+        => !( left == right );
 }

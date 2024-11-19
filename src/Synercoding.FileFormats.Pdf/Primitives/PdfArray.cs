@@ -17,6 +17,12 @@ public sealed class PdfArray : IPdfPrimitive, IEnumerable<IPdfPrimitive>
         _list = new List<IPdfPrimitive>(items);
     }
 
+    public IPdfPrimitive this[int index]
+    {
+        get { return _list[index]; }
+        set { _list[index] = value;}
+    }
+
     public int Count
         => _list.Count;
 

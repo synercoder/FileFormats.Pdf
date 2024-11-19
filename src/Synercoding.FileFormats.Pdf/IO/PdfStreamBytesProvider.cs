@@ -1,9 +1,6 @@
-using Synercoding.FileFormats.Pdf.Exceptions;
-using System.Diagnostics.CodeAnalysis;
-
 namespace Synercoding.FileFormats.Pdf.IO;
 
-public class PdfStreamBytesProvider : IPdfBytesProvider
+public sealed class PdfStreamBytesProvider : IPdfBytesProvider
 {
     private readonly Stream _stream;
 
@@ -19,7 +16,10 @@ public class PdfStreamBytesProvider : IPdfBytesProvider
     }
 
     public long Position
-        => _stream.Position;
+    {
+        get => _stream.Position;
+        set => _stream.Position = value;
+    }
 
     public long Length
         => _stream.Length;

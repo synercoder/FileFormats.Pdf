@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Synercoding.FileFormats.Pdf.Primitives;
 
 [DebuggerDisplay("{ToString(),nq}")]
-public readonly struct PdfReal : IPdfPrimitive, IEquatable<PdfReal>
+public readonly struct PdfReal : IPdfPrimitive, IEquatable<PdfReal>, IEquatable<PdfInteger>
 {
     public PdfReal(double value)
     {
@@ -14,6 +14,9 @@ public readonly struct PdfReal : IPdfPrimitive, IEquatable<PdfReal>
     public double Value { get; }
 
     public bool Equals(PdfReal other)
+        => Value == other.Value;
+
+    public bool Equals(PdfInteger other)
         => Value == other.Value;
 
     public override bool Equals([NotNullWhen(true)] object? obj)
@@ -33,4 +36,16 @@ public readonly struct PdfReal : IPdfPrimitive, IEquatable<PdfReal>
     public static explicit operator PdfReal(double d) => new PdfReal(d);
 
     public static explicit operator PdfReal(float f) => new PdfReal(f);
+
+    public static bool operator ==(PdfReal left, PdfReal right)
+        => left.Equals(right);
+
+    public static bool operator !=(PdfReal left, PdfReal right)
+        => !( left == right );
+
+    public static bool operator ==(PdfReal left, PdfInteger right)
+        => left.Equals(right);
+
+    public static bool operator !=(PdfReal left, PdfInteger right)
+        => !( left == right );
 }

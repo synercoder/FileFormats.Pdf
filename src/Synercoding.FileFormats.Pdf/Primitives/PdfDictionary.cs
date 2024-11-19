@@ -6,9 +6,18 @@ using System.Diagnostics.CodeAnalysis;
 namespace Synercoding.FileFormats.Pdf.Primitives;
 
 [DebuggerDisplay("{ToString(),nq}")]
-public sealed class PdfDictionary : IPdfPrimitive, IEnumerable<KeyValuePair<PdfName, IPdfPrimitive>>
+public class PdfDictionary : IPdfDictionary
 {
     private readonly Dictionary<PdfName, IPdfPrimitive> _dictionary = new();
+
+    public PdfDictionary()
+    { }
+
+    public PdfDictionary(IPdfDictionary dictionary)
+    {
+        foreach (var (key, value) in dictionary)
+            _dictionary.Add(key, value);
+    }
 
     public IPdfPrimitive? this[PdfName key]
     {
@@ -61,6 +70,19 @@ public sealed class PdfDictionary : IPdfPrimitive, IEnumerable<KeyValuePair<PdfN
 
     public bool TryGetValue(PdfName key, [NotNullWhen(true)] out IPdfPrimitive? value)
         => _dictionary.TryGetValue(key, out value);
+
+    public virtual bool TryGetValue<TPrimitive>(PdfName key, [NotNullWhen(true)] out TPrimitive? value)
+        where TPrimitive : IPdfPrimitive
+    {
+        if (_dictionary.TryGetValue(key, out var primitive) && primitive is TPrimitive actualValue)
+        {
+            value = actualValue;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
