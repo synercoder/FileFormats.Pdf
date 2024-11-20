@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>A fix with octal literal string encoding, and rewritten pdfname encoding, renamed art to artbox, and encoded artbox in resulting pdf.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added transparent and separation images support. Content streams will be flatedecode encoded. And overprint mode support is added.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
