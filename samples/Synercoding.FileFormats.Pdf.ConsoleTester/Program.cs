@@ -226,33 +226,36 @@ public class Program
                         context.Stroke();
                     });
                 });
-            }
 
-            using (var pantherPngStream = File.OpenRead("FreePngImage_com/59872-jaguar-panther-royalty-free-cougar-black-cheetah.png"))
-            using (var pantherImage = SixLabors.ImageSharp.Image.Load<Rgba32>(pantherPngStream))
-            {
-                var pantherImg = writer.AddImage(pantherImage);
-                var transparentPanther = writer.AddSeparationImage(new Separation(LowLevel.PdfName.Get("White"), PredefinedColors.Yellow), pantherImage, GrayScaleMethod.AlphaChannel);
-
-                writer.AddPage(page =>
+                using (var pantherPngStream = File.OpenRead("FreePngImage_com/59872-jaguar-panther-royalty-free-cougar-black-cheetah.png"))
+                using (var pantherSixImage = SixLabors.ImageSharp.Image.Load<Rgba32>(pantherPngStream))
                 {
-                    page.MediaBox = mediaBox;
-                    page.TrimBox = trimBox;
+                    var pantherImg = writer.AddImage(pantherSixImage);
+                    var transparentPanther = writer.AddSeparationImage(new Separation(LowLevel.PdfName.Get("White"), PredefinedColors.Yellow), pantherSixImage, GrayScaleMethod.AlphaChannel, [0, 1]);
 
-                    var scale = (double)transparentPanther.Width / transparentPanther.Height;
-                    var pantherSize = new Rectangle(0, 0, 216, 216 / scale, Unit.Millimeters);
-
-                    page.Content.AddImage(pantherImage, pantherSize);
-
-                    page.Content.WrapInState(pantherImage, (image, content) =>
+                    writer.AddPage(page =>
                     {
-                        content.SetExtendedGraphicsState(new ExtendedGraphicsState()
+                        page.MediaBox = mediaBox;
+                        page.TrimBox = trimBox;
+
+                        var scale = (double)blurImage.Width / blurImage.Height;
+                        page.Content.AddImage(reusedImage, new Rectangle(0, 0, scale * 303, 303, Unit.Millimeters));
+
+                        scale = (double)transparentPanther.Width / transparentPanther.Height;
+                        var pantherSize = new Rectangle(0, 0, 216, 216 / scale, Unit.Millimeters);
+
+                        page.Content.AddImage(pantherImg, pantherSize);
+
+                        page.Content.WrapInState(pantherSixImage, (image, content) =>
                         {
-                            Overprint = true
+                            content.SetExtendedGraphicsState(new ExtendedGraphicsState()
+                            {
+                                Overprint = true
+                            });
+                            content.AddImage(transparentPanther, pantherSize);
                         });
-                        content.AddImage(transparentPanther, pantherSize);
                     });
-                });
+                }
             }
         }
     }
