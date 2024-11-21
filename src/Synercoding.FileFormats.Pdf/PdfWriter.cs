@@ -167,10 +167,17 @@ public sealed class PdfWriter : IDisposable
     /// <param name="separation">The <see cref="Separation"/> to use.</param>
     /// <param name="image">The image to use.</param>
     /// <param name="grayScaleMethod">The <see cref="GrayScaleMethod"/> to use.</param>
+    /// <param name="decodeArray">Optional decode array to use, default value is <c>[ 0.0 1.0 ]</c></param>
     /// <returns>The SeparationImage reference that can be used in pages</returns>
-    public Image AddSeparationImage(Separation separation, Image<Rgba32> image, GrayScaleMethod grayScaleMethod)
+    public Image AddSeparationImage(Separation separation, Image<Rgba32> image, GrayScaleMethod grayScaleMethod, double[]? decodeArray = null)
     {
         _throwWhenEndingWritten();
+
+        decodeArray ??= new double[] { 0, 1 };
+        if(decodeArray.Length != 2)
+            throw new ArgumentOutOfRangeException(nameof(decodeArray), "Length of decode array for separation images should be 2.");
+        if (decodeArray.Any(v => v < 0 || v > 1))
+            throw new ArgumentOutOfRangeException(nameof(decodeArray), "All values of the decode array should be between 0 and 1.");
 
         var id = _tableBuilder.ReserveId();
 
@@ -178,7 +185,7 @@ public sealed class PdfWriter : IDisposable
 
         var imageStream = Image.AsImageByteStream(image, grayScaleMethod);
 
-        var pdfImage = new Image(id, imageStream, image.Width, image.Height, separation, mask, StreamFilter.FlateDecode);
+        var pdfImage = new Image(id, imageStream, image.Width, image.Height, separation, mask, decodeArray, StreamFilter.FlateDecode);
 
         _objectStream.Write(pdfImage);
 
@@ -202,7 +209,7 @@ public sealed class PdfWriter : IDisposable
 
         var id = _tableBuilder.ReserveId();
 
-        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, null, StreamFilter.DCTDecode);
+        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, null, null, StreamFilter.DCTDecode);
 
         _objectStream.Write(pdfImage);
 
