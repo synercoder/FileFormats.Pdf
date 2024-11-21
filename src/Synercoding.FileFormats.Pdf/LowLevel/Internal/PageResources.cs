@@ -57,7 +57,7 @@ internal sealed class PageResources : IDisposable
     {
         var id = _tableBuilder.ReserveId();
 
-        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, null, StreamFilter.DCTDecode);
+        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, null, null, StreamFilter.DCTDecode);
 
         return AddImage(pdfImage);
     }

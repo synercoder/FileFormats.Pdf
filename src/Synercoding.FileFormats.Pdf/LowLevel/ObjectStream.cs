@@ -103,7 +103,7 @@ internal class ObjectStream
                 .Write(PdfName.Get("Width"), image.Width)
                 .Write(PdfName.Get("Height"), image.Height)
                 .Write(PdfName.Get("BitsPerComponent"), 8)
-                .Write(PdfName.Get("Decode"), _decodeArray(image.ColorSpace))
+                .Write(PdfName.Get("Decode"), image.DecodeArray ?? _decodeArray(image.ColorSpace))
                 .WriteIfNotNull(PdfName.Get("SMask"), image.SoftMask?.Reference);
 
 
