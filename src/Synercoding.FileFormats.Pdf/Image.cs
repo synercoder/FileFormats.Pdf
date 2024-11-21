@@ -118,6 +118,8 @@ public class Image : IDisposable
                             GrayScaleMethod.GreenChannel => pixel.G,
                             GrayScaleMethod.BlueChannel => pixel.B,
                             GrayScaleMethod.AverageOfRGBChannels => (byte)( ( pixel.R + pixel.G + pixel.B ) / 3 ),
+                            GrayScaleMethod.BT601 => (byte)( ( pixel.R * 0.299 ) + ( pixel.G * 0.587 ) + ( pixel.B * 0.114 ) ),
+                            GrayScaleMethod.BT709 => (byte)( ( pixel.R * 0.2126 ) + ( pixel.G * 0.7152 ) + ( pixel.B * 0.0722 ) ),
                             _ => throw new NotImplementedException()
                         };
 
