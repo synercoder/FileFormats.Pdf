@@ -275,13 +275,10 @@ public sealed class PdfWriter : IDisposable
     {
         var outputStream = new MemoryStream();
 
-        outputStream.WriteByte(0x78);
-        outputStream.WriteByte(0xDA);
-
         inputStream.Position = 0;
-        using (var flateStream = new DeflateStream(outputStream, CompressionLevel.SmallestSize, true))
+        using (var zlibStream = new ZLibStream(outputStream, CompressionLevel.SmallestSize, true))
         {
-            inputStream.CopyTo(flateStream);
+            inputStream.CopyTo(zlibStream);
         }
 
         outputStream.Position = 0;
