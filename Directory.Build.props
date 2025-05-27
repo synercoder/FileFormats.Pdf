@@ -35,7 +35,6 @@
     <RepositoryUrl>https://github.com/synercoder/FileFormats.Pdf/</RepositoryUrl>
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
-      https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
     </RestoreSources>
     <UseSharedCompilation>true</UseSharedCompilation>
   </PropertyGroup>

@@ -3,7 +3,6 @@ using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
 using Synercoding.FileFormats.Pdf.LowLevel.Internal;
 using Synercoding.FileFormats.Pdf.LowLevel.Text;
 using Synercoding.FileFormats.Pdf.LowLevel.XRef;
-using System.IO.Compression;
 
 namespace Synercoding.FileFormats.Pdf.LowLevel;
 
@@ -251,8 +250,7 @@ internal class ObjectStream
                     .Write(PdfName.Get("Range"), range);
             })
             .WriteByte(BRACKET_CLOSE)
-            .EndObject()
-            .NewLine();
+            .EndObject();
 
         return this;
     }
@@ -278,8 +276,7 @@ internal class ObjectStream
         InnerStream
             .StartObject(reference)
             .Dictionary(data, dictionaryAction)
-            .EndObject()
-            .NewLine();
+            .EndObject();
     }
 
     private void _indirectStream(PdfReference reference, Stream stream, params StreamFilter[] streamFilters)
@@ -311,13 +308,12 @@ internal class ObjectStream
 
                 dictionaryAction(data, dictionary);
             })
+            .NewLine()
             .Write("stream")
             .NewLine()
             .CopyFrom(stream)
             .NewLine()
             .Write("endstream")
-            .NewLine()
-            .EndObject()
-            .NewLine();
+            .EndObject();
     }
 }
