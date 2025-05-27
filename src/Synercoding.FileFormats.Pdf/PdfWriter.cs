@@ -335,6 +335,7 @@ public sealed class PdfWriter : IDisposable
                     .Write(PdfName.Get("Root"), root)
                     .Write(PdfName.Get("Info"), documentInfo);
             })
+            .NewLine()
             .Write("startxref")
             .NewLine()
             .Write(startXRef)
