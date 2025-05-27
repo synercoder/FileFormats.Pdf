@@ -308,6 +308,7 @@ internal class ObjectStream
 
                 dictionaryAction(data, dictionary);
             })
+            .NewLine()
             .Write("stream")
             .NewLine()
             .CopyFrom(stream)
