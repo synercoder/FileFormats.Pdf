@@ -251,8 +251,7 @@ internal class ObjectStream
                     .Write(PdfName.Get("Range"), range);
             })
             .WriteByte(BRACKET_CLOSE)
-            .EndObject()
-            .NewLine();
+            .EndObject();
 
         return this;
     }
@@ -278,8 +277,7 @@ internal class ObjectStream
         InnerStream
             .StartObject(reference)
             .Dictionary(data, dictionaryAction)
-            .EndObject()
-            .NewLine();
+            .EndObject();
     }
 
     private void _indirectStream(PdfReference reference, Stream stream, params StreamFilter[] streamFilters)
@@ -316,8 +314,6 @@ internal class ObjectStream
             .CopyFrom(stream)
             .NewLine()
             .Write("endstream")
-            .NewLine()
-            .EndObject()
-            .NewLine();
+            .EndObject();
     }
 }
