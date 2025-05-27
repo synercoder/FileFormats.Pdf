@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Fixed broken zlib stream by removing explicit header and replacing deflate with zlib.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added and removed newlines on byte level to better match the standard.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
