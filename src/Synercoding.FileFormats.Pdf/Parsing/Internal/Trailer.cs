@@ -16,7 +16,7 @@ internal class Trailer
     {
         get
         {
-            if (!_dictionary.TryGetValue<PdfInteger>(PdfNames.Size, out var size) || size.Value < 0)
+            if (!_dictionary.TryGetValue<PdfNumber>(PdfNames.Size, out var size) || size.Value < 0)
                 throw new ParseException("Trailer did not contain a /Size key with a zero or higher integer value.");
 
             return size;
@@ -27,7 +27,7 @@ internal class Trailer
     {
         get
         {
-            if (!_dictionary.TryGetValue<PdfInteger>(PdfNames.Prev, out var prev))
+            if (!_dictionary.TryGetValue<PdfNumber>(PdfNames.Prev, out var prev))
                 return null;
 
             return prev;
@@ -85,10 +85,10 @@ internal class Trailer
     {
         get
         {
-            if (!_dictionary.TryGetValue<PdfInteger>(PdfNames.XRefStm, out var xrefStm))
+            if (!_dictionary.TryGetValue<PdfNumber>(PdfNames.XRefStm, out var xrefStm))
                 return null;
 
-            return xrefStm.Value;
+            return xrefStm.LongValue;
         }
     }
 }

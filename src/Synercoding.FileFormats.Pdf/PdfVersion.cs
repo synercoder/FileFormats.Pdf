@@ -1,3 +1,3 @@
-﻿namespace Synercoding.FileFormats.Pdf;
+namespace Synercoding.FileFormats.Pdf;
 
-public record PdfVersion(byte Major, byte Minor);
+public sealed record PdfVersion(byte Major, byte Minor);

@@ -8,11 +8,10 @@ public class FlateDecode : IStreamFilter
 
     public byte[] Encode(byte[] input, IPdfDictionary? parameters)
     {
-        if (parameters?.TryGetValue<PdfInteger>(PdfNames.Predictor, out var predictorInteger) == true && predictorInteger != 1)
+        if (parameters?.TryGetValue<PdfNumber>(PdfNames.Predictor, out var predictorInteger) == true && predictorInteger != 1)
             throw new NotImplementedException($"{nameof(FlateDecode)} currently only supports flate encoding with no prediction function.");
 
         using (var outputStream = new MemoryStream())
-        using (var inputStream = new MemoryStream(input))
         {
             const CompressionLevel LEVEL = CompressionLevel.SmallestSize;
 
@@ -20,12 +19,11 @@ public class FlateDecode : IStreamFilter
             outputStream.WriteByte(method);
             outputStream.WriteByte(flags);
 
-            using (var flateStream = new DeflateStream(inputStream, LEVEL))
+            using (var flateStream = new DeflateStream(outputStream, LEVEL, leaveOpen: true))
             {
-                flateStream.CopyTo(outputStream);
+                flateStream.Write(input);
             }
             return outputStream.ToArray();
-
         }
     }
 
@@ -41,7 +39,7 @@ public class FlateDecode : IStreamFilter
 
     public byte[] Decode(byte[] input, IPdfDictionary? parameters)
     {
-        if (parameters?.TryGetValue<PdfInteger>(PdfNames.Predictor, out var predictorInteger) == true && predictorInteger != 1)
+        if (parameters?.TryGetValue<PdfNumber>(PdfNames.Predictor, out var predictorInteger) == true && predictorInteger != 1)
             throw new NotImplementedException($"{nameof(FlateDecode)} currently only supports flate encoding with no prediction function.");
 
         using (var inputStream = new MemoryStream(input))

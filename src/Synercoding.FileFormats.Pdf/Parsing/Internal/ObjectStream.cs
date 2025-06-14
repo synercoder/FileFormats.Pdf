@@ -1,4 +1,5 @@
 using Synercoding.FileFormats.Pdf.IO;
+using Synercoding.FileFormats.Pdf.Parsing.Internal.XRef;
 using Synercoding.FileFormats.Pdf.Primitives;
 using Synercoding.FileFormats.Pdf.Primitives.Extensions;
 using System.Diagnostics.CodeAnalysis;
@@ -10,23 +11,23 @@ internal class ObjectStream
     private readonly Parser _parser;
     private readonly IDictionary<PdfObjectId, long> _offsetLookup = new Dictionary<PdfObjectId, long>();
 
-    public ObjectStream(IPdfStreamObject streamDictionary, ObjectReader reader)
+    public ObjectStream(IPdfStream streamDictionary, ObjectReader reader)
     {
         _ = streamDictionary ?? throw new ArgumentNullException(nameof(streamDictionary));
         if (!streamDictionary.TryGetValue<PdfName>(PdfNames.Type, reader, out var type) || type != PdfNames.ObjStm)
             throw new ArgumentException("Provided stream object is not of the correct type.", nameof(streamDictionary));
 
-        if (!streamDictionary.TryGetValue<PdfInteger>(PdfNames.N, reader, out var numberOfObjects))
+        if (!streamDictionary.TryGetValue<PdfNumber>(PdfNames.N, reader, out var numberOfObjects))
             throw new ArgumentException("Provided stream object does not have the N parameter.");
 
-        if (!streamDictionary.TryGetValue<PdfInteger>(PdfNames.First, reader, out var firstOffSet))
+        if (!streamDictionary.TryGetValue<PdfNumber>(PdfNames.First, reader, out var firstOffSet))
             throw new ArgumentException("Provided stream object does not have the First parameter.");
 
         var bytesProvider = new PdfByteArrayProvider(streamDictionary.DecodeData(reader));
-        var tokenizer = new Tokenizer(bytesProvider, reader.Settings.Logger);
+        var tokenizer = new Lexer(bytesProvider, reader.Settings.Logger);
         _parser = new Parser(tokenizer, reader.Settings.Logger);
 
-        _readOffsets(firstOffSet.Value, numberOfObjects.Value);
+        _readOffsets((int)firstOffSet.Value, (int)numberOfObjects.Value);
     }
 
     public CompressedXRefItem[] AsXRefItems(PdfObjectId wrapperStreamId)
@@ -43,7 +44,7 @@ internal class ObjectStream
         if (!_offsetLookup.TryGetValue(id, out var offset))
             return false;
 
-        _parser.Tokenizer.Position = offset;
+        _parser.Lexer.Position = offset;
 
         var objectAtOffset = _parser.ReadNext();
 
@@ -60,10 +61,10 @@ internal class ObjectStream
         for (int i = 0; i < numberOfObjects; i++)
         {
             var objectId = _parser.ReadInteger();
-            _parser.Tokenizer.PdfBytesProvider.SkipWhiteSpace();
+            _parser.Lexer.PdfBytesProvider.SkipWhiteSpace();
             var offset = _parser.ReadInteger() + firstOffset;
 
-            _offsetLookup[new PdfObjectId((int)objectId, 0)] = offset;
+            _offsetLookup[new PdfObjectId((int)objectId, 0, objectId == 0)] = offset;
         }
     }
 }

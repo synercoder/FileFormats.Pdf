@@ -3,6 +3,7 @@ using Synercoding.FileFormats.Pdf.IO;
 using Synercoding.FileFormats.Pdf.Logging;
 using Synercoding.FileFormats.Pdf.Parsing.Internal;
 using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.FileFormats.Pdf.Primitives.Internal;
 using System.Text;
 
 namespace Synercoding.FileFormats.Pdf.Parsing;
@@ -11,34 +12,34 @@ public class Parser
 {
     private readonly IPdfLogger? _logger;
 
-    public Parser(Tokenizer tokenizer)
-        : this(tokenizer, null)
+    public Parser(Lexer lexer)
+        : this(lexer, null)
     { }
 
-    internal Parser(Tokenizer tokenizer, IPdfLogger? logger)
+    internal Parser(Lexer lexer, IPdfLogger? logger)
     {
-        Tokenizer = tokenizer ?? throw new ArgumentNullException(nameof(tokenizer));
+        Lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
         _logger = logger;
     }
 
-    public Tokenizer Tokenizer { get; }
+    internal Lexer Lexer { get; }
 
     public PdfObject ReadObject()
     {
         var id = ReadInteger();
         var generation = ReadInteger();
 
-        Tokenizer.ReadOrThrow(TokenType.Obj);
+        Lexer.ReadOrThrow(TokenKind.Obj);
 
         var pdfObject = ReadNext();
 
         if (pdfObject is null)
         {
             _logger.LogError<Parser>("Could not read object ");
-            throw ParseException.UnexpectedEOF();
+            throw new UnexpectedEndOfFileException();
         }
 
-        Tokenizer.ReadOrThrow(TokenType.EndObj);
+        Lexer.ReadOrThrow(TokenKind.EndObj);
 
         return new PdfObject()
         {
@@ -53,14 +54,14 @@ public class Parser
         var id = ReadInteger();
         var generation = ReadInteger();
 
-        Tokenizer.ReadOrThrow(TokenType.Obj);
+        Lexer.ReadOrThrow(TokenKind.Obj);
 
-        var pdfObject = ReadNext() ?? throw ParseException.UnexpectedEOF();
+        var pdfObject = ReadNext() ?? throw new UnexpectedEndOfFileException();
 
         if (pdfObject is not T correctType)
             throw new ParseException($"Pdf object is not of the correct type, expected: {typeof(T).Name}, retrieved: {pdfObject?.GetType()?.Name}.");
 
-        Tokenizer.ReadOrThrow(TokenType.EndObj);
+        Lexer.ReadOrThrow(TokenKind.EndObj);
 
         return new PdfObject<T>()
         {
@@ -71,50 +72,49 @@ public class Parser
 
     public long ReadInteger()
     {
-        var token = Tokenizer.ReadOrThrow<TokenNumber>();
-        if (token.Fractional)
+        var token = Lexer.ReadOrThrow<TokenNumber>();
+        if (token.DoubleValue.HasValue)
             throw new ParseException("Expected an integer, but found a real.");
 
-        return (long)token.Value;
+        return token.LongValue!.Value;
     }
 
     public bool ReadBoolean()
-        => Tokenizer.ReadOrThrow<TokenBoolean>().Value;
+        => Lexer.ReadOrThrow<TokenBoolean>().Value;
 
     public IPdfDictionary ReadDictionaryOrStream()
     {
         var dictionary = ReadDictionary();
 
-        if (!Tokenizer.TryPeekNextTokenType(out var tokenType) || tokenType != TokenType.Stream)
+        if (!Lexer.TryPeekNextTokenKind(out var tokenKind) || tokenKind != TokenKind.Stream)
             return dictionary;
 
-        _ = Tokenizer.ReadOrThrow(TokenType.Stream);
+        _ = Lexer.ReadOrThrow(TokenKind.Stream);
 
-        if (!dictionary.TryGetValue(PdfNames.Length, out var lengthPrimitive) || lengthPrimitive is not PdfInteger lengthInteger)
+        if (!dictionary.TryGetValue(PdfNames.Length, out var lengthPrimitive) || lengthPrimitive is not PdfNumber lengthNumber)
             throw new ParseException("Pdf dictionary for stream does not contain a Length property that is an integer.");
 
-        Tokenizer.PdfBytesProvider.ReadEndOfLineMarker();
+        Lexer.PdfBytesProvider.TryReadEndOfLineMarker();
 
-        var streamData = new byte[lengthInteger.Value];
-        for (int i = 0; i < lengthInteger.Value; i++)
+        var streamData = new byte[(int)lengthNumber.Value];
+        for (int i = 0; i < lengthNumber.Value; i++)
         {
-            streamData[i] = Tokenizer.PdfBytesProvider.ReadByte();
+            streamData[i] = Lexer.PdfBytesProvider.ReadByte();
         }
 
-        Tokenizer.PdfBytesProvider.ReadEndOfLineMarker();
+        Lexer.PdfBytesProvider.TryReadEndOfLineMarker();
+        Lexer.PdfBytesProvider.TryReadEndOfLineMarker();
 
-        Tokenizer.PdfBytesProvider.TryReadEndOfLineMarker();
+        Lexer.ReadOrThrow(TokenKind.EndStream);
 
-        Tokenizer.ReadOrThrow(TokenType.EndStream);
-
-        return new PdfStreamObject(dictionary, streamData);
+        return new ReadOnlyPdfStream(dictionary, streamData);
     }
 
-    public IPdfStreamObject ReadStreamObject()
+    public IPdfStream ReadStreamObject()
     {
         var dictionary = ReadDictionaryOrStream();
 
-        if (dictionary is IPdfStreamObject streamObject)
+        if (dictionary is IPdfStream streamObject)
             return streamObject;
 
         throw new ParseException("When parsing for a stream object, a stream token was expected but not encountered.");
@@ -122,12 +122,12 @@ public class Parser
 
     public IPdfDictionary ReadDictionary()
     {
-        _ = Tokenizer.ReadOrThrow(TokenType.BeginDictionary);
+        _ = Lexer.ReadOrThrow(TokenKind.BeginDictionary);
 
         var dictionary = new PdfDictionary();
-        while (Tokenizer.TryPeekNextTokenType(out TokenType? nextTokenType) && nextTokenType != TokenType.EndDictionary)
+        while (Lexer.TryPeekNextTokenKind(out TokenKind? nextTokenKind) && nextTokenKind != TokenKind.EndDictionary)
         {
-            var nameToken = Tokenizer.ReadOrThrow<TokenName>();
+            var nameToken = Lexer.ReadOrThrow<TokenName>();
 
             var value = ReadNext();
 
@@ -135,98 +135,97 @@ public class Parser
                 dictionary.Add(nameToken.Name, value);
         }
 
-        Tokenizer.ReadOrThrow(TokenType.EndDictionary);
+        Lexer.ReadOrThrow(TokenKind.EndDictionary);
 
-        return dictionary;
+        return new ReadOnlyPdfDictionary(dictionary);
     }
 
-    public IPdfPrimitive? ReadNext(TokenType? nextTokenType = null)
+    public IPdfPrimitive ReadNext(TokenKind? nextTokenKind = null)
     {
-        if (nextTokenType is null && !Tokenizer.TryPeekNextTokenType(out nextTokenType))
+        if (nextTokenKind is null && !Lexer.TryPeekNextTokenKind(out nextTokenKind))
         {
-            throw ParseException.UnexpectedEOF();
+            throw new UnexpectedEndOfFileException();
         }
 
-        return nextTokenType switch
+        return nextTokenKind switch
         {
-            TokenType.BeginDictionary => ReadDictionaryOrStream(),
-            TokenType.BeginArray => ReadArray(),
-            TokenType.Boolean => new PdfBoolean(ReadBoolean()),
-            TokenType.Number => _readReferenceOrNumber(),
-            TokenType.StringHex => ReadStringHex(),
-            TokenType.StringLiteral => ReadStringLiteral(),
-            TokenType.Name => Tokenizer.ReadOrThrow<TokenName>().Name,
-            TokenType.Null => null,
-            _ => throw new ParseException($"Unexpected token type, expected a value but found: {nextTokenType}")
+            TokenKind.BeginDictionary => ReadDictionaryOrStream(),
+            TokenKind.BeginArray => ReadArray(),
+            TokenKind.Boolean => new PdfBoolean(ReadBoolean()),
+            TokenKind.Number => _readReferenceOrNumber(),
+            TokenKind.StringHex => ReadStringHex(),
+            TokenKind.StringLiteral => ReadStringLiteral(),
+            TokenKind.Name => Lexer.ReadOrThrow<TokenName>().Name,
+            TokenKind.Null => PdfNull.Instance,
+            _ => throw new UnexpectedTokenException($"Unexpected token type, expected a value but found: {nextTokenKind}")
         };
     }
 
     private IPdfPrimitive _readReferenceOrNumber()
     {
-        var firstNumber = Tokenizer.ReadOrThrow<TokenNumber>();
-        if (firstNumber.Fractional)
-            return new PdfReal(firstNumber.Value);
+        var firstNumber = Lexer.ReadOrThrow<TokenNumber>();
+        if (firstNumber.DoubleValue.HasValue)
+            return new PdfNumber(firstNumber.DoubleValue.Value);
 
-        var firstInteger = (int)firstNumber.Value;
+        var firstInteger = firstNumber.LongValue!.Value;
 
-        var position = Tokenizer.Position;
+        var position = Lexer.Position;
 
-        if (!Tokenizer.TryGetNextAs<TokenNumber>(out var secondIntToken))
+        if (!Lexer.TryGetNextAs<TokenNumber>(out var secondIntToken) || secondIntToken.DoubleValue.HasValue)
         {
-            Tokenizer.Position = position;
-            return firstNumber.Fractional
-                ? new PdfReal(firstNumber.Value)
-                : new PdfInteger(firstInteger);
+            Lexer.Position = position;
+            return firstNumber.DoubleValue.HasValue
+                ? new PdfNumber(firstNumber.DoubleValue.Value)
+                : new PdfNumber(firstNumber.LongValue.Value);
         }
 
-        if (!Tokenizer.TryGetNextToken(out var thirdToken) || thirdToken.TokenType != TokenType.Reference)
+        if (!Lexer.TryGetNextToken(out var thirdToken) || thirdToken.TokenKind != TokenKind.Reference)
         {
-            Tokenizer.Position = position;
-            return firstNumber.Fractional
-                ? new PdfReal(firstNumber.Value)
-                : new PdfInteger(firstInteger);
+            Lexer.Position = position;
+            return firstNumber.DoubleValue.HasValue
+                ? new PdfNumber(firstNumber.DoubleValue.Value)
+                : new PdfNumber(firstNumber.LongValue.Value);
         }
 
         return new PdfReference()
         {
             Id = new PdfObjectId()
             {
-                Id = firstInteger,
-                Generation = (int)secondIntToken.Value
+                ObjectNumber = (int)firstInteger,
+                Generation = (int)secondIntToken.LongValue!.Value
             }
         };
     }
 
 
-    public PdfArray ReadArray()
+    public IPdfArray ReadArray()
     {
-        _ = Tokenizer.ReadOrThrow(TokenType.BeginArray);
+        _ = Lexer.ReadOrThrow(TokenKind.BeginArray);
 
         var array = new PdfArray();
-        while (Tokenizer.TryPeekNextTokenType(out TokenType? nextTokenType) && nextTokenType != TokenType.EndArray)
+        while (Lexer.TryPeekNextTokenKind(out TokenKind? nextTokenKind) && nextTokenKind != TokenKind.EndArray)
         {
-            var value = ReadNext(nextTokenType);
+            var value = ReadNext(nextTokenKind);
 
-            if (value is not null)
-                array.Add(value);
+            array.Add(value);
         }
 
-        Tokenizer.ReadOrThrow(TokenType.EndArray);
+        Lexer.ReadOrThrow(TokenKind.EndArray);
 
-        return array;
+        return new ReadOnlyPdfArray(array);
     }
 
     public PdfReference ReadReference()
     {
         long id = ReadInteger();
         long generation = ReadInteger();
-        _ = Tokenizer.ReadOrThrow(TokenType.Reference, false);
+        _ = Lexer.ReadOrThrow(TokenKind.Reference, false);
 
         return new PdfReference()
         {
             Id = new PdfObjectId()
             {
-                Id = (int)id,
+                ObjectNumber = (int)id,
                 Generation = (int)generation
             }
         };
@@ -240,23 +239,28 @@ public class Parser
 
     private PdfString _readString(bool isHex)
     {
-        var stringToken = Tokenizer.ReadOrThrow<TokenBytes>();
+        var stringToken = Lexer.ReadOrThrow<TokenBytes>();
 
         var expectedType = isHex
-            ? TokenType.StringHex
-            : TokenType.StringLiteral;
+            ? TokenKind.StringHex
+            : TokenKind.StringLiteral;
 
-        if (stringToken.TokenType != expectedType)
+        if (stringToken.TokenKind != expectedType)
         {
-            throw new ParseException(expectedType, stringToken.TokenType);
+            throw new UnexpectedTokenException(expectedType, stringToken.TokenKind);
         }
 
-        var (value, encoding) = stringToken.Bytes switch
+        var bytes = stringToken.Bytes;
+
+        if (isHex)
+            bytes = Convert.FromHexString(Encoding.ASCII.GetString(bytes));
+
+        var (value, encoding) = bytes switch
         {
-        [0xFE, 0xFF, ..] => (Encoding.BigEndianUnicode.GetString(stringToken.Bytes, 2, stringToken.Bytes.Length - 2), PdfStringEncoding.Utf16BE),
-        [0xFF, 0xFE, ..] => (Encoding.Unicode.GetString(stringToken.Bytes, 2, stringToken.Bytes.Length - 2), PdfStringEncoding.Utf16LE),
-        [0xEF, 0xBB, 0xBF, ..] => (Encoding.Unicode.GetString(stringToken.Bytes, 3, stringToken.Bytes.Length - 3), PdfStringEncoding.Utf8),
-            _ => (PDFDocEncoding.Decode(stringToken.Bytes), PdfStringEncoding.PdfDocEncoding)
+            [0xFE, 0xFF, ..] => (Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2), PdfStringEncoding.Utf16BE),
+            [0xFF, 0xFE, ..] => (Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2), PdfStringEncoding.Utf16LE),
+            [0xEF, 0xBB, 0xBF, ..] => (Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3), PdfStringEncoding.Utf8),
+            _ => (PDFDocEncoding.Decode(bytes), PdfStringEncoding.PdfDocEncoding)
         };
 
         return new PdfString(value, encoding, isHex);

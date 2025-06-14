@@ -286,7 +286,7 @@ public static class PDFDocEncoding
             if (!_encodeLookup.TryGetValue(value[index], out byte b))
                 throw new ArgumentOutOfRangeException(nameof(value), "Provided value contains characters not supported by PDFDocEncoding.");
 
-            bytes[index++] = b;
+            bytes[index] = b;
         }
 
         return bytes;
@@ -308,7 +308,7 @@ public static class PDFDocEncoding
         var builder = new StringBuilder(bytes.Length);
 
         int index = 0;
-        do
+        while (index < bytes.Length)
         {
             byte b1 = bytes[index];
 
@@ -321,7 +321,7 @@ public static class PDFDocEncoding
                 _throwUndefinedCodePoint(b1, index);
             }
             index++;
-        } while (index < bytes.Length);
+        }
 
         return builder.ToString();
     }

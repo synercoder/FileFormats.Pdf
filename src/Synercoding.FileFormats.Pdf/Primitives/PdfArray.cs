@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Synercoding.FileFormats.Pdf.Primitives;
 
 [DebuggerDisplay("{ToString(),nq}")]
-public sealed class PdfArray : IPdfPrimitive, IEnumerable<IPdfPrimitive>
+public sealed class PdfArray : IPdfArray
 {
     private readonly List<IPdfPrimitive> _list;
 
@@ -14,7 +14,7 @@ public sealed class PdfArray : IPdfPrimitive, IEnumerable<IPdfPrimitive>
 
     public PdfArray(IEnumerable<IPdfPrimitive> items)
     {
-        _list = new List<IPdfPrimitive>(items);
+        _list = [.. items];
     }
 
     public IPdfPrimitive this[int index]

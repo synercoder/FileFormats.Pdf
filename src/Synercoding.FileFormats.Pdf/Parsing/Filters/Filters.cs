@@ -21,7 +21,7 @@ public class Filters
         if (!_registeredFilters.TryGetValue(name, out var filter))
             throw new PdfException($"Filter with name /{name.Display} is not supported."
                 + "You can add new supported filters by registering them by calling "
-                + $"{nameof(ReaderSettings)}.{nameof(ReaderSettings.SupportedStreamFilters)}.{nameof(ReaderSettings.SupportedStreamFilters.Register)}().");
+                + $"{nameof(ReaderSettings)}.{nameof(ReaderSettings.SupportedStreamFilters)}.{nameof(ReaderSettings.SupportedStreamFilters.Register)}(filterToRegister).");
 
         return filter;
     }
@@ -34,5 +34,5 @@ public class Filters
     }
 
     public static Filters GetDefault()
-        => new Filters([new ASCIIHexDecode(), new RunlengthDecode(), new FlateDecode(), new DCTDecode()]);
+        => new Filters([new ASCII85Decode(), new ASCIIHexDecode(), new RunlengthDecode(), new FlateDecode(), new DCTDecode(), new LZWDecode()]);
 }

@@ -39,7 +39,7 @@ public static class ByteUtils
         };
     }
 
-    public static bool IsDelimiterorWhiteSpace(byte b, bool insidePostScriptCalculator = false)
+    public static bool IsDelimiterOrWhiteSpace(byte b, bool insidePostScriptCalculator = false)
         => IsDelimiter(b, insidePostScriptCalculator) || IsWhiteSpace(b);
 
     public static bool IsWhiteSpace(byte b)
@@ -66,4 +66,8 @@ public static class ByteUtils
         => ( b >= '0' && b <= '9' )
         || ( b >= 'a' && b <= 'f' )
         || ( b >= 'A' && b <= 'F' );
+
+    public static bool IsChar(byte b)
+        => ( b >= 'a' && b <= 'z' )
+        || ( b >= 'A' && b <= 'Z' );
 }

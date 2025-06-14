@@ -1,5 +1,4 @@
 namespace Synercoding.FileFormats.Pdf.Primitives;
-
 public class PdfObject<T>
     where T : IPdfPrimitive
 {

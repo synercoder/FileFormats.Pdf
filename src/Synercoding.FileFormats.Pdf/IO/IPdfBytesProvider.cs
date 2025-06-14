@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Synercoding.FileFormats.Pdf.IO;
 
 public interface IPdfBytesProvider

@@ -30,18 +30,18 @@ internal class PdfHeader
             else if (index == 4 && b == 0x2D) // -
             {
                 if (!pdfBytesProvider.TryRead(out byte major))
-                    throw ParseException.UnexpectedEOF();
+                    throw new UnexpectedEndOfFileException();
                 if (!pdfBytesProvider.TryRead(out byte dot))
-                    throw ParseException.UnexpectedEOF();
+                    throw new UnexpectedEndOfFileException();
                 if (dot != 0x2E)
-                    throw new ParseException(0x2E, dot);
+                    throw new UnexpectedByteException(0x2E, dot);
                 if (!pdfBytesProvider.TryRead(out byte minor))
-                    throw ParseException.UnexpectedEOF();
+                    throw new UnexpectedEndOfFileException();
 
                 return new PdfHeader()
                 {
                     PdfStart = offset,
-                    Version = new PdfVersion(major, minor)
+                    Version = new PdfVersion((byte)(major - (byte)'0'), (byte)(minor - (byte)'0'))
                 };
             }
             else if (b == 0x25) // %

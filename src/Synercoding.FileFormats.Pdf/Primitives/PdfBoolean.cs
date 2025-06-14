@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Synercoding.FileFormats.Pdf.Primitives;
 
-[DebuggerDisplay("{ToString(),nq}")]
+[DebuggerDisplay("[Pdf Boolean] {ToString(),nq}")]
 public readonly struct PdfBoolean : IPdfPrimitive, IEquatable<PdfBoolean>
 {
     public static PdfBoolean True { get; } = new PdfBoolean(true);
@@ -27,7 +27,7 @@ public readonly struct PdfBoolean : IPdfPrimitive, IEquatable<PdfBoolean>
 
     [DebuggerStepThrough]
     public override string ToString()
-        => $"[Pdf Boolean] {Value}";
+        => $"{Value}";
 
     public static implicit operator bool(PdfBoolean d) => d.Value;
 

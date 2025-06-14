@@ -17,6 +17,10 @@ tab_width = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
 
+[*.{yml,yaml}]
+indent_size = 2
+tab_width = 2
+
 #########################
 # File Extension Settings
 #########################
@@ -143,7 +147,7 @@ dotnet_style_predefined_type_for_member_access = true:warning
 
 # Modifier preferences
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#normalize-modifiers
-dotnet_style_require_accessibility_modifiers = always:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:warning
 dotnet_style_readonly_field = true:warning
@@ -264,13 +268,13 @@ csharp_preserve_single_line_blocks = true
 dotnet_naming_symbols.constant_fields.applicable_kinds = field
 dotnet_naming_symbols.constant_fields.required_modifiers = const
 
-# non_private_readonly_fields - Define public, internal and protected readonly fields
-dotnet_naming_symbols.non_private_readonly_fields.applicable_accessibilities = public, internal, protected
+# non_private_readonly_fields - Define public and internal readonly fields
+dotnet_naming_symbols.non_private_readonly_fields.applicable_accessibilities = public, internal
 dotnet_naming_symbols.non_private_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.non_private_readonly_fields.required_modifiers = readonly
 
 # private_static_readonly_fields - Define static and readonly fields
-dotnet_naming_symbols.private_static_readonly_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly_fields.applicable_accessibilities = private, protected
 dotnet_naming_symbols.private_static_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.private_static_readonly_fields.required_modifiers = static, readonly
 
@@ -280,12 +284,12 @@ dotnet_naming_symbols.public_static_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.public_static_readonly_fields.required_modifiers = static, readonly
 
 # non_private_static_readonly_fields - Define static and readonly fields
-dotnet_naming_symbols.non_private_static_readonly_fields.applicable_accessibilities = internal, protected
+dotnet_naming_symbols.non_private_static_readonly_fields.applicable_accessibilities = internal
 dotnet_naming_symbols.non_private_static_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.non_private_static_readonly_fields.required_modifiers = static, readonly
 
-# private_readonly_fields - Define private readonly fields
-dotnet_naming_symbols.private_readonly_fields.applicable_accessibilities = private
+# private_readonly_fields - Define private and protected readonly fields
+dotnet_naming_symbols.private_readonly_fields.applicable_accessibilities = private, protected
 dotnet_naming_symbols.private_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.private_readonly_fields.required_modifiers = readonly
 
@@ -298,11 +302,11 @@ dotnet_naming_symbols.private_protected_fields.applicable_accessibilities = priv
 dotnet_naming_symbols.private_protected_fields.applicable_kinds = field
 
 # private_symbols - Define any private symbol
-dotnet_naming_symbols.private_symbols.applicable_accessibilities = private
-dotnet_naming_symbols.private_symbols.applicable_kinds = method, property, event, delegate
+dotnet_naming_symbols.private_symbols.applicable_accessibilities = private, protected
+dotnet_naming_symbols.private_symbols.applicable_kinds = method, property, event
 
 # public_symbols - Define any public symbol
-dotnet_naming_symbols.public_symbols.applicable_accessibilities = public, internal, protected, protected_internal
+dotnet_naming_symbols.public_symbols.applicable_accessibilities = public, internal, protected_internal
 dotnet_naming_symbols.public_symbols.applicable_kinds = method, property, event, delegate
 
 # parameters - Defines any parameter

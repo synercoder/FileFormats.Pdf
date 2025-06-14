@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Synercoding.FileFormats.Pdf.Primitives;
 
-[DebuggerDisplay("{ToString(),nq}")]
+[DebuggerDisplay("[PdfName] {ToString(),nq}")]
 public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
 {
     private static readonly IDictionary<string, PdfName> _reservedNames = new Dictionary<string, PdfName>()
@@ -66,12 +66,22 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
 
     internal PdfName(byte[] bytes)
     {
+        if (bytes == null)
+            throw new ArgumentNullException(nameof(bytes));
+        if (bytes.Length == 0)
+            throw new ArgumentException("Provided byte array must not be empty.", nameof(bytes));
+
         Raw = bytes ?? throw new ArgumentNullException(nameof(bytes));
         Display = Encoding.UTF8.GetString(_unescape(bytes));
     }
 
     private PdfName(string input)
     {
+        if (input is null)
+            throw new ArgumentNullException(nameof(input));
+        if (input == string.Empty)
+            throw new ArgumentException("Provided name must not be empty.", nameof(input));
+
         Raw = _escape(Encoding.UTF8.GetBytes(input));
         Display = input;
     }
@@ -94,7 +104,7 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
 
     [DebuggerStepThrough]
     public override string ToString()
-        => $"[Pdf Name] /{Encoding.UTF8.GetString(Raw)}";
+        => $"/{Encoding.UTF8.GetString(Raw)}";
 
     private static byte[] _unescape(byte[] input)
     {
@@ -117,7 +127,7 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
 
         static byte FromHex(byte b1, byte b2)
         {
-            return (byte)( (HexToNumber(b1) << 4) | HexToNumber(b2) );
+            return (byte)( ( HexToNumber(b1) << 4 ) | HexToNumber(b2) );
 
             static byte HexToNumber(byte b)
                 => b switch
@@ -145,7 +155,7 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
                     output.Add(0x32);
                     output.Add(0x33);
                     break;
-                case byte b1 when ByteUtils.IsDelimiterorWhiteSpace(b1):
+                case byte b1 when ByteUtils.IsDelimiterOrWhiteSpace(b1):
                 case byte b2 when b2 < 33 || b2 > 126:
                     output.Add(0x23);
                     output.Add(ToHex(b >> 4));

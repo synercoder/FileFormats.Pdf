@@ -9,7 +9,24 @@ public class PdfByteArrayProvider : IPdfBytesProvider
         _bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
     }
 
-    public long Position { get; set; }
+    private long _position;
+    public long Position
+    {
+        get
+        {
+            return _position;
+        }
+        set
+        {
+            if(value < 0)
+                throw new ArgumentOutOfRangeException(nameof(Position), "Provided position can't be negative.");
+
+            if (value > Length)
+                throw new ArgumentOutOfRangeException(nameof(Position), $"Provided value ({value}) is higher than {nameof(Length)} ({Length}).");
+
+            _position = value;
+        }
+    }
 
     public long Length => _bytes.LongLength;
 
@@ -44,7 +61,7 @@ public class PdfByteArrayProvider : IPdfBytesProvider
         if (offset + count > buffer.Length)
             return false;
 
-        for(int index = offset; index < offset + count; index++)
+        for (int index = offset; index < offset + count; index++)
         {
             buffer[index] = _bytes[Position++];
         }

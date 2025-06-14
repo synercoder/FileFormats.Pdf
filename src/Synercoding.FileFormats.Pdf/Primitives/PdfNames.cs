@@ -2,6 +2,8 @@ namespace Synercoding.FileFormats.Pdf.Primitives;
 
 public static class PdfNames
 {
+    public static PdfName ASCII85Decode
+        => PdfName.Get(nameof(ASCII85Decode));
     public static PdfName ASCIIHexDecode
         => PdfName.Get(nameof(ASCIIHexDecode));
     public static PdfName Author
@@ -56,6 +58,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Kids));
     public static PdfName Length
         => PdfName.Get(nameof(Length));
+    public static PdfName LZWDecode
+        => PdfName.Get(nameof(LZWDecode));
     public static PdfName MediaBox
         => PdfName.Get(nameof(MediaBox));
     public static PdfName N
@@ -90,6 +94,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Title));
     public static PdfName TrimBox
         => PdfName.Get(nameof(TrimBox));
+    public static PdfName ArtBox
+        => PdfName.Get(nameof(ArtBox));
     public static PdfName Type
         => PdfName.Get(nameof(Type));
     public static PdfName W

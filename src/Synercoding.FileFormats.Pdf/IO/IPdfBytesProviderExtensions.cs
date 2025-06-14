@@ -12,7 +12,7 @@ internal static class IPdfBytesProviderExtensions
             nextByte = bytesProvider.ReadByte();
 
         if (nextByte != ByteUtils.LINE_FEED)
-            throw new ParseException(ByteUtils.LINE_FEED, nextByte);
+            throw new UnexpectedByteException(ByteUtils.LINE_FEED, nextByte);
 
         return bytesProvider;
     }
@@ -31,93 +31,12 @@ internal static class IPdfBytesProviderExtensions
         return nextByte == ByteUtils.LINE_FEED;
     }
 
-    public static bool IsTrueNext(this IPdfBytesProvider pdfBytesProvider, bool read)
-        => pdfBytesProvider.TryPeekOrRead(4, out var possibleTrue, read)
-            && possibleTrue[3] == 0x65  // e
-            && possibleTrue[0] == 0x74  // t
-            && possibleTrue[1] == 0x72  // r
-            && possibleTrue[2] == 0x75; // u
-
-    public static bool IsNullNext(this IPdfBytesProvider pdfBytesProvider, bool read)
-        => pdfBytesProvider.TryPeekOrRead(4, out var possibleNull, read)
-            && possibleNull[3] == 0x6C  // l
-            && possibleNull[0] == 0x6E  // n
-            && possibleNull[1] == 0x75  // u
-            && possibleNull[2] == 0x6C; // l
-
-    public static bool IsTrailerNext(this IPdfBytesProvider pdfBytesProvider, bool read)
-    {
-        if (!pdfBytesProvider.TryPeekOrRead(7, out var possibleTrailer, read))
-            return false;
-
-        return possibleTrailer[6] == 0x72  // r
-            && possibleTrailer[0] == 0x74  // t
-            && possibleTrailer[1] == 0x72  // r
-            && possibleTrailer[2] == 0x61  // a
-            && possibleTrailer[3] == 0x69  // i
-            && possibleTrailer[4] == 0x6C  // l
-            && possibleTrailer[5] == 0x65; // e
-    }
-
-    public static bool IsFalseNext(this IPdfBytesProvider pdfBytesProvider, bool read)
-        => pdfBytesProvider.TryPeekOrRead(5, out var possibleFalse, read)
-            && possibleFalse[4] == 0x65  // e
-            && possibleFalse[0] == 0x66  // f
-            && possibleFalse[1] == 0x61  // a
-            && possibleFalse[2] == 0x6C  // l
-            && possibleFalse[3] == 0x73; // s
-
-    public static bool IsObjNext(this IPdfBytesProvider pdfBytesProvider, bool read)
-        => pdfBytesProvider.TryPeekOrRead(3, out var possibleFalse, read)
-            && possibleFalse[2] == 0x6A  // j
-            && possibleFalse[0] == 0x6F  // o
-            && possibleFalse[1] == 0x62; // b 
-
-    public static bool IsEndObjNext(this IPdfBytesProvider pdfBytesProvider, bool read)
-        => pdfBytesProvider.TryPeekOrRead(6, out var possibleFalse, read)
-            && possibleFalse[5] == 0x6A  // j
-            && possibleFalse[0] == 0x65  // e
-            && possibleFalse[1] == 0x6E  // n 
-            && possibleFalse[2] == 0x64  // d
-            && possibleFalse[3] == 0x6F  // o
-            && possibleFalse[4] == 0x62; // b
-
-    public static bool IsStreamNext(this IPdfBytesProvider pdfBytesProvider, bool read)
-        => pdfBytesProvider.TryPeekOrRead(6, out var possibleFalse, read)
-            && possibleFalse[5] == 0x6D  // m
-            && possibleFalse[0] == 0x73  // s
-            && possibleFalse[1] == 0x74  // t
-            && possibleFalse[2] == 0x72  // r
-            && possibleFalse[3] == 0x65  // e
-            && possibleFalse[4] == 0x61; // a
-
-    public static bool IsEndStreamNext(this IPdfBytesProvider pdfBytesProvider, bool read)
-        => pdfBytesProvider.TryPeekOrRead(9, out var possibleFalse, read)
-            && possibleFalse[8] == 0x6D  // m
-            && possibleFalse[0] == 0x65  // e
-            && possibleFalse[1] == 0x6E  // n
-            && possibleFalse[2] == 0x64  // d
-            && possibleFalse[3] == 0x73  // s
-            && possibleFalse[4] == 0x74  // t
-            && possibleFalse[5] == 0x72  // r
-            && possibleFalse[6] == 0x65  // e
-            && possibleFalse[7] == 0x61; // a
-
-
-
     public static IPdfBytesProvider SkipWhiteSpace(this IPdfBytesProvider pdfBytesProvider)
     {
         while (pdfBytesProvider.TryPeek(out byte b) && ByteUtils.IsWhiteSpace(b))
             pdfBytesProvider.Skip();
 
         return pdfBytesProvider;
-    }
-
-    public static bool TryPeekOrRead(this IPdfBytesProvider pdfBytesProvider, int length, [NotNullWhen(true)] out byte[] bytes, bool read)
-    {
-        return read
-            ? TryRead(pdfBytesProvider, length, out bytes)
-            : TryPeek(pdfBytesProvider, length, out bytes);
     }
 
     public static IPdfBytesProvider Skip(this IPdfBytesProvider pdfBytesProvider, int amount = 1)
@@ -128,7 +47,7 @@ internal static class IPdfBytesProviderExtensions
         for(int i = 0; i < amount; i++)
         {
             if (!pdfBytesProvider.TryRead(out _))
-                throw ParseException.UnexpectedEOF();
+                throw new UnexpectedEndOfFileException();
         }
 
         return pdfBytesProvider;
@@ -137,14 +56,20 @@ internal static class IPdfBytesProviderExtensions
     public static IPdfBytesProvider SkipOrThrow(this IPdfBytesProvider pdfBytesProvider, byte expected)
     {
         if (!pdfBytesProvider.TryRead(out byte actual))
-            throw ParseException.UnexpectedEOF();
+            throw new UnexpectedEndOfFileException();
 
         if (actual != expected)
-            throw new ParseException(expected, actual);
+            throw new UnexpectedByteException(expected, actual);
 
         return pdfBytesProvider;
     }
 
+    public static IPdfBytesProvider SkipOrThrow(this IPdfBytesProvider pdfBytesProvider, char expected)
+    {
+        if (expected > 0xFF)
+            throw new ArgumentOutOfRangeException(nameof(expected), "Only chars in byte range (0x00-0xFF) can be used.");
+        return pdfBytesProvider.SkipOrThrow((byte)expected);
+    }
 
     public static bool TryRead(this IPdfBytesProvider pdfBytesProvider, int length, [NotNullWhen(true)] out byte[] bytes)
     {
@@ -195,10 +120,11 @@ internal static class IPdfBytesProviderExtensions
         var b1 = pdfBytesProvider.ReadByte();
 
         if (!ByteUtils.IsOctal(b1))
-            throw new ParseException(0x30, 0x37, b1);
+            throw new UnexpectedByteException(0x30, 0x37, b1);
 
         if (pdfBytesProvider.TryPeek(2, out var bytes) && ByteUtils.IsOctal(bytes[1]) && ByteUtils.IsOctal(bytes[0]))
         {
+            pdfBytesProvider.Skip(2);
             int value = ( ( b1 - '0' ) << 6 )
                 | ( ( bytes[0] - '0' ) << 3 )
                 | ( ( bytes[1] - '0' ) << 0 );
@@ -213,6 +139,7 @@ internal static class IPdfBytesProviderExtensions
         }
         else if (pdfBytesProvider.TryPeek(out byte next) && ByteUtils.IsOctal(next))
         {
+            pdfBytesProvider.Skip(1);
             return (byte)( ( ( b1 - '0' ) << 3 ) | ( next - '0' ) );
         }
         else
@@ -224,7 +151,7 @@ internal static class IPdfBytesProviderExtensions
     public static byte ReadByte(this IPdfBytesProvider pdfBytesProvider)
     {
         if (!pdfBytesProvider.TryRead(out byte b))
-            throw ParseException.UnexpectedEOF();
+            throw new UnexpectedEndOfFileException();
         return b;
     }
 }
