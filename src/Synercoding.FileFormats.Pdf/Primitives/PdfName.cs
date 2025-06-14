@@ -9,6 +9,9 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
 {
     private static readonly IDictionary<string, PdfName> _reservedNames = new Dictionary<string, PdfName>()
     {
+        { "ArtBox",           new PdfName("ArtBox") },
+        { "ASCII85Decode",    new PdfName("ASCII85Decode") },
+        { "ASCIIHexDecode",   new PdfName("ASCIIHexDecode") },
         { "Author",           new PdfName("Author") },
         { "BitsPerComponent", new PdfName("BitsPerComponent") },
         { "BleedBox",         new PdfName("BleedBox") },
@@ -24,19 +27,23 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         { "DeviceGray",       new PdfName("DeviceGray") },
         { "DeviceRGB",        new PdfName("DeviceRGB") },
         { "Filter",           new PdfName("Filter") },
+        { "FlateDecode",      new PdfName("FlateDecode") },
         { "Height",           new PdfName("Height") },
         { "Image",            new PdfName("Image") },
         { "Info",             new PdfName("Info") },
         { "Kids",             new PdfName("Kids") },
         { "Length",           new PdfName("Length") },
+        { "LZWDecode",        new PdfName("LZWDecode") },
         { "MediaBox",         new PdfName("MediaBox") },
         { "Page",             new PdfName("Page") },
         { "Pages",            new PdfName("Pages") },
         { "Parent",           new PdfName("Parent") },
+        { "Prev",             new PdfName("Prev") },
         { "Producer",         new PdfName("Producer") },
         { "Resources",        new PdfName("Resources") },
         { "Root",             new PdfName("Root") },
         { "Rotate",           new PdfName("Rotate") },
+        { "RunLengthDecode",  new PdfName("RunLengthDecode") },
         { "Size",             new PdfName("Size") },
         { "Subtype",          new PdfName("Subtype") },
         { "Title",            new PdfName("Title") },
@@ -44,6 +51,7 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         { "Type",             new PdfName("Type") },
         { "Width",            new PdfName("Width") },
         { "XObject",          new PdfName("XObject") },
+        { "XRefStm",          new PdfName("XRefStm") },
     };
 
     /// <summary>

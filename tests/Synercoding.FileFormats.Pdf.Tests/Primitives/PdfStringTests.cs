@@ -1,9 +1,24 @@
 using Synercoding.FileFormats.Pdf.Primitives;
+using System.Text;
 
 namespace Synercoding.FileFormats.Pdf.Tests.Primitives;
 
 public class PdfStringTests
 {
+    private static PdfString CreatePdfString(string value, PdfStringEncoding encoding, bool isHex)
+    {
+        byte[] bytes = encoding switch
+        {
+            PdfStringEncoding.PdfDocEncoding => Encoding.Latin1.GetBytes(value),
+            PdfStringEncoding.Utf16BE => [0xFE, 0xFF, .. Encoding.BigEndianUnicode.GetBytes(value)],
+            PdfStringEncoding.Utf16LE => [0xFF, 0xFE, .. Encoding.Unicode.GetBytes(value)],
+            PdfStringEncoding.Utf8 => [0xEF, 0xBB, 0xBF, .. Encoding.UTF8.GetBytes(value)],
+            PdfStringEncoding.ByteString => Convert.FromHexString(value.Replace("<", "").Replace(">", "")),
+            _ => throw new ArgumentException($"Unsupported encoding: {encoding}")
+        };
+        
+        return new PdfString(bytes, isHex);
+    }
     [Theory]
     [InlineData("test", PdfStringEncoding.PdfDocEncoding, false)]
     [InlineData("hello world", PdfStringEncoding.Utf8, true)]
@@ -11,7 +26,7 @@ public class PdfStringTests
     [InlineData("こんにちは", PdfStringEncoding.Utf16LE, true)]
     public void Test_Constructor_SetsAllProperties(string value, PdfStringEncoding encoding, bool isHex)
     {
-        var pdfString = new PdfString(value, encoding, isHex);
+        var pdfString = CreatePdfString(value, encoding, isHex);
         
         Assert.Equal(value, pdfString.Value);
         Assert.Equal(encoding, pdfString.Encoding);
@@ -21,8 +36,8 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_SameValueEncodingAndHex_ReturnsTrue()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string2 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string2 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.True(string1.Equals(string2));
         Assert.True(string1 == string2);
@@ -32,8 +47,8 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_DifferentValue_ReturnsFalse()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string2 = new PdfString("different", PdfStringEncoding.PdfDocEncoding, false);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string2 = CreatePdfString("different", PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.False(string1.Equals(string2));
         Assert.False(string1 == string2);
@@ -43,8 +58,8 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_DifferentEncoding_ReturnsFalse()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string2 = new PdfString("test", PdfStringEncoding.Utf8, false);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string2 = CreatePdfString("test", PdfStringEncoding.Utf8, false);
         
         Assert.False(string1.Equals(string2));
         Assert.False(string1 == string2);
@@ -54,8 +69,8 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_DifferentIsHex_ReturnsFalse()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string2 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, true);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string2 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, true);
         
         Assert.False(string1.Equals(string2));
         Assert.False(string1 == string2);
@@ -65,8 +80,8 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_AllDifferent_ReturnsFalse()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string2 = new PdfString("different", PdfStringEncoding.Utf8, true);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string2 = CreatePdfString("different", PdfStringEncoding.Utf8, true);
         
         Assert.False(string1.Equals(string2));
         Assert.False(string1 == string2);
@@ -76,7 +91,7 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_Null_ReturnsFalse()
     {
-        var pdfString = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         PdfString? nullString = null;
         
         Assert.False(pdfString.Equals(nullString));
@@ -87,8 +102,8 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_Object_SameString_ReturnsTrue()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        object string2 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        object string2 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.True(string1.Equals(string2));
     }
@@ -96,7 +111,7 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_Object_DifferentType_ReturnsFalse()
     {
-        var pdfString = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         object obj = "not a pdf string";
         
         Assert.False(pdfString.Equals(obj));
@@ -105,7 +120,7 @@ public class PdfStringTests
     [Fact]
     public void Test_Equals_Object_Null_ReturnsFalse()
     {
-        var pdfString = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         object? obj = null;
         
         Assert.False(pdfString.Equals(obj));
@@ -118,8 +133,8 @@ public class PdfStringTests
     [InlineData("example", PdfStringEncoding.Utf16LE, true)]
     public void Test_GetHashCode_SameProperties_ReturnsSameHash(string value, PdfStringEncoding encoding, bool isHex)
     {
-        var string1 = new PdfString(value, encoding, isHex);
-        var string2 = new PdfString(value, encoding, isHex);
+        var string1 = CreatePdfString(value, encoding, isHex);
+        var string2 = CreatePdfString(value, encoding, isHex);
         
         Assert.Equal(string1.GetHashCode(), string2.GetHashCode());
     }
@@ -127,8 +142,8 @@ public class PdfStringTests
     [Fact]
     public void Test_GetHashCode_DifferentValue_ReturnsDifferentHash()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string2 = new PdfString("different", PdfStringEncoding.PdfDocEncoding, false);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string2 = CreatePdfString("different", PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.NotEqual(string1.GetHashCode(), string2.GetHashCode());
     }
@@ -136,7 +151,7 @@ public class PdfStringTests
     [Fact]
     public void Test_EqualityOperators_Reflexive()
     {
-        var pdfString = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         var samePdfString = pdfString;
         
         Assert.True(pdfString == samePdfString);
@@ -147,8 +162,8 @@ public class PdfStringTests
     [Fact]
     public void Test_EqualityOperators_Symmetric()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string2 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string2 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.True(string1 == string2);
         Assert.True(string2 == string1);
@@ -159,9 +174,9 @@ public class PdfStringTests
     [Fact]
     public void Test_EqualityOperators_Transitive()
     {
-        var string1 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string2 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
-        var string3 = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string1 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string2 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var string3 = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.True(string1 == string2);
         Assert.True(string2 == string3);
@@ -175,7 +190,7 @@ public class PdfStringTests
     [InlineData(PdfStringEncoding.Utf16LE)]
     public void Test_AllEncodingTypes(PdfStringEncoding encoding)
     {
-        var pdfString = new PdfString("test", encoding, false);
+        var pdfString = CreatePdfString("test", encoding, false);
         
         Assert.Equal("test", pdfString.Value);
         Assert.Equal(encoding, pdfString.Encoding);
@@ -187,7 +202,7 @@ public class PdfStringTests
     [InlineData(false)]
     public void Test_IsHexProperty(bool isHex)
     {
-        var pdfString = new PdfString("test", PdfStringEncoding.PdfDocEncoding, isHex);
+        var pdfString = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, isHex);
         
         Assert.Equal("test", pdfString.Value);
         Assert.Equal(PdfStringEncoding.PdfDocEncoding, pdfString.Encoding);
@@ -197,7 +212,7 @@ public class PdfStringTests
     [Fact]
     public void Test_EmptyString_HandledCorrectly()
     {
-        var pdfString = new PdfString("", PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString("", PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.Equal("", pdfString.Value);
         Assert.Equal(PdfStringEncoding.PdfDocEncoding, pdfString.Encoding);
@@ -208,7 +223,7 @@ public class PdfStringTests
     public void Test_UnicodeString_HandledCorrectly()
     {
         var unicodeText = "こんにちは世界";
-        var pdfString = new PdfString(unicodeText, PdfStringEncoding.Utf8, false);
+        var pdfString = CreatePdfString(unicodeText, PdfStringEncoding.Utf8, false);
         
         Assert.Equal(unicodeText, pdfString.Value);
         Assert.Equal(PdfStringEncoding.Utf8, pdfString.Encoding);
@@ -219,7 +234,7 @@ public class PdfStringTests
     public void Test_LongString_HandledCorrectly()
     {
         var longString = new string('A', 10000);
-        var pdfString = new PdfString(longString, PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString(longString, PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.Equal(longString, pdfString.Value);
         Assert.Equal(PdfStringEncoding.PdfDocEncoding, pdfString.Encoding);
@@ -230,7 +245,7 @@ public class PdfStringTests
     public void Test_SpecialCharacters_HandledCorrectly()
     {
         var specialChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
-        var pdfString = new PdfString(specialChars, PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString(specialChars, PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.Equal(specialChars, pdfString.Value);
         Assert.Equal(PdfStringEncoding.PdfDocEncoding, pdfString.Encoding);
@@ -241,7 +256,7 @@ public class PdfStringTests
     public void Test_WhitespaceString_HandledCorrectly()
     {
         var whitespace = "   \t\r\n   ";
-        var pdfString = new PdfString(whitespace, PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString(whitespace, PdfStringEncoding.PdfDocEncoding, false);
         
         Assert.Equal(whitespace, pdfString.Value);
         Assert.Equal(PdfStringEncoding.PdfDocEncoding, pdfString.Encoding);
@@ -251,7 +266,7 @@ public class PdfStringTests
     [Fact]
     public void Test_HashCodeConsistency()
     {
-        var pdfString = new PdfString("test", PdfStringEncoding.PdfDocEncoding, false);
+        var pdfString = CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false);
         
         var hash1 = pdfString.GetHashCode();
         var hash2 = pdfString.GetHashCode();
@@ -264,10 +279,10 @@ public class PdfStringTests
     {
         var strings = new HashSet<PdfString>
         {
-            new PdfString("test", PdfStringEncoding.PdfDocEncoding, false),
-            new PdfString("test", PdfStringEncoding.Utf8, false),
-            new PdfString("test", PdfStringEncoding.PdfDocEncoding, true),
-            new PdfString("test", PdfStringEncoding.PdfDocEncoding, false) // Duplicate
+            CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false),
+            CreatePdfString("test", PdfStringEncoding.Utf8, false),
+            CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, true),
+            CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false) // Duplicate
         };
         
         Assert.Equal(3, strings.Count);

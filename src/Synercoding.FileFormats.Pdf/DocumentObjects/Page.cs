@@ -3,6 +3,7 @@ using Synercoding.FileFormats.Pdf.Logging;
 using Synercoding.FileFormats.Pdf.Parsing;
 using Synercoding.FileFormats.Pdf.Primitives;
 using Synercoding.FileFormats.Pdf.Primitives.Extensions;
+using Synercoding.FileFormats.Pdf.Primitives.Internal;
 
 namespace Synercoding.FileFormats.Pdf.DocumentObjects;
 
@@ -24,9 +25,6 @@ public class Page
 
     public PdfObjectId Id { get; }
     public PageTreeNode? Parent { get; private set; }
-
-    public PdfName Type
-        => PdfNames.Page;
 
     /// <summary>
     /// A rectangle, expressed in default user space units,
@@ -147,7 +145,10 @@ public class Page
 
             _logger.LogWarning<Page>("Page {Id} or it's parents did not have a required {RequiredKey}.",
                 Id, PdfNames.Resources);
-            throw new ParseException($"Page {Id} or it's parents did not have a required {PdfNames.Resources} dictionary.");
+            if (_objectReader.Settings.Strict)
+                throw new ParseException($"Page {Id} or it's parents did not have a required {PdfNames.Resources} dictionary.");
+
+            return ReadOnlyPdfDictionary.Empty;
         }
     }
 

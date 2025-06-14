@@ -22,8 +22,6 @@ internal class Catalog
         if (type != PdfNames.Catalog)
             throw new ArgumentException("The provided dictionary type is not /Catalog.", nameof(pdfDictionary));
 
-        Type = type;
-
         if (!_pdfDictionary.TryGetValue<PdfReference>(PdfNames.Pages, out var pagesReference))
         {
             throw new ArgumentException($"The provided dictionary does not contain the required key {PdfNames.Pages}",
@@ -32,8 +30,6 @@ internal class Catalog
 
         Pages = PageTreeNode.GetRoot(pagesReference, objectReader);
     }
-
-    public PdfName Type { get; }
 
     public PageTreeNode Pages { get; }
 }

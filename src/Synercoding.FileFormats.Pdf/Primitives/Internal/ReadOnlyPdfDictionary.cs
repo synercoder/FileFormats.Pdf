@@ -14,6 +14,9 @@ internal class ReadOnlyPdfDictionary : IPdfDictionary
         _dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
     }
 
+    public static IPdfDictionary Empty { get; }
+        = new ReadOnlyPdfDictionary(new PdfDictionary());
+
     public IPdfPrimitive? this[PdfName key]
         => _dictionary[key];
 

@@ -156,7 +156,7 @@ public class Parser
             TokenKind.StringHex => ReadStringHex(),
             TokenKind.StringLiteral => ReadStringLiteral(),
             TokenKind.Name => Lexer.ReadOrThrow<TokenName>().Name,
-            TokenKind.Null => PdfNull.Instance,
+            TokenKind.Null => Lexer.ReadOrThrow<TokenNull>().Instance,
             _ => throw new UnexpectedTokenException($"Unexpected token type, expected a value but found: {nextTokenKind}")
         };
     }
@@ -255,14 +255,6 @@ public class Parser
         if (isHex)
             bytes = Convert.FromHexString(Encoding.ASCII.GetString(bytes));
 
-        var (value, encoding) = bytes switch
-        {
-            [0xFE, 0xFF, ..] => (Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2), PdfStringEncoding.Utf16BE),
-            [0xFF, 0xFE, ..] => (Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2), PdfStringEncoding.Utf16LE),
-            [0xEF, 0xBB, 0xBF, ..] => (Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3), PdfStringEncoding.Utf8),
-            _ => (PDFDocEncoding.Decode(bytes), PdfStringEncoding.PdfDocEncoding)
-        };
-
-        return new PdfString(value, encoding, isHex);
+        return new PdfString(bytes, isHex);
     }
 }

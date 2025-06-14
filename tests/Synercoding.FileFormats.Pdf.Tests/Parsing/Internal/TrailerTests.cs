@@ -135,16 +135,6 @@ public class TrailerTests
     }
 
     [Fact]
-    public void Test_Encrypt_WithMissingKey_ThrowsParseException()
-    {
-        var dictionary = new PdfDictionary();
-        var trailer = new Trailer(dictionary);
-
-        var exception = Assert.Throws<ParseException>(() => trailer.Encrypt);
-        Assert.Contains("/encrypt", exception.Message);
-    }
-
-    [Fact]
     public void Test_Info_WithValidReference_ReturnsReference()
     {
         var expectedReference = new PdfReference { Id = new PdfObjectId(2, 0) };
@@ -157,16 +147,6 @@ public class TrailerTests
         var result = trailer.Info;
 
         Assert.Equal(expectedReference, result);
-    }
-
-    [Fact]
-    public void Test_Info_WithMissingKey_ThrowsParseException()
-    {
-        var dictionary = new PdfDictionary();
-        var trailer = new Trailer(dictionary);
-
-        var exception = Assert.Throws<ParseException>(() => trailer.Info);
-        Assert.Contains("/Info", exception.Message);
     }
 
     [Fact]

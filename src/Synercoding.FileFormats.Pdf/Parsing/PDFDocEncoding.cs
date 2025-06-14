@@ -251,6 +251,20 @@ public static class PDFDocEncoding
         .ToFrozenDictionary();
 
     /// <summary>
+    /// Check if the provided <paramref name="bytes"/> can be decoded with <see cref="PDFDocEncoding"/>.
+    /// </summary>
+    /// <param name="bytes">The byte array to check.</param>
+    /// <returns>True when all bytes are supported code points, otherwise false.</returns>
+    public static bool CanDecode(byte[] bytes)
+    {
+        foreach(var b in bytes)
+            if(!IsSupportedCodePoint(b))
+                return false;
+
+        return true;
+    }
+
+    /// <summary>
     /// Check if provided character can be encoded using <see cref="PDFDocEncoding"/>.
     /// </summary>
     /// <param name="character">The <see cref="char"/> to check.</param>

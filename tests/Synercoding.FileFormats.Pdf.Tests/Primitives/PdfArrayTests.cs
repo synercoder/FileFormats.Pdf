@@ -1,9 +1,24 @@
 using Synercoding.FileFormats.Pdf.Primitives;
+using System.Text;
 
 namespace Synercoding.FileFormats.Pdf.Tests.Primitives;
 
 public class PdfArrayTests
 {
+    private static PdfString CreatePdfString(string value, PdfStringEncoding encoding, bool isHex)
+    {
+        byte[] bytes = encoding switch
+        {
+            PdfStringEncoding.PdfDocEncoding => Encoding.Latin1.GetBytes(value),
+            PdfStringEncoding.Utf16BE => [0xFE, 0xFF, .. Encoding.BigEndianUnicode.GetBytes(value)],
+            PdfStringEncoding.Utf16LE => [0xFF, 0xFE, .. Encoding.Unicode.GetBytes(value)],
+            PdfStringEncoding.Utf8 => [0xEF, 0xBB, 0xBF, .. Encoding.UTF8.GetBytes(value)],
+            PdfStringEncoding.ByteString => Convert.FromHexString(value.Replace("<", "").Replace(">", "")),
+            _ => throw new ArgumentException($"Unsupported encoding: {encoding}")
+        };
+        
+        return new PdfString(bytes, isHex);
+    }
     [Fact]
     public void Test_Constructor_Empty_CreatesEmptyArray()
     {
@@ -157,7 +172,7 @@ public class PdfArrayTests
             new PdfNumber(42), 
             new PdfNumber(3.14),
             PdfBoolean.True,
-            new PdfString("test", PdfStringEncoding.PdfDocEncoding, false)
+            CreatePdfString("test", PdfStringEncoding.PdfDocEncoding, false)
         };
         var array = new PdfArray(items);
         

@@ -42,9 +42,6 @@ public class PageTreeNode
     public PdfObjectId Id { get; }
     public PageTreeNode? Parent { get; }
 
-    public PdfName Type
-        => PdfNames.Pages;
-
     public IReadOnlyList<Either<PageTreeNode, Page>> Kids
     {
         get

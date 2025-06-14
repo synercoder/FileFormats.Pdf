@@ -50,7 +50,7 @@ internal class Trailer
         get
         {
             if (!_dictionary.TryGetValue(PdfNames.Encrypt, out var encrypt))
-                throw new ParseException("Trailer did not contain a /encrypt key.");
+                return null;
 
             return encrypt;
         }
@@ -61,7 +61,7 @@ internal class Trailer
         get
         {
             if (!_dictionary.TryGetValue<PdfReference>(PdfNames.Info, out var info))
-                throw new ParseException("Trailer did not contain a /Info key with a reference value.");
+                return null;
 
             return info;
         }

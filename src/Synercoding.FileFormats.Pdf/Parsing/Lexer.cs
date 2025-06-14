@@ -146,7 +146,7 @@ public class Lexer
         {
             token = tokenBytes.Bytes switch
             {
-                var b when Equals(b, "null") => new Token(TokenKind.Null),
+                var b when Equals(b, "null") => new TokenNull(),
                 var b when Equals(b, "obj") => new Token(TokenKind.Obj),
                 var b when Equals(b, "endobj") => new Token(TokenKind.EndObj),
                 var b when Equals(b, "stream") => new Token(TokenKind.Stream),

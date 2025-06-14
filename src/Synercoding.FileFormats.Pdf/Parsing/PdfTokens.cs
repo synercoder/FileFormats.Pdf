@@ -7,3 +7,7 @@ public record TokenBoolean(bool Value) : Token(TokenKind.Boolean);
 public record TokenBytes(TokenKind TokenType, byte[] Bytes) : Token(TokenType);
 public record TokenNumber(double? DoubleValue, long? LongValue) : Token(TokenKind.Number);
 public record TokenName(PdfName Name) : Token(TokenKind.Name);
+public record TokenNull() : Token(TokenKind.Null)
+{
+    public PdfNull Instance => PdfNull.Instance;
+};

@@ -63,6 +63,15 @@ public sealed class ObjectReader : IDisposable
 
     internal ReaderSettings Settings { get; }
 
+    internal Trailer Trailer
+    {
+        get
+        {
+            _ensureHeaderAndFooterIsRead();
+            return _trailer;
+        }
+    }
+
     public bool TryGet<TPrimitive>(PdfObjectId id, [NotNullWhen(true)] out TPrimitive? pdfObject)
         where TPrimitive : IPdfPrimitive
     {
