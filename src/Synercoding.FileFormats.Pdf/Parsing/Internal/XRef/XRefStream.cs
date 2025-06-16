@@ -32,21 +32,21 @@ internal static class XRefStream
                         // field 2 refers to the next free object number
                         var nextFreeObjectNumber = _readField(memoryStream, w2, 0);
                         var generationForNextUse = _readField(memoryStream, w3, 0);
-                        items[index++] = new FreeXRefItem(new PdfObjectId(objNmr, (int)generationForNextUse - 1, objNmr == 0));
+                        items[index++] = new FreeXRefItem(new PdfObjectId(objNmr, (int)generationForNextUse - 1, true));
                     }
                     else if (type == 1)
                     {
                         var byteOffset = _readField(memoryStream, w2, 0);
                         var generationNumber = _readField(memoryStream, w3, 0);
-                        items[index++] = new ClassicXRefItem(new PdfObjectId(objNmr, (int)generationNumber, objNmr == 0), byteOffset);
+                        items[index++] = new ClassicXRefItem(new PdfObjectId(objNmr, (int)generationNumber), byteOffset);
                     }
                     else if (type == 2)
                     {
                         var objectNumberOfStream = _readField(memoryStream, w2, 0);
                         var indexWithinStream = _readField(memoryStream, w3, 0);
                         items[index++] = new CompressedXRefItem(
-                            Id: new PdfObjectId(objNmr, 0, objNmr == 0),
-                            ObjectStreamId: new PdfObjectId((int)objectNumberOfStream, 0, (int)objectNumberOfStream == 0),
+                            Id: new PdfObjectId(objNmr, 0),
+                            ObjectStreamId: new PdfObjectId((int)objectNumberOfStream, 0),
                             ObjectIndex: (int)indexWithinStream
                         );
                     }

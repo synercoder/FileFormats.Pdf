@@ -64,7 +64,7 @@ internal class ObjectStream
             _parser.Lexer.PdfBytesProvider.SkipWhiteSpace();
             var offset = _parser.ReadInteger() + firstOffset;
 
-            _offsetLookup[new PdfObjectId((int)objectId, 0, objectId == 0)] = offset;
+            _offsetLookup[new PdfObjectId((int)objectId, 0)] = offset;
         }
     }
 }

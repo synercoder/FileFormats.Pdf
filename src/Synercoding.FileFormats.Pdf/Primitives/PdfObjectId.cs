@@ -9,12 +9,14 @@ public readonly struct PdfObjectId : IEquatable<PdfObjectId>
     public PdfObjectId(int objectNumber, int generation)
         : this(objectNumber, generation, false)
     { }
+
     internal PdfObjectId(int objectNumber, int generation, bool allowObjectZero)
     {
-        if (!allowObjectZero && objectNumber == 0)
+        if (allowObjectZero && objectNumber < 0)
             throw new ArgumentOutOfRangeException(nameof(objectNumber), "Object number must be a non-negative integer.");
         else if (!allowObjectZero && objectNumber <= 0)
             throw new ArgumentOutOfRangeException(nameof(objectNumber), "Object number must be a positive integer.");
+
         if (generation < 0)
             throw new ArgumentOutOfRangeException(nameof(generation), "Generation number must be a non-negative integer.");
 
