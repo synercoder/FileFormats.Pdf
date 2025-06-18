@@ -7,6 +7,12 @@ namespace Synercoding.FileFormats.Pdf.Primitives.Extensions;
 
 public static class IPdfDictionaryExtensions
 {
+    public static TPrimitive? GetOrDefault<TPrimitive>(this IPdfDictionary dictionary, PdfName key, ObjectReader reader, TPrimitive? defaultValue)
+        where TPrimitive : IPdfPrimitive
+        => TryGetValue<TPrimitive>(dictionary, key, reader, out var value)
+        ? value
+        : defaultValue;
+
     public static bool TryGetValue<TPrimitive>(this IPdfDictionary dictionary, PdfName key, ObjectReader reader, [NotNullWhen(true)] out TPrimitive? value)
         where TPrimitive : IPdfPrimitive
     {

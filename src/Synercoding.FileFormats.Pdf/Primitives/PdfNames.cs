@@ -8,6 +8,8 @@ public static class PdfNames
         => PdfName.Get(nameof(ASCIIHexDecode));
     public static PdfName Author
         => PdfName.Get(nameof(Author));
+    public static PdfName ArtBox
+        => PdfName.Get(nameof(ArtBox));
     public static PdfName BitsPerComponent
         => PdfName.Get(nameof(BitsPerComponent));
     public static PdfName BleedBox
@@ -38,12 +40,16 @@ public static class PdfNames
         => PdfName.Get(nameof(DeviceRGB));
     public static PdfName Encrypt
         => PdfName.Get(nameof(Encrypt));
+    public static PdfName ExtGState
+        => PdfName.Get(nameof(ExtGState));
     public static PdfName Filter
         => PdfName.Get(nameof(Filter));
     public static PdfName First
         => PdfName.Get(nameof(First));
     public static PdfName FlateDecode
         => PdfName.Get(nameof(FlateDecode));
+    public static PdfName Font
+        => PdfName.Get(nameof(Font));
     public static PdfName Height
         => PdfName.Get(nameof(Height));
     public static PdfName ID
@@ -72,12 +78,18 @@ public static class PdfNames
         => PdfName.Get(nameof(Pages));
     public static PdfName Parent
         => PdfName.Get(nameof(Parent));
+    public static PdfName Pattern
+        => PdfName.Get(nameof(Pattern));
     public static PdfName Predictor
         => PdfName.Get(nameof(Predictor));
     public static PdfName Prev
         => PdfName.Get(nameof(Prev));
+    public static PdfName ProcSet
+        => PdfName.Get(nameof(ProcSet));
     public static PdfName Producer
         => PdfName.Get(nameof(Producer));
+    public static PdfName Properties
+        => PdfName.Get(nameof(Properties));
     public static PdfName Resources
         => PdfName.Get(nameof(Resources));
     public static PdfName Root
@@ -86,6 +98,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Rotate));
     public static PdfName RunLengthDecode
         => PdfName.Get(nameof(RunLengthDecode));
+    public static PdfName Shading
+        => PdfName.Get(nameof(Shading));
     public static PdfName Size
         => PdfName.Get(nameof(Size));
     public static PdfName Subtype
@@ -94,10 +108,10 @@ public static class PdfNames
         => PdfName.Get(nameof(Title));
     public static PdfName TrimBox
         => PdfName.Get(nameof(TrimBox));
-    public static PdfName ArtBox
-        => PdfName.Get(nameof(ArtBox));
     public static PdfName Type
         => PdfName.Get(nameof(Type));
+    public static PdfName UserUnit
+        => PdfName.Get(nameof(UserUnit));
     public static PdfName W
         => PdfName.Get(nameof(W));
     public static PdfName Width

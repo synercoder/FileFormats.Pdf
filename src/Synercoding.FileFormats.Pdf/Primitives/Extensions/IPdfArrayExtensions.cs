@@ -40,6 +40,9 @@ public static class IPdfArrayExtensions
     }
 
     public static bool TryGetAsRectangle(this IPdfArray array, ObjectReader objectReader, [NotNullWhen(true)] out Rectangle? rectangle)
+        => TryGetAsRectangle(array, objectReader, null, out rectangle);
+
+    public static bool TryGetAsRectangle(this IPdfArray array, ObjectReader objectReader, double? userUnits, [NotNullWhen(true)] out Rectangle? rectangle)
     {
         _ = array ?? throw new ArgumentNullException(nameof(array));
 
@@ -60,7 +63,11 @@ public static class IPdfArrayExtensions
         if (!array.TryGetValue<PdfNumber>(3, objectReader, out var ury))
             return false;
 
-        rectangle = new Rectangle(llx, lly, urx, ury, Unit.Points);
+        var unit = userUnits.HasValue && userUnits.Value != 1
+            ? Unit.Pixels(userUnits.Value / 72)
+            : Unit.Points;
+
+        rectangle = new Rectangle(llx, lly, urx, ury, unit);
 
         return true;
     }

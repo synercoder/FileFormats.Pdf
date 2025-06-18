@@ -5,9 +5,9 @@ using Synercoding.FileFormats.Pdf.Primitives;
 using Synercoding.FileFormats.Pdf.Primitives.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Synercoding.FileFormats.Pdf.DocumentObjects;
+namespace Synercoding.FileFormats.Pdf.DocumentObjects.Internal;
 
-public class PageTreeNode
+internal class PageTreeNode
 {
     private readonly IPdfDictionary _pdfDictionary;
     private readonly ObjectReader _objectReader;
@@ -15,7 +15,7 @@ public class PageTreeNode
 
     // Cache fields
     private int? _count;
-    private IReadOnlyList<Either<PageTreeNode, Page>>? _kids;
+    private IReadOnlyList<Either<PageTreeNode, ReadOnlyPage>>? _kids;
 
     internal static PageTreeNode GetRoot(PdfReference pdfReference, ObjectReader objectReader)
     {
@@ -42,7 +42,7 @@ public class PageTreeNode
     public PdfObjectId Id { get; }
     public PageTreeNode? Parent { get; }
 
-    public IReadOnlyList<Either<PageTreeNode, Page>> Kids
+    public IReadOnlyList<Either<PageTreeNode, ReadOnlyPage>> Kids
     {
         get
         {
@@ -68,12 +68,10 @@ public class PageTreeNode
             int count = 0;
 
             foreach (var kid in Kids)
-            {
                 if (kid.TryGetFirst(out var node))
                     count += node.Count;
                 else if (kid.TryGetSecond(out _))
                     count++;
-            }
 
             if (!_pdfDictionary.TryGetValue<PdfNumber>(PdfNames.Count, out var countNumber))
             {
@@ -152,12 +150,16 @@ public class PageTreeNode
     /// <summary>
     ///  A dictionary containing any resources required by the page contents
     /// </summary>
-    public IPdfDictionary? Resources
+    public IReadOnlyResources? Resources
     {
         get
         {
-            _ = _pdfDictionary.TryGetValue<IPdfDictionary>(PdfNames.Resources, _objectReader, out var resourcesDictionary);
-            return resourcesDictionary;
+            if (_pdfDictionary.TryGetValue<PdfReference>(PdfNames.Resources, out var resourceReference)
+                && _objectReader.TryGet<IPdfDictionary>(resourceReference.Id, out var indirectResourcesDictionary))
+                return new ReadOnlyResources(resourceReference.Id, indirectResourcesDictionary, _objectReader);
+            else if (_pdfDictionary.TryGetValue<IPdfDictionary>(PdfNames.Resources, out var directDictionary))
+                return new ReadOnlyResources(null, directDictionary, _objectReader);
+            return null;
         }
     }
 
@@ -173,9 +175,7 @@ public class PageTreeNode
             if (_pdfDictionary.TryGetValue<PdfNumber>(PdfNames.Rotate, out var rotateNumber))
             {
                 if (rotateNumber.LongValue % 90 == 0)
-                {
                     return rotateNumber;
-                }
 
                 _logger.LogWarning<PageTreeNode>("While reading the /Rotate property of PdfDictionary {Id}, the returned value was not a multiple of 90 (it was {RotateValue}).",
                     Id,
@@ -186,12 +186,12 @@ public class PageTreeNode
         }
     }
 
-    private IReadOnlyList<Either<PageTreeNode, Page>> _loadKids()
+    private IReadOnlyList<Either<PageTreeNode, ReadOnlyPage>> _loadKids()
     {
         if (!_pdfDictionary.TryGetValue<IPdfArray>(PdfNames.Kids, out var kidsArray))
             throw new ParseException($"The retrieved page tree node dictionary (Object id {Id}) does not contain the required key {PdfNames.Kids}");
 
-        var kids = new List<Either<PageTreeNode, Page>>();
+        var kids = new List<Either<PageTreeNode, ReadOnlyPage>>();
         foreach (var kid in kidsArray)
         {
             if (kid is not PdfReference nodeReference)
@@ -210,7 +210,7 @@ public class PageTreeNode
         return kids;
     }
 
-    private bool _tryGet(PdfReference pdfReference, [NotNullWhen(true)] out Either<PageTreeNode, Page>? result)
+    private bool _tryGet(PdfReference pdfReference, [NotNullWhen(true)] out Either<PageTreeNode, ReadOnlyPage>? result)
     {
         result = null;
 
@@ -239,7 +239,7 @@ public class PageTreeNode
         }
         if (actualType == PdfNames.Page)
         {
-            result = new Page(pdfReference.Id, dictionary, _objectReader, this);
+            result = new ReadOnlyPage(pdfReference.Id, dictionary, _objectReader, this);
             return true;
         }
 

@@ -1,11 +1,11 @@
-using Synercoding.FileFormats.Pdf.DocumentObjects;
+using Synercoding.FileFormats.Pdf.DocumentObjects.Internal;
 using Synercoding.FileFormats.Pdf.Exceptions;
 using Synercoding.FileFormats.Pdf.IO;
 using Synercoding.FileFormats.Pdf.Parsing;
 using Synercoding.FileFormats.Pdf.Primitives;
 using System.Text;
 
-namespace Synercoding.FileFormats.Pdf.Tests.DocumentObjects;
+namespace Synercoding.FileFormats.Pdf.Tests.DocumentObjects.Internal;
 
 public class PageTreeNodeTests
 {
@@ -225,18 +225,20 @@ public class PageTreeNodeTests
     }
 
     [Fact]
-    public void Test_Resources_FromDictionary_ReturnsCorrectDictionary()
+    public void Test_Resources_FromDictionary_ReturnsReadOnlyResourcesWithCorrectFont()
     {
         var objectReader = _createObjectReaderWithPageTreePdf();
         var pageTreeDict = _createValidPageTreeDictionary();
         var resourcesDict = new PdfDictionary();
-        resourcesDict.Add(PdfName.Get("Font"), new PdfDictionary());
+        var fontDict = new PdfDictionary();
+        resourcesDict.Add(PdfNames.Font, fontDict);
         pageTreeDict.Add(PdfNames.Resources, resourcesDict);
         var pageTreeId = new PdfObjectId(1, 0);
 
         var node = new PageTreeNode(pageTreeId, pageTreeDict, objectReader);
 
-        Assert.Same(resourcesDict, node.Resources);
+        Assert.NotNull(node.Resources);
+        Assert.Same(fontDict, node.Resources.Font);
     }
 
     [Fact]

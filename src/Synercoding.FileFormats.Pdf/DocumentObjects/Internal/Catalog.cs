@@ -2,7 +2,7 @@ using Synercoding.FileFormats.Pdf.Parsing;
 using Synercoding.FileFormats.Pdf.Primitives;
 using Synercoding.FileFormats.Pdf.Primitives.Extensions;
 
-namespace Synercoding.FileFormats.Pdf.DocumentObjects;
+namespace Synercoding.FileFormats.Pdf.DocumentObjects.Internal;
 
 internal class Catalog
 {
@@ -14,19 +14,15 @@ internal class Catalog
         _pdfDictionary = pdfDictionary;
         _objectReader = objectReader;
         if (!_pdfDictionary.TryGetValue<PdfName>(PdfNames.Type, _objectReader, out var type))
-        {
             throw new ArgumentException($"The provided dictionary does not contain the required key {PdfNames.Type}",
                 nameof(pdfDictionary));
-        }
 
         if (type != PdfNames.Catalog)
             throw new ArgumentException("The provided dictionary type is not /Catalog.", nameof(pdfDictionary));
 
         if (!_pdfDictionary.TryGetValue<PdfReference>(PdfNames.Pages, out var pagesReference))
-        {
             throw new ArgumentException($"The provided dictionary does not contain the required key {PdfNames.Pages}",
                 nameof(pdfDictionary));
-        }
 
         Pages = PageTreeNode.GetRoot(pagesReference, objectReader);
     }

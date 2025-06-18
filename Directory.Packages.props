@@ -14,7 +14,7 @@
 
   <ItemGroup Label="General packages">
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.9" />
-    <PackageVersion Include="Synercoding.Primitives" Version="1.0.0-rc10" />
+    <PackageVersion Include="Synercoding.Primitives" Version="1.0.0-rc11" />
   </ItemGroup>
 
   <ItemGroup Label="Testing packages">

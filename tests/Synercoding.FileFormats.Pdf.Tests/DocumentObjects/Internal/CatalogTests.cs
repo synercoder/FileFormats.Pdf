@@ -1,10 +1,10 @@
-using Synercoding.FileFormats.Pdf.DocumentObjects;
+using Synercoding.FileFormats.Pdf.DocumentObjects.Internal;
 using Synercoding.FileFormats.Pdf.IO;
 using Synercoding.FileFormats.Pdf.Parsing;
 using Synercoding.FileFormats.Pdf.Primitives;
 using System.Text;
 
-namespace Synercoding.FileFormats.Pdf.Tests.DocumentObjects;
+namespace Synercoding.FileFormats.Pdf.Tests.DocumentObjects.Internal;
 
 public class CatalogTests
 {

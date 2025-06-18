@@ -1,4 +1,5 @@
 using Synercoding.FileFormats.Pdf.DocumentObjects;
+using Synercoding.FileFormats.Pdf.DocumentObjects.Internal;
 using Synercoding.FileFormats.Pdf.Exceptions;
 using Synercoding.FileFormats.Pdf.IO;
 using Synercoding.FileFormats.Pdf.Logging;
@@ -8,13 +9,13 @@ using System.Collections;
 
 namespace Synercoding.FileFormats.Pdf;
 
-public sealed class PdfReader : IReadOnlyList<Page>, IDisposable
+public sealed class PdfReader : IReadOnlyList<IReadOnlyPage>, IDisposable
 {
     private readonly ObjectReader _objectReader;
     private readonly IPdfLogger _logger;
     private readonly Catalog _catalog;
 
-    private readonly IList<Page> _pages = new List<Page>();
+    private readonly IList<IReadOnlyPage> _pages = new List<IReadOnlyPage>();
 
     public PdfReader(string filePath)
         : this(filePath, new ReaderSettings())
@@ -64,7 +65,7 @@ public sealed class PdfReader : IReadOnlyList<Page>, IDisposable
         _catalog = new Catalog(catalogDictionary, _objectReader);
     }
 
-    public Page this[int index]
+    public IReadOnlyPage this[int index]
     {
         get
         {
@@ -87,7 +88,7 @@ public sealed class PdfReader : IReadOnlyList<Page>, IDisposable
         _objectReader.Dispose();
     }
 
-    public IEnumerator<Page> GetEnumerator()
+    public IEnumerator<IReadOnlyPage> GetEnumerator()
     {
         _ensurePagesAreLoaded();
         return _pages.GetEnumerator();
@@ -107,7 +108,7 @@ public sealed class PdfReader : IReadOnlyList<Page>, IDisposable
             _pages.Add(page);
     }
 
-    private IEnumerable<Page> _getPagesFrom(PageTreeNode node)
+    private IEnumerable<IReadOnlyPage> _getPagesFrom(PageTreeNode node)
     {
         foreach (var kid in node.Kids)
         {
