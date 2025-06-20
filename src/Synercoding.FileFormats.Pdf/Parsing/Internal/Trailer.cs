@@ -1,15 +1,19 @@
 using Synercoding.FileFormats.Pdf.Exceptions;
+using Synercoding.FileFormats.Pdf.Logging;
 using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.FileFormats.Pdf.Primitives.Extensions;
 
 namespace Synercoding.FileFormats.Pdf.Parsing.Internal;
 
 internal class Trailer
 {
     private readonly IPdfDictionary _dictionary;
+    private readonly ReaderSettings _readerSettings;
 
-    public Trailer(IPdfDictionary dictionary)
+    public Trailer(IPdfDictionary dictionary, ReaderSettings readerSettings)
     {
         _dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
+        _readerSettings = readerSettings ?? throw new ArgumentNullException(nameof(readerSettings));
     }
 
     public int Size
@@ -67,17 +71,41 @@ internal class Trailer
         }
     }
 
-    public PdfArray? ID
+    public (byte[] OriginalId, byte[] LastVersionId)? ID
     {
         get
         {
-            if (!_dictionary.TryGetValue<PdfArray>(PdfNames.ID, out var idArray))
+            if (!_dictionary.TryGetValue<IPdfArray>(PdfNames.ID, out var idArray))
                 return null;
 
-            if (idArray.Count != 2)
-                throw new ParseException($"An ID array should contain 2 values, found array contains {idArray.Count} values.");
+            var throwException = Encrypt is not null || _readerSettings.Strict;
 
-            return idArray;
+            if (idArray.Count != 2)
+            {
+                _readerSettings.Logger.LogWarning<Trailer>("An ID array should contain 2 values, found array contains {Count} values.", idArray.Count);
+                if (throwException)
+                    throw new ParseException($"An ID array should contain 2 values, found array contains {idArray.Count} values.");
+            }
+
+            if (!idArray.TryGetValue<PdfString>(0, out var id1) || !id1.IsHex)
+            {
+                _readerSettings.Logger.LogWarning<Trailer>("An ID array should contain 2 byte strings, first array item was not a byte string.");
+                if (throwException)
+                    throw new ParseException("An ID array should contain 2 byte string, first array item was not a byte string.");
+
+                return null;
+            }
+
+            if (!idArray.TryGetValue<PdfString>(1, out var id2) || !id2.IsHex)
+            {
+                _readerSettings.Logger.LogWarning<Trailer>("An ID array should contain 2 byte strings, second array item was not a byte string.");
+                if (throwException)
+                    throw new ParseException("An ID array should contain 2 byte string, second array item was not a byte string.");
+
+                return null;
+            }
+
+            return (id1.Raw, id2.Raw);
         }
     }
 

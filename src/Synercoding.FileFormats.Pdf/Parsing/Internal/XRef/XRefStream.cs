@@ -6,7 +6,7 @@ namespace Synercoding.FileFormats.Pdf.Parsing.Internal.XRef;
 
 internal static class XRefStream
 {
-    public static XRefItem[] ParseStream(IPdfStream stream, ObjectReader reader)
+    public static XRefItem[] ParseStream(IPdfStreamObject stream, ObjectReader reader)
     {
         _ = stream ?? throw new ArgumentNullException(nameof(stream));
 
@@ -22,7 +22,9 @@ internal static class XRefStream
         var items = new XRefItem[sections.Sum(s => s.NumberOfEntries)];
         var index = 0;
         using (var memoryStream = new MemoryStream(decodedData))
+        {
             foreach (var section in sections)
+            {
                 for (int objNmr = section.FirstObjectNumber; objNmr < section.FirstObjectNumber + section.NumberOfEntries; objNmr++)
                 {
                     var type = _readType(memoryStream, w1);
@@ -53,6 +55,8 @@ internal static class XRefStream
                     else
                         throw new ParseException("XRef stream field type other than 0, 1 or 2 is not supported.");
                 }
+            }
+        }
         return items;
     }
 
@@ -81,7 +85,7 @@ internal static class XRefStream
         return number;
     }
 
-    private static (byte W1, byte W2, byte W3) _getWidths(IPdfStream stream)
+    private static (byte W1, byte W2, byte W3) _getWidths(IPdfStreamObject stream)
     {
         if (!stream.TryGetValue<PdfArray>(PdfNames.W, out var w) || w.Count != 3)
             throw new ParseException("XRef stream did not contain a /W key with an array of size 3.");
@@ -93,7 +97,7 @@ internal static class XRefStream
         return ((byte)integers[0], (byte)integers[1], (byte)integers[2]);
     }
 
-    private static SectionIndex[] _getSections(IPdfStream stream)
+    private static SectionIndex[] _getSections(IPdfStreamObject stream)
     {
         if (!stream.TryGetValue<PdfArray>(PdfNames.Index, out var indexesArray))
         {
@@ -111,7 +115,7 @@ internal static class XRefStream
         {
             if (!indexesArray.TryGetValue<PdfNumber>(i * 2, out var firstObjectNumber))
                 throw new ParseException("The /Index array contained something else than an integer.");
-            if (!indexesArray.TryGetValue<PdfNumber>(i * 2 + 1, out var numberOfEntries))
+            if (!indexesArray.TryGetValue<PdfNumber>((i * 2) + 1, out var numberOfEntries))
                 throw new ParseException("The /Index array contained something else than an integer.");
 
             indexes[i] = new SectionIndex((int)firstObjectNumber.Value, (int)numberOfEntries.Value);

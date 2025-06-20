@@ -63,6 +63,20 @@ public sealed class PdfReader : IReadOnlyList<IReadOnlyPage>, IDisposable
         }
 
         _catalog = new Catalog(catalogDictionary, _objectReader);
+
+        if (_objectReader.Trailer.Info is PdfReference infoRef
+            && _objectReader.TryGet<IPdfDictionary>(infoRef.Id, out var documentInfoDictionary))
+        {
+            DocumentInformation = new ReadOnlyDocumentInformation(documentInfoDictionary, _objectReader);
+        }
+
+        if (_objectReader.Trailer.ID.HasValue)
+        {
+            Id = new PdfIds(
+                originalId: _objectReader.Trailer.ID.Value.OriginalId,
+                lastVersionId: _objectReader.Trailer.ID.Value.LastVersionId
+            );
+        }
     }
 
     public IReadOnlyPage this[int index]
@@ -82,6 +96,10 @@ public sealed class PdfReader : IReadOnlyList<IReadOnlyPage>, IDisposable
             return _pages.Count;
         }
     }
+
+    public IReadOnlyDocumentInformation? DocumentInformation { get; }
+
+    public PdfIds? Id { get; }
 
     public void Dispose()
     {

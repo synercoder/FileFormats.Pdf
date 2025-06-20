@@ -24,30 +24,6 @@ public class Parser
 
     internal Lexer Lexer { get; }
 
-    public PdfObject ReadObject()
-    {
-        var id = ReadInteger();
-        var generation = ReadInteger();
-
-        Lexer.ReadOrThrow(TokenKind.Obj);
-
-        var pdfObject = ReadNext();
-
-        if (pdfObject is null)
-        {
-            _logger.LogError<Parser>("Could not read object ");
-            throw new UnexpectedEndOfFileException();
-        }
-
-        Lexer.ReadOrThrow(TokenKind.EndObj);
-
-        return new PdfObject()
-        {
-            Id = new PdfObjectId((int)id, (int)generation),
-            Value = pdfObject
-        };
-    }
-
     public PdfObject<T> ReadObject<T>()
         where T : IPdfPrimitive
     {
@@ -107,14 +83,14 @@ public class Parser
 
         Lexer.ReadOrThrow(TokenKind.EndStream);
 
-        return new ReadOnlyPdfStream(dictionary, streamData);
+        return new ReadOnlyPdfStreamObject(dictionary, streamData);
     }
 
-    public IPdfStream ReadStreamObject()
+    public IPdfStreamObject ReadStreamObject()
     {
         var dictionary = ReadDictionaryOrStream();
 
-        if (dictionary is IPdfStream streamObject)
+        if (dictionary is IPdfStreamObject streamObject)
             return streamObject;
 
         throw new ParseException("When parsing for a stream object, a stream token was expected but not encountered.");

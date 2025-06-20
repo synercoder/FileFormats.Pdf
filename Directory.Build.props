@@ -40,7 +40,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LangVersion>13.0</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Features>strict</Features>

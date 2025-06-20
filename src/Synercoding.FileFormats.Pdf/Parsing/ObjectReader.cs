@@ -112,7 +112,7 @@ public sealed class ObjectReader : IDisposable
 
         if (!_objectStreams.TryGetValue(compressedXRef.ObjectStreamId, out var objStream))
         {
-            if (!TryGet<IPdfStream>(compressedXRef.ObjectStreamId, out var streamObject))
+            if (!TryGet<IPdfStreamObject>(compressedXRef.ObjectStreamId, out var streamObject))
                 return false;
             objStream = new ObjectStream(streamObject, this);
         }

@@ -3,9 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Synercoding.FileFormats.Pdf.Primitives;
 
-[DebuggerDisplay("[Pdf Id]  {ToString(),nq}")]
+[DebuggerDisplay("[Pdf Id] {ToString(),nq}")]
 public readonly struct PdfObjectId : IEquatable<PdfObjectId>
 {
+    public PdfObjectId(int objectNumber)
+        : this(objectNumber, 0)
+    { }
+
     public PdfObjectId(int objectNumber, int generation)
         : this(objectNumber, generation, false)
     { }

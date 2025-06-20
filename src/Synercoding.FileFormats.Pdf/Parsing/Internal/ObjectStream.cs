@@ -11,7 +11,7 @@ internal class ObjectStream
     private readonly Parser _parser;
     private readonly IDictionary<PdfObjectId, long> _offsetLookup = new Dictionary<PdfObjectId, long>();
 
-    public ObjectStream(IPdfStream streamDictionary, ObjectReader reader)
+    public ObjectStream(IPdfStreamObject streamDictionary, ObjectReader reader)
     {
         _ = streamDictionary ?? throw new ArgumentNullException(nameof(streamDictionary));
         if (!streamDictionary.TryGetValue<PdfName>(PdfNames.Type, reader, out var type) || type != PdfNames.ObjStm)

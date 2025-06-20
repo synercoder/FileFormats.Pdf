@@ -24,6 +24,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Count));
     public static PdfName CreationDate
         => PdfName.Get(nameof(CreationDate));
+    public static PdfName Creator
+        => PdfName.Get(nameof(Creator));
     public static PdfName CropBox
         => PdfName.Get(nameof(CropBox));
     public static PdfName DCTDecode
@@ -60,6 +62,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Index));
     public static PdfName Info
         => PdfName.Get(nameof(Info));
+    public static PdfName Keywords
+        => PdfName.Get(nameof(Keywords));
     public static PdfName Kids
         => PdfName.Get(nameof(Kids));
     public static PdfName Length
@@ -68,6 +72,8 @@ public static class PdfNames
         => PdfName.Get(nameof(LZWDecode));
     public static PdfName MediaBox
         => PdfName.Get(nameof(MediaBox));
+    public static PdfName ModDate
+        => PdfName.Get(nameof(ModDate));
     public static PdfName N
         => PdfName.Get(nameof(N));
     public static PdfName ObjStm
@@ -102,6 +108,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Shading));
     public static PdfName Size
         => PdfName.Get(nameof(Size));
+    public static PdfName Subject
+        => PdfName.Get(nameof(Subject));
     public static PdfName Subtype
         => PdfName.Get(nameof(Subtype));
     public static PdfName Title

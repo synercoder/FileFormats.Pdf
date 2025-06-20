@@ -284,29 +284,6 @@ public class ParserTests
     }
 
     [Fact]
-    public void ReadObject_ValidObject_ReturnsCorrectObject()
-    {
-        var input = "1 0 obj\n<< /Type /Catalog >>\nendobj";
-        var bytes = Encoding.ASCII.GetBytes(input);
-        var provider = new PdfByteArrayProvider(bytes);
-        var lexer = new Lexer(provider);
-        var parser = new Parser(lexer);
-        
-        var result = parser.ReadObject();
-        
-        Assert.NotNull(result);
-        Assert.Equal(1, result.Id.ObjectNumber);
-        Assert.Equal(0, result.Id.Generation);
-        Assert.IsType<ReadOnlyPdfDictionary>(result.Value);
-        
-        var dictionary = (IPdfDictionary)result.Value;
-        Assert.True(dictionary.ContainsKey(PdfName.Get("Type")));
-        var typeValue = dictionary[PdfName.Get("Type")];
-        Assert.IsType<PdfName>(typeValue);
-        Assert.Equal("Catalog", ((PdfName)typeValue).Display);
-    }
-
-    [Fact]
     public void ReadObject_Generic_ValidObject_ReturnsCorrectTypedObject()
     {
         var input = "1 0 obj\n<< /Type /Catalog >>\nendobj";
@@ -340,18 +317,6 @@ public class ParserTests
     }
 
     [Fact]
-    public void ReadObject_MissingEndObj_ThrowsException()
-    {
-        var input = "1 0 obj\n<< /Type /Catalog >>";
-        var bytes = Encoding.ASCII.GetBytes(input);
-        var provider = new PdfByteArrayProvider(bytes);
-        var lexer = new Lexer(provider);
-        var parser = new Parser(lexer);
-        
-        Assert.Throws<UnexpectedEndOfFileException>(() => parser.ReadObject());
-    }
-
-    [Fact]
     public void ReadDictionaryOrStream_OnlyDictionary_ReturnsDictionary()
     {
         var input = "<< /Type /Catalog >>";
@@ -364,7 +329,7 @@ public class ParserTests
         
         Assert.NotNull(result);
         Assert.IsType<ReadOnlyPdfDictionary>(result);
-        Assert.IsNotAssignableFrom<IPdfStream>(result);
+        Assert.IsNotAssignableFrom<IPdfStreamObject>(result);
     }
 
     [Fact]
@@ -380,9 +345,9 @@ public class ParserTests
         var result = parser.ReadDictionaryOrStream();
         
         Assert.NotNull(result);
-        Assert.IsAssignableFrom<IPdfStream>(result);
+        Assert.IsAssignableFrom<IPdfStreamObject>(result);
         
-        var stream = (IPdfStream)result;
+        var stream = (IPdfStreamObject)result;
         Assert.True(stream.ContainsKey(PdfName.Get("Length")));
         Assert.Equal(streamContent.Length, stream.RawData.Length);
         Assert.Equal(streamContent, Encoding.ASCII.GetString(stream.RawData));
@@ -401,7 +366,7 @@ public class ParserTests
         var result = parser.ReadStreamObject();
         
         Assert.NotNull(result);
-        Assert.IsAssignableFrom<IPdfStream>(result);
+        Assert.IsAssignableFrom<IPdfStreamObject>(result);
         Assert.Equal(streamContent.Length, result.RawData.Length);
         Assert.Equal(streamContent, Encoding.ASCII.GetString(result.RawData));
     }
@@ -526,18 +491,6 @@ public class ParserTests
         var parser = new Parser(lexer);
         
         Assert.Throws<UnexpectedTokenException>(() => parser.ReadStringLiteral());
-    }
-
-    [Fact]
-    public void ReadObject_NullValue_ThrowsParseException()
-    {
-        var input = "1 0 obj\nendobj";
-        var bytes = Encoding.ASCII.GetBytes(input);
-        var provider = new PdfByteArrayProvider(bytes);
-        var lexer = new Lexer(provider);
-        var parser = new Parser(lexer);
-        
-        Assert.Throws<UnexpectedTokenException>(() => parser.ReadObject());
     }
 
     [Fact]

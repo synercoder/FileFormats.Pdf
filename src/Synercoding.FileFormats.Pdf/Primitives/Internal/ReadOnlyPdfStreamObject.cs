@@ -6,19 +6,19 @@ using System.Diagnostics.CodeAnalysis;
 namespace Synercoding.FileFormats.Pdf.Primitives.Internal;
 
 [DebuggerDisplay("{ToString(),nq}")]
-internal sealed class ReadOnlyPdfStream : IPdfStream
+internal sealed class ReadOnlyPdfStreamObject : IPdfStreamObject
 {
     private readonly IPdfDictionary _dictionary;
 
-    public ReadOnlyPdfStream()
+    public ReadOnlyPdfStreamObject()
         : this(Array.Empty<byte>())
     { }
 
-    public ReadOnlyPdfStream(byte[] rawData)
+    public ReadOnlyPdfStreamObject(byte[] rawData)
         : this(new PdfDictionary() { [PdfNames.Length] = new PdfNumber(rawData.LongLength) }, rawData)
     { }
 
-    public ReadOnlyPdfStream(IPdfDictionary dictionary, byte[] rawData)
+    public ReadOnlyPdfStreamObject(IPdfDictionary dictionary, byte[] rawData)
     {
         if (!dictionary.ContainsKey(PdfNames.Length))
             throw new ArgumentException("Provided dictionary does not contain a \"/Length\" property.", nameof(dictionary));
@@ -65,6 +65,11 @@ internal sealed class ReadOnlyPdfStream : IPdfStream
     public bool TryGetValue<TPrimitive>(PdfName key, [NotNullWhen(true)] out TPrimitive? value) where TPrimitive : IPdfPrimitive
     {
         return _dictionary.TryGetValue(key, out value);
+    }
+
+    public IPdfDictionary AsPureDictionary()
+    {
+        return new ReadOnlyPdfDictionary(_dictionary);
     }
 
     IEnumerator IEnumerable.GetEnumerator()

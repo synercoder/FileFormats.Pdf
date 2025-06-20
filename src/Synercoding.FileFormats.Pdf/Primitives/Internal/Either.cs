@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Synercoding.FileFormats.Pdf.Primitives;
+namespace Synercoding.FileFormats.Pdf.Primitives.Internal;
 
 [DebuggerDisplay("{ToString(),nq}")]
-public class Either<T1, T2>
+internal class Either<T1, T2>
 {
     private readonly T1? _value1;
     private readonly T2? _value2;

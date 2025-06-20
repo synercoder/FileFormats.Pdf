@@ -1,7 +1,9 @@
 namespace Synercoding.FileFormats.Pdf.Primitives;
 
-public interface IPdfStream : IPdfDictionary
+public interface IPdfStreamObject : IPdfDictionary
 {
     byte[] RawData { get; }
     long Length { get; }
+
+    IPdfDictionary AsPureDictionary();
 }

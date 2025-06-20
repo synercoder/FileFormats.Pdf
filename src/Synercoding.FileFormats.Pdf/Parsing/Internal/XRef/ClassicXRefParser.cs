@@ -51,13 +51,13 @@ internal class ClassicXRefParser : IXRefParser
         // Read trailer
         parser.Lexer.ReadOrThrow(TokenKind.Trailer);
         var trailerDictionary = parser.ReadDictionary();
-        var trailer = new Trailer(trailerDictionary);
+        var trailer = new Trailer(trailerDictionary, reader.Settings);
 
         // Handle XRefStm if present (hybrid PDF)
         if (trailer.XRefStm.HasValue)
         {
             parser.Lexer.Position = trailer.XRefStm.Value;
-            var objStreamWrapper = parser.ReadObject<IPdfStream>();
+            var objStreamWrapper = parser.ReadObject<IPdfStreamObject>();
             var objStream = new ObjectStream(objStreamWrapper.Value, reader);
             table = table.Merge(new XRefTable(objStream.AsXRefItems(objStreamWrapper.Id)));
         }

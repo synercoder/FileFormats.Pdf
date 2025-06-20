@@ -126,7 +126,8 @@ public class IncrementalUpdateHandlerTests
             if (_prevValues.TryDequeue(out var prevValue) && prevValue.HasValue)
                 trailerDict[PdfNames.Prev] = new PdfNumber(prevValue.Value);
 
-            var trailer = new Trailer(trailerDict);
+            var readerSettings = new ReaderSettings();
+            var trailer = new Trailer(trailerDict, readerSettings);
 
             // Create mock xref table
             var items = new List<XRefItem>

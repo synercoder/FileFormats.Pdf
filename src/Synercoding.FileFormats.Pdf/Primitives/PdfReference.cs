@@ -6,6 +6,11 @@ namespace Synercoding.FileFormats.Pdf.Primitives;
 [DebuggerDisplay("[Pdf Reference] {ToString(),nq}")]
 public readonly struct PdfReference : IPdfPrimitive, IEquatable<PdfReference>
 {
+    public PdfReference(PdfObjectId id)
+    {
+        Id = id;
+    }
+
     public PdfObjectId Id { get; init; }
 
     public bool Equals(PdfReference other)

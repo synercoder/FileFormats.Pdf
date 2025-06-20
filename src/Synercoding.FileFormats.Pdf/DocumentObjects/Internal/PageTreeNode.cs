@@ -3,6 +3,7 @@ using Synercoding.FileFormats.Pdf.Logging;
 using Synercoding.FileFormats.Pdf.Parsing;
 using Synercoding.FileFormats.Pdf.Primitives;
 using Synercoding.FileFormats.Pdf.Primitives.Extensions;
+using Synercoding.FileFormats.Pdf.Primitives.Internal;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Synercoding.FileFormats.Pdf.DocumentObjects.Internal;

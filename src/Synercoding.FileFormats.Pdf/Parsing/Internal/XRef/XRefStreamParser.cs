@@ -11,7 +11,7 @@ internal class XRefStreamParser : IXRefParser
         try
         {
             pdfBytesProvider.Seek(xrefPosition, SeekOrigin.Begin);
-            
+                        
             // XRef streams start with an object number, generation, "obj" keyword
             // We'll look for a pattern like "nnn nnn obj" to identify XRef streams
             if (!pdfBytesProvider.TryRead(20, out var bytes)) // Read enough bytes to check pattern
@@ -34,12 +34,13 @@ internal class XRefStreamParser : IXRefParser
     {
         pdfBytesProvider.Seek(pdfStart + xrefPosition, SeekOrigin.Begin);
 
-        var parser = new Parser(new Lexer(pdfBytesProvider, reader.Settings.Logger), reader.Settings.Logger);
-        var streamObjectWrap = parser.ReadObject<IPdfStream>();
+        var lexer = new Lexer(pdfBytesProvider, reader.Settings.Logger);
+        var parser = new Parser(lexer, reader.Settings.Logger);
+        var streamObjectWrap = parser.ReadObject<IPdfStreamObject>();
         var streamObject = streamObjectWrap.Value;
 
         var xRefItems = XRefStream.ParseStream(streamObject, reader);
-        var trailer = new Trailer(streamObject);
+        var trailer = new Trailer(streamObject, reader.Settings);
         var table = new XRefTable(xRefItems);
 
         // Sometimes the xrefstream object itself is not referenced inside an xref table. Ensure it is by always setting it

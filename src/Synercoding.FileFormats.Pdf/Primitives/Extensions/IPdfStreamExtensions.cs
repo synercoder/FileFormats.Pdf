@@ -5,7 +5,7 @@ namespace Synercoding.FileFormats.Pdf.Primitives.Extensions;
 
 public static class IPdfStreamExtensions
 {
-    public static byte[] DecodeData(this IPdfStream streamObject, ObjectReader reader)
+    public static byte[] DecodeData(this IPdfStreamObject streamObject, ObjectReader reader)
     {
         var decodeParams = _getDecodeParams(streamObject, reader);
 
@@ -35,7 +35,7 @@ public static class IPdfStreamExtensions
         return streamObject.RawData;
     }
 
-    private static IPdfDictionary?[]? _getDecodeParams(IPdfStream streamObject, ObjectReader reader)
+    private static IPdfDictionary?[]? _getDecodeParams(IPdfStreamObject streamObject, ObjectReader reader)
     {
         if (streamObject.TryGetValue<PdfArray>(PdfNames.DecodeParms, reader, out var paramsArray) && paramsArray.Count > 0)
         {

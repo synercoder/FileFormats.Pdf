@@ -9,14 +9,16 @@ public class TrailerTests
     [Fact]
     public void Test_Constructor_WithNullDictionary_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new Trailer(null!));
+        var readerSettings = new ReaderSettings();
+        Assert.Throws<ArgumentNullException>(() => new Trailer(null!, readerSettings));
     }
 
     [Fact]
     public void Test_Constructor_WithValidDictionary_DoesNotThrow()
     {
         var dictionary = new PdfDictionary();
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         Assert.NotNull(trailer);
     }
@@ -32,7 +34,8 @@ public class TrailerTests
         {
             [PdfNames.Size] = new PdfNumber(sizeValue)
         };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.Size;
 
@@ -43,7 +46,8 @@ public class TrailerTests
     public void Test_Size_WithMissingKey_ThrowsParseException()
     {
         var dictionary = new PdfDictionary();
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var exception = Assert.Throws<ParseException>(() => trailer.Size);
         Assert.Contains("/Size", exception.Message);
@@ -59,7 +63,8 @@ public class TrailerTests
         {
             [PdfNames.Size] = new PdfNumber(negativeValue)
         };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var exception = Assert.Throws<ParseException>(() => trailer.Size);
         Assert.Contains("/Size", exception.Message);
@@ -76,7 +81,8 @@ public class TrailerTests
         {
             [PdfNames.Prev] = new PdfNumber(prevValue)
         };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.Prev;
 
@@ -87,7 +93,8 @@ public class TrailerTests
     public void Test_Prev_WithMissingKey_ReturnsNull()
     {
         var dictionary = new PdfDictionary();
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.Prev;
 
@@ -102,7 +109,8 @@ public class TrailerTests
         {
             [PdfNames.Root] = expectedReference
         };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.Root;
 
@@ -113,7 +121,8 @@ public class TrailerTests
     public void Test_Root_WithMissingKey_ThrowsParseException()
     {
         var dictionary = new PdfDictionary();
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var exception = Assert.Throws<ParseException>(() => trailer.Root);
         Assert.Contains("/Root", exception.Message);
@@ -127,7 +136,8 @@ public class TrailerTests
         {
             [PdfNames.Encrypt] = expectedValue
         };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.Encrypt;
 
@@ -142,7 +152,8 @@ public class TrailerTests
         {
             [PdfNames.Info] = expectedReference
         };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.Info;
 
@@ -150,29 +161,31 @@ public class TrailerTests
     }
 
     [Fact]
-    public void Test_ID_WithValidTwoElementArray_ReturnsArray()
+    public void Test_ID_WithValidTwoElementArray_ReturnsTuple()
     {
-        var expectedArray = new PdfArray(new IPdfPrimitive[]
-        {
-            new PdfNumber(1),
-            new PdfNumber(2)
-        });
+        var id1 = new PdfString(Convert.FromHexString("48656C6C6F"), true);
+        var id2 = new PdfString(Convert.FromHexString("576F726C64"), true);
+        var idArray = new PdfArray(new IPdfPrimitive[] { id1, id2 });
         var dictionary = new PdfDictionary()
         {
-            [PdfNames.ID] = expectedArray
+            [PdfNames.ID] = idArray
         };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.ID;
 
-        Assert.Equal(expectedArray, result);
+        Assert.NotNull(result);
+        Assert.Equal(id1.Raw, result.Value.OriginalId);
+        Assert.Equal(id2.Raw, result.Value.LastVersionId);
     }
 
     [Fact]
     public void Test_ID_WithMissingKey_ReturnsNull()
     {
         var dictionary = new PdfDictionary();
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.ID;
 
@@ -188,14 +201,15 @@ public class TrailerTests
     {
         var items = new IPdfPrimitive[arraySize];
         for (int i = 0; i < arraySize; i++)
-            items[i] = new PdfNumber(i);
+            items[i] = new PdfString(Convert.FromHexString($"{i:X2}"), true);
 
         var invalidArray = new PdfArray(items);
         var dictionary = new PdfDictionary()
         {
             [PdfNames.ID] = invalidArray
         };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings { Strict = true };
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var exception = Assert.Throws<ParseException>(() => trailer.ID);
         Assert.Contains("ID array should contain 2 values", exception.Message);
@@ -209,7 +223,8 @@ public class TrailerTests
     public void Test_XRefStm_WithValidValue_ReturnsValue(long xrefStmValue)
     {
         var dictionary = new PdfDictionary() { [PdfNames.XRefStm] = new PdfNumber(xrefStmValue) };
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.XRefStm;
 
@@ -220,7 +235,8 @@ public class TrailerTests
     public void Test_XRefStm_WithMissingKey_ReturnsNull()
     {
         var dictionary = new PdfDictionary();
-        var trailer = new Trailer(dictionary);
+        var readerSettings = new ReaderSettings();
+        var trailer = new Trailer(dictionary, readerSettings);
 
         var result = trailer.XRefStm;
 

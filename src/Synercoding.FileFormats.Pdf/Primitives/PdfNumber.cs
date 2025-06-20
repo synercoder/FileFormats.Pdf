@@ -30,6 +30,9 @@ public readonly struct PdfNumber : IPdfPrimitive, IEquatable<PdfNumber>
     internal long LongValue
         => _longValue ?? (long)(_doubleValue ?? default);
 
+    internal bool IsFractional
+        => _doubleValue.HasValue;
+
     public bool Equals(PdfNumber other)
         => ( _doubleValue.HasValue && other._doubleValue.HasValue && _doubleValue == other._doubleValue )
         || ( _longValue.HasValue && other._longValue.HasValue && _longValue == other._longValue )

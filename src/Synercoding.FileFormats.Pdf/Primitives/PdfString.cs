@@ -10,31 +10,30 @@ public class PdfString : IPdfPrimitive, IEquatable<PdfString>
 {
     public PdfString(byte[] bytes, bool isHex)
     {
-        _bytes = bytes;
+        Raw = bytes;
         IsHex = isHex;
     }
 
-    private readonly byte[] _bytes;
+    internal byte[] Raw { get; }
 
-    private string? _value;
     public string Value
     {
         get
         {
-            if (_value is not null)
-                return _value;
+            if (field is not null)
+                return field;
 
-            _value = Encoding switch
+            field = Encoding switch
             {
-                PdfStringEncoding.Utf16BE => SystemEncoding.BigEndianUnicode.GetString(_bytes, 2, _bytes.Length - 2),
-                PdfStringEncoding.Utf16LE => SystemEncoding.Unicode.GetString(_bytes, 2, _bytes.Length - 2),
-                PdfStringEncoding.Utf8 => SystemEncoding.UTF8.GetString(_bytes, 3, _bytes.Length - 3),
-                PdfStringEncoding.PdfDocEncoding => PDFDocEncoding.Decode(_bytes),
-                PdfStringEncoding.ByteString => '<' + Convert.ToHexString(_bytes) + '>',
+                PdfStringEncoding.Utf16BE => SystemEncoding.BigEndianUnicode.GetString(Raw, 2, Raw.Length - 2),
+                PdfStringEncoding.Utf16LE => SystemEncoding.Unicode.GetString(Raw, 2, Raw.Length - 2),
+                PdfStringEncoding.Utf8 => SystemEncoding.UTF8.GetString(Raw, 3, Raw.Length - 3),
+                PdfStringEncoding.PdfDocEncoding => PDFDocEncoding.Decode(Raw),
+                PdfStringEncoding.ByteString => '<' + Convert.ToHexString(Raw) + '>',
                 var unknown => throw new NotImplementedException($"Unknown {nameof(PdfStringEncoding)} value: {unknown}.")
             };
 
-            return _value;
+            return field;
         }
     }
 
@@ -42,12 +41,12 @@ public class PdfString : IPdfPrimitive, IEquatable<PdfString>
     {
         get
         {
-            return _bytes switch
+            return Raw switch
             {
                 [0xFE, 0xFF, ..] => PdfStringEncoding.Utf16BE,
                 [0xFF, 0xFE, ..] => PdfStringEncoding.Utf16LE,
                 [0xEF, 0xBB, 0xBF, ..] => PdfStringEncoding.Utf8,
-                _ when PDFDocEncoding.CanDecode(_bytes) => PdfStringEncoding.PdfDocEncoding,
+                _ when PDFDocEncoding.CanDecode(Raw) => PdfStringEncoding.PdfDocEncoding,
                 _ when IsHex => PdfStringEncoding.ByteString,
                 _ => throw new ParseException("Could not determine the encoding of the PdfString.")
             };
