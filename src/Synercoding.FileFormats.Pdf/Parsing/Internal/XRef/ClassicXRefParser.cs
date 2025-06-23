@@ -1,6 +1,7 @@
 using Synercoding.FileFormats.Pdf.Exceptions;
 using Synercoding.FileFormats.Pdf.IO;
 using Synercoding.FileFormats.Pdf.Primitives;
+using System.Reflection.PortableExecutable;
 
 namespace Synercoding.FileFormats.Pdf.Parsing.Internal.XRef;
 
@@ -24,12 +25,42 @@ internal class ClassicXRefParser : IXRefParser
         }
     }
 
+    public Trailer GetTrailer(IPdfBytesProvider pdfBytesProvider, long pdfStart, long xrefPosition, ReaderSettings readerSettings)
+    {
+        _ = _readTableAt(pdfBytesProvider, pdfStart, xrefPosition);
+
+        var parser = new Parser(new Lexer(pdfBytesProvider, readerSettings.Logger), null, readerSettings.Logger);
+        parser.Lexer.ReadOrThrow(TokenKind.Trailer);
+        var trailerDictionary = parser.ReadDictionary(null);
+        return new Trailer(trailerDictionary, readerSettings);
+    }
+
     public (Trailer Trailer, XRefTable XRefTable) Parse(IPdfBytesProvider pdfBytesProvider, long pdfStart, long xrefPosition, ObjectReader reader)
+    {
+        var table = _readTableAt(pdfBytesProvider, pdfStart, xrefPosition);
+
+        pdfBytesProvider.SkipWhiteSpace();
+
+        var trailer = GetTrailer(pdfBytesProvider, pdfStart, xrefPosition, reader.Settings);
+
+        // Handle XRefStm if present (hybrid PDF)
+        if (trailer.XRefStm.HasValue)
+        {
+            var parser = new Parser(new Lexer(pdfBytesProvider, reader.Settings.Logger), null, reader.Settings.Logger);
+            parser.Lexer.Position = trailer.XRefStm.Value;
+            var objStreamWrapper = parser.ReadObject<IPdfStreamObject>();
+            var objStream = new ObjectStream(objStreamWrapper.Value, reader);
+            table = table.Merge(new XRefTable(objStream.AsXRefItems(objStreamWrapper.Id)));
+        }
+
+        return (trailer, table);
+    }
+
+    private XRefTable _readTableAt(IPdfBytesProvider pdfBytesProvider, long pdfStart, long xrefPosition)
     {
         pdfBytesProvider.Seek(pdfStart + xrefPosition, SeekOrigin.Begin);
 
         var items = new List<XRefItem>();
-        var parser = new Parser(new Lexer(pdfBytesProvider, reader.Settings.Logger), reader.Settings.Logger);
 
         // Skip "xref" keyword
         pdfBytesProvider
@@ -44,25 +75,7 @@ internal class ClassicXRefParser : IXRefParser
             items.AddRange(_getXRefItems(pdfBytesProvider, startNumber, count));
         }
 
-        var table = new XRefTable(items);
-
-        pdfBytesProvider.SkipWhiteSpace();
-
-        // Read trailer
-        parser.Lexer.ReadOrThrow(TokenKind.Trailer);
-        var trailerDictionary = parser.ReadDictionary();
-        var trailer = new Trailer(trailerDictionary, reader.Settings);
-
-        // Handle XRefStm if present (hybrid PDF)
-        if (trailer.XRefStm.HasValue)
-        {
-            parser.Lexer.Position = trailer.XRefStm.Value;
-            var objStreamWrapper = parser.ReadObject<IPdfStreamObject>();
-            var objStream = new ObjectStream(objStreamWrapper.Value, reader);
-            table = table.Merge(new XRefTable(objStream.AsXRefItems(objStreamWrapper.Id)));
-        }
-
-        return (trailer, table);
+        return new XRefTable(items);
     }
 
     private static bool _tryReadXRefSectionStart(IPdfBytesProvider pdfBytesProvider, out (int StartNumber, int Count) startAndCount)

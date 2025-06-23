@@ -1,5 +1,6 @@
 using Synercoding.FileFormats.Pdf.DocumentObjects;
 using Synercoding.FileFormats.Pdf.DocumentObjects.Internal;
+using Synercoding.FileFormats.Pdf.Encryption;
 using Synercoding.FileFormats.Pdf.Exceptions;
 using Synercoding.FileFormats.Pdf.IO;
 using Synercoding.FileFormats.Pdf.Logging;
@@ -18,35 +19,67 @@ public sealed class PdfReader : IReadOnlyList<IReadOnlyPage>, IDisposable
     private readonly IList<IReadOnlyPage> _pages = new List<IReadOnlyPage>();
 
     public PdfReader(string filePath)
-        : this(filePath, new ReaderSettings())
+        : this(filePath, string.Empty)
     { }
 
     public PdfReader(string filePath, ReaderSettings settings)
-        : this(File.OpenRead(filePath), settings, true)
+        : this(File.OpenRead(filePath), string.Empty, settings)
     { }
 
     public PdfReader(Stream stream)
-        : this(stream, new ReaderSettings())
+        : this(stream, string.Empty)
     { }
 
     public PdfReader(Stream stream, ReaderSettings settings)
-        : this(stream, settings, false)
+        : this(stream, string.Empty, settings)
     { }
 
     public PdfReader(byte[] bytes)
-        : this(bytes, new ReaderSettings())
+        : this(bytes, string.Empty)
     { }
 
     public PdfReader(Stream stream, ReaderSettings settings, bool disposeStream)
-        : this(DisposableBytesProvider.GetFrom(stream, settings, disposeStream), settings)
+        : this(stream, string.Empty, settings, disposeStream)
     { }
 
     public PdfReader(byte[] bytes, ReaderSettings settings)
-        : this(new PdfByteArrayProvider(bytes), settings)
+        : this(bytes, string.Empty, settings)
     { }
 
     public PdfReader(IPdfBytesProvider bytesProvider, ReaderSettings settings)
-        : this(new ObjectReader(bytesProvider, settings))
+        : this(bytesProvider, string.Empty, settings)
+    { }
+
+    public PdfReader(string filePath, string password)
+        : this(filePath, password, new ReaderSettings())
+    { }
+
+    public PdfReader(string filePath, string password, ReaderSettings settings)
+        : this(File.OpenRead(filePath), password, settings, true)
+    { }
+
+    public PdfReader(Stream stream, string password)
+        : this(stream, password, new ReaderSettings())
+    { }
+
+    public PdfReader(Stream stream, string password, ReaderSettings settings)
+        : this(stream, password, settings, false)
+    { }
+
+    public PdfReader(byte[] bytes, string password)
+        : this(bytes, password, new ReaderSettings())
+    { }
+
+    public PdfReader(Stream stream, string password, ReaderSettings settings, bool disposeStream)
+        : this(DisposableBytesProvider.GetFrom(stream, settings, disposeStream), password, settings)
+    { }
+
+    public PdfReader(byte[] bytes, string password, ReaderSettings settings)
+        : this(new PdfByteArrayProvider(bytes), password, settings)
+    { }
+
+    public PdfReader(IPdfBytesProvider bytesProvider, string password, ReaderSettings settings)
+        : this(new ObjectReader(bytesProvider, password, settings))
     { }
 
     public PdfReader(ObjectReader objectReader)
@@ -70,14 +103,13 @@ public sealed class PdfReader : IReadOnlyList<IReadOnlyPage>, IDisposable
             DocumentInformation = new ReadOnlyDocumentInformation(documentInfoDictionary, _objectReader);
         }
 
-        if (_objectReader.Trailer.ID.HasValue)
+        if (_objectReader.Trailer.ID is PdfIds ids)
         {
-            Id = new PdfIds(
-                originalId: _objectReader.Trailer.ID.Value.OriginalId,
-                lastVersionId: _objectReader.Trailer.ID.Value.LastVersionId
-            );
+            Id = ids;
         }
     }
+
+    public EncryptionInfo Encryption => _objectReader.Encryption;
 
     public IReadOnlyPage this[int index]
     {

@@ -11,10 +11,22 @@ internal class IncrementalUpdateHandler
         _xrefParsers = xrefParsers ?? throw new ArgumentNullException(nameof(xrefParsers));
     }
 
-    public (Trailer Trailer, XRefTable XRefTable) ProcessIncrementalUpdates(
-        IPdfBytesProvider pdfBytesProvider, 
-        long pdfStart, 
-        long initialXRefPosition, 
+    public Trailer GetTrailer(IPdfBytesProvider pdfBytesProvider,
+        long pdfStart,
+        long xrefPosition,
+        ReaderSettings readerSettings)
+    {
+        foreach (var parser in _xrefParsers)
+            if (parser.CanParse(pdfBytesProvider, pdfStart + xrefPosition))
+                return parser.GetTrailer(pdfBytesProvider, pdfStart, xrefPosition, readerSettings);
+
+        throw new InvalidOperationException($"No suitable XRef parser found for position {xrefPosition}");
+    }
+
+    public XRefTable ProcessIncrementalUpdates(
+        IPdfBytesProvider pdfBytesProvider,
+        long pdfStart,
+        long initialXRefPosition,
         ObjectReader reader)
     {
         var (trailer, table) = _parseXRefSection(pdfBytesProvider, pdfStart, initialXRefPosition, reader);
@@ -28,13 +40,13 @@ internal class IncrementalUpdateHandler
             trailer = oldTrailer;
         }
 
-        return (lastTrailer, table);
+        return table;
     }
 
     private (Trailer Trailer, XRefTable XRefTable) _parseXRefSection(
-        IPdfBytesProvider pdfBytesProvider, 
-        long pdfStart, 
-        long xrefPosition, 
+        IPdfBytesProvider pdfBytesProvider,
+        long pdfStart,
+        long xrefPosition,
         ObjectReader reader)
     {
         foreach (var parser in _xrefParsers)

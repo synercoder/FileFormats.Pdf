@@ -22,7 +22,8 @@ public class IncrementalUpdateHandlerTests
         using var stream = new MemoryStream();
         using var reader = new ObjectReader(stream);
 
-        var (trailer, table) = handler.ProcessIncrementalUpdates(provider, 0, 0, reader);
+        var trailer = handler.GetTrailer(provider, 0, 0, reader.Settings);
+        var table = handler.ProcessIncrementalUpdates(provider, 0, 0, reader);
 
         Assert.Equal(1, mockParser.ParseCallCount);
         Assert.NotNull(trailer);
@@ -44,10 +45,9 @@ public class IncrementalUpdateHandlerTests
         using var stream = new MemoryStream();
         using var reader = new ObjectReader(stream);
 
-        var (trailer, table) = handler.ProcessIncrementalUpdates(provider, 0, 0, reader);
+        var table = handler.ProcessIncrementalUpdates(provider, 0, 0, reader);
 
         Assert.Equal(2, mockParser.ParseCallCount); // Should parse twice due to /Prev chain
-        Assert.NotNull(trailer);
         Assert.NotNull(table);
     }
 
@@ -116,6 +116,21 @@ public class IncrementalUpdateHandlerTests
         {
             ParseCallCount++;
 
+            var readerSettings = new ReaderSettings();
+            var trailer = GetTrailer(pdfBytesProvider, pdfStart, xrefPosition, readerSettings);
+
+            // Create mock xref table
+            var items = new List<XRefItem>
+            {
+                new FreeXRefItem(new PdfObjectId(0, 65535, true))
+            };
+            var table = new XRefTable(items);
+
+            return (trailer, table);
+        }
+
+        public Trailer GetTrailer(IPdfBytesProvider pdfBytesProvider, long pdfStart, long xrefPosition, ReaderSettings readerSettings)
+        {
             // Create mock trailer with appropriate /Prev value
             var trailerDict = new PdfDictionary
             {
@@ -126,17 +141,7 @@ public class IncrementalUpdateHandlerTests
             if (_prevValues.TryDequeue(out var prevValue) && prevValue.HasValue)
                 trailerDict[PdfNames.Prev] = new PdfNumber(prevValue.Value);
 
-            var readerSettings = new ReaderSettings();
-            var trailer = new Trailer(trailerDict, readerSettings);
-
-            // Create mock xref table
-            var items = new List<XRefItem>
-            {
-                new FreeXRefItem(new PdfObjectId(0, 65535, true))
-            };
-            var table = new XRefTable(items);
-
-            return (trailer, table);
+            return new Trailer(trailerDict, readerSettings);
         }
     }
 }

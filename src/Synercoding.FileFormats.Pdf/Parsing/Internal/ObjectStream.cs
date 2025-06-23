@@ -25,7 +25,7 @@ internal class ObjectStream
 
         var bytesProvider = new PdfByteArrayProvider(streamDictionary.DecodeData(reader));
         var tokenizer = new Lexer(bytesProvider, reader.Settings.Logger);
-        _parser = new Parser(tokenizer, reader.Settings.Logger);
+        _parser = new Parser(tokenizer, null, reader.Settings.Logger);
 
         _readOffsets((int)firstOffSet.Value, (int)numberOfObjects.Value);
     }
@@ -46,7 +46,7 @@ internal class ObjectStream
 
         _parser.Lexer.Position = offset;
 
-        var objectAtOffset = _parser.ReadNext();
+        var objectAtOffset = _parser.ReadNext(id);
 
         if (objectAtOffset is not TPrimitive correctType)
             return false;

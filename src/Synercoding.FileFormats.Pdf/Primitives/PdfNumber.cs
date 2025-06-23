@@ -60,7 +60,7 @@ public readonly struct PdfNumber : IPdfPrimitive, IEquatable<PdfNumber>
 
     public static implicit operator int(PdfNumber r) => (int)r.LongValue;
 
-    public static implicit operator long(PdfNumber r) => (long)r.LongValue;
+    public static implicit operator long(PdfNumber r) => r.LongValue;
 
     public static explicit operator PdfNumber(double d) => new PdfNumber(d);
 

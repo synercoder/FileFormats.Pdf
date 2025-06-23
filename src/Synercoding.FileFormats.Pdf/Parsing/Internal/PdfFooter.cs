@@ -29,10 +29,16 @@ internal class PdfFooter
         return new PdfFooter(startXRefFinder, incrementalUpdateHandler);
     }
 
-    public (Trailer Trailer, XRefTable XRefTable) Parse(IPdfBytesProvider pdfBytesProvider, long pdfStart, ObjectReader reader)
+    public XRefTable Parse(IPdfBytesProvider pdfBytesProvider, long pdfStart, ObjectReader reader)
     {
         var startXRef = _startXRefFinder.FindStartXRef(pdfBytesProvider, pdfStart);
         return _incrementalUpdateHandler.ProcessIncrementalUpdates(pdfBytesProvider, pdfStart, startXRef, reader);
+    }
+
+    public Trailer GetTrailer(IPdfBytesProvider pdfBytesProvider, long pdfStart, ReaderSettings readerSettings)
+    {
+        var startXRef = _startXRefFinder.FindStartXRef(pdfBytesProvider, pdfStart);
+        return _incrementalUpdateHandler.GetTrailer(pdfBytesProvider, pdfStart, startXRef, readerSettings);
     }
 }
 

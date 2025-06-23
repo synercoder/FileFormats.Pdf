@@ -12,6 +12,8 @@ internal class PdfHeader
     {
         long offset = 0;
 
+        pdfBytesProvider.Seek(0, SeekOrigin.Begin);
+
         int index = 0;
         while (pdfBytesProvider.TryRead(out byte b))
         {
@@ -48,6 +50,10 @@ internal class PdfHeader
             {
                 offset = pdfBytesProvider.Position - 1;
                 index = 1;
+            }
+            else if (index != 0)
+            {
+                index = 0;
             }
         }
 

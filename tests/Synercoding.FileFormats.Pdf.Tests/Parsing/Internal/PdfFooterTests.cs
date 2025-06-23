@@ -255,7 +255,8 @@ startxref
         using var reader = new ObjectReader(stream);
 
         var footer = PdfFooter.CreateDefault();
-        var (trailer, table) = footer.Parse(provider, 0, reader);
+        var trailer = footer.GetTrailer(provider, 0, reader.Settings);
+        var table = footer.Parse(provider, 0, reader);
 
         Assert.Equal(2, trailer.Size);
         Assert.Equal(2, table.Items.Length);
@@ -297,7 +298,8 @@ startxref
         using var reader = new ObjectReader(stream);
 
         var footer = PdfFooter.CreateDefault();
-        var (trailer, table) = footer.Parse(provider, 0, reader);
+        var trailer = footer.GetTrailer(provider, 0, reader.Settings);
+        var table = footer.Parse(provider, 0, reader);
 
         Assert.Equal(2, trailer.Size);
         Assert.Equal(2, table.Items.Length);
@@ -361,7 +363,8 @@ startxref
         using var reader = new ObjectReader(stream);
 
         var footer = PdfFooter.CreateDefault();
-        var (trailer, table) = footer.Parse(provider, 0, reader);
+        var trailer = footer.GetTrailer(provider, 0, reader.Settings);
+        var table = footer.Parse(provider, 0, reader);
 
         Assert.Equal(4, trailer.Size);
         Assert.Equal(4, table.Items.Length);

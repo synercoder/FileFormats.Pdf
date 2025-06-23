@@ -80,7 +80,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var result = parser.ReadDictionary();
+        var result = parser.ReadDictionary(null);
         
         Assert.NotNull(result);
         Assert.True(result.ContainsKey(PdfName.Get("Type")));
@@ -106,7 +106,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var result = parser.ReadDictionary();
+        var result = parser.ReadDictionary(null);
         
         Assert.NotNull(result);
         Assert.Empty(result.Keys);
@@ -266,7 +266,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var result = parser.ReadNext();
+        var result = parser.ReadNext(null);
         
         Assert.NotNull(result);
         Assert.IsAssignableFrom(expectedType, result);
@@ -280,7 +280,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
 
-        Assert.Throws<UnexpectedEndOfFileException>(() => parser.ReadNext());
+        Assert.Throws<UnexpectedEndOfFileException>(() => parser.ReadNext(null));
     }
 
     [Fact]
@@ -325,7 +325,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var result = parser.ReadDictionaryOrStream();
+        var result = parser.ReadDictionaryOrStream(null);
         
         Assert.NotNull(result);
         Assert.IsType<ReadOnlyPdfDictionary>(result);
@@ -342,7 +342,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var result = parser.ReadDictionaryOrStream();
+        var result = parser.ReadDictionaryOrStream(null);
         
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IPdfStreamObject>(result);
@@ -363,7 +363,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var result = parser.ReadStreamObject();
+        var result = parser.ReadStreamObject(null);
         
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IPdfStreamObject>(result);
@@ -380,7 +380,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var exception = Assert.Throws<ParseException>(() => parser.ReadStreamObject());
+        var exception = Assert.Throws<ParseException>(() => parser.ReadStreamObject(null));
         Assert.Contains("stream token was expected", exception.Message);
     }
 
@@ -393,7 +393,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var exception = Assert.Throws<ParseException>(() => parser.ReadDictionaryOrStream());
+        var exception = Assert.Throws<ParseException>(() => parser.ReadDictionaryOrStream(null));
         Assert.Contains("does not contain a Length property", exception.Message);
     }
 
@@ -408,7 +408,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var result = parser.ReadNext();
+        var result = parser.ReadNext(null);
         
         Assert.NotNull(result);
         Assert.IsType(expectedType, result);
@@ -434,7 +434,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
         
-        var result = parser.ReadNext();
+        var result = parser.ReadNext(null);
         
         Assert.NotNull(result);
         Assert.IsType<ReadOnlyPdfDictionary>(result);
@@ -466,7 +466,7 @@ public class ParserTests
         var lexer = new Lexer(provider);
         var parser = new Parser(lexer);
 
-        Assert.Throws<UnexpectedTokenException>(() => parser.ReadNext());
+        Assert.Throws<UnexpectedTokenException>(() => parser.ReadNext(null));
     }
 
     [Fact]

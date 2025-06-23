@@ -16,6 +16,8 @@ public static class PdfNames
         => PdfName.Get(nameof(BleedBox));
     public static PdfName Catalog
         => PdfName.Get(nameof(Catalog));
+    public static PdfName CF
+        => PdfName.Get(nameof(CF));
     public static PdfName ColorSpace
         => PdfName.Get(nameof(ColorSpace));
     public static PdfName Contents
@@ -40,8 +42,12 @@ public static class PdfNames
         => PdfName.Get(nameof(DeviceGray));
     public static PdfName DeviceRGB
         => PdfName.Get(nameof(DeviceRGB));
+    public static PdfName EFF
+        => PdfName.Get(nameof(EFF));
     public static PdfName Encrypt
         => PdfName.Get(nameof(Encrypt));
+    public static PdfName EncryptMetadata
+        => PdfName.Get(nameof(EncryptMetadata));
     public static PdfName ExtGState
         => PdfName.Get(nameof(ExtGState));
     public static PdfName Filter
@@ -56,6 +62,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Height));
     public static PdfName ID
         => PdfName.Get(nameof(ID));
+    public static PdfName Identity
+        => PdfName.Get(nameof(Identity));
     public static PdfName Image
         => PdfName.Get(nameof(Image));
     public static PdfName Index
@@ -76,8 +84,14 @@ public static class PdfNames
         => PdfName.Get(nameof(ModDate));
     public static PdfName N
         => PdfName.Get(nameof(N));
+    public static PdfName O
+        => PdfName.Get(nameof(O));
     public static PdfName ObjStm
         => PdfName.Get(nameof(ObjStm));
+    public static PdfName OE
+        => PdfName.Get(nameof(OE));
+    public static PdfName P
+        => PdfName.Get(nameof(P));
     public static PdfName Page
         => PdfName.Get(nameof(Page));
     public static PdfName Pages
@@ -86,6 +100,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Parent));
     public static PdfName Pattern
         => PdfName.Get(nameof(Pattern));
+    public static PdfName Perms
+        => PdfName.Get(nameof(Perms));
     public static PdfName Predictor
         => PdfName.Get(nameof(Predictor));
     public static PdfName Prev
@@ -96,6 +112,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Producer));
     public static PdfName Properties
         => PdfName.Get(nameof(Properties));
+    public static PdfName R
+        => PdfName.Get(nameof(R));
     public static PdfName Resources
         => PdfName.Get(nameof(Resources));
     public static PdfName Root
@@ -108,6 +126,14 @@ public static class PdfNames
         => PdfName.Get(nameof(Shading));
     public static PdfName Size
         => PdfName.Get(nameof(Size));
+    public static PdfName Standard
+        => PdfName.Get(nameof(Standard));
+    public static PdfName StmF
+        => PdfName.Get(nameof(StmF));
+    public static PdfName StrF
+        => PdfName.Get(nameof(StrF));
+    public static PdfName SubFilter
+        => PdfName.Get(nameof(SubFilter));
     public static PdfName Subject
         => PdfName.Get(nameof(Subject));
     public static PdfName Subtype
@@ -118,8 +144,14 @@ public static class PdfNames
         => PdfName.Get(nameof(TrimBox));
     public static PdfName Type
         => PdfName.Get(nameof(Type));
+    public static PdfName U
+        => PdfName.Get(nameof(U));
+    public static PdfName UE
+        => PdfName.Get(nameof(UE));
     public static PdfName UserUnit
         => PdfName.Get(nameof(UserUnit));
+    public static PdfName V
+        => PdfName.Get(nameof(V));
     public static PdfName W
         => PdfName.Get(nameof(W));
     public static PdfName Width

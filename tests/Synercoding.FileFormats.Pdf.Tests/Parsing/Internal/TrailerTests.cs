@@ -176,8 +176,8 @@ public class TrailerTests
         var result = trailer.ID;
 
         Assert.NotNull(result);
-        Assert.Equal(id1.Raw, result.Value.OriginalId);
-        Assert.Equal(id2.Raw, result.Value.LastVersionId);
+        Assert.Equal(id1.Raw, result.OriginalId);
+        Assert.Equal(id2.Raw, result.LastVersionId);
     }
 
     [Fact]

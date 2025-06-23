@@ -1,5 +1,6 @@
 using Synercoding.FileFormats.Pdf.IO;
 using Synercoding.FileFormats.Pdf.Primitives;
+using System.Reflection.PortableExecutable;
 
 namespace Synercoding.FileFormats.Pdf.Parsing.Internal.XRef;
 
@@ -30,12 +31,24 @@ internal class XRefStreamParser : IXRefParser
         }
     }
 
+    public Trailer GetTrailer(IPdfBytesProvider pdfBytesProvider, long pdfStart, long xrefPosition, ReaderSettings readerSettings)
+    {
+        pdfBytesProvider.Seek(pdfStart + xrefPosition, SeekOrigin.Begin);
+
+        var lexer = new Lexer(pdfBytesProvider, readerSettings.Logger);
+        var parser = new Parser(lexer, null, readerSettings.Logger);
+        var streamObjectWrap = parser.ReadObject<IPdfStreamObject>();
+        var streamObject = streamObjectWrap.Value;
+
+        return new Trailer(streamObject, readerSettings);
+    }
+
     public (Trailer Trailer, XRefTable XRefTable) Parse(IPdfBytesProvider pdfBytesProvider, long pdfStart, long xrefPosition, ObjectReader reader)
     {
         pdfBytesProvider.Seek(pdfStart + xrefPosition, SeekOrigin.Begin);
 
         var lexer = new Lexer(pdfBytesProvider, reader.Settings.Logger);
-        var parser = new Parser(lexer, reader.Settings.Logger);
+        var parser = new Parser(lexer, null, reader.Settings.Logger);
         var streamObjectWrap = parser.ReadObject<IPdfStreamObject>();
         var streamObject = streamObjectWrap.Value;
 

@@ -1,3 +1,4 @@
+using Synercoding.FileFormats.Pdf.DocumentObjects;
 using Synercoding.FileFormats.Pdf.Exceptions;
 using Synercoding.FileFormats.Pdf.Logging;
 using Synercoding.FileFormats.Pdf.Primitives;
@@ -71,7 +72,7 @@ internal class Trailer
         }
     }
 
-    public (byte[] OriginalId, byte[] LastVersionId)? ID
+    public PdfIds? ID
     {
         get
         {
@@ -105,7 +106,7 @@ internal class Trailer
                 return null;
             }
 
-            return (id1.Raw, id2.Raw);
+            return new PdfIds(id1.Raw, id2.Raw);
         }
     }
 

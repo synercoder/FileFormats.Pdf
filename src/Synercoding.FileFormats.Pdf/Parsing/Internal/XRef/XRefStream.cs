@@ -87,7 +87,7 @@ internal static class XRefStream
 
     private static (byte W1, byte W2, byte W3) _getWidths(IPdfStreamObject stream)
     {
-        if (!stream.TryGetValue<PdfArray>(PdfNames.W, out var w) || w.Count != 3)
+        if (!stream.TryGetValue<IPdfArray>(PdfNames.W, out var w) || w.Count != 3)
             throw new ParseException("XRef stream did not contain a /W key with an array of size 3.");
 
         var integers = w.OfType<PdfNumber>().ToArray();
