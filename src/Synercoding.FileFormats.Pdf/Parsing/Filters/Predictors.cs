@@ -11,13 +11,13 @@ internal class Predictors
         int bytesPerRow = columns;
         int totalRows = input.Length / ( bytesPerRow + 1 );
 
+        var currentRow = new byte[bytesPerRow];
+        var previousRow = new byte[bytesPerRow];
+
         for (int row = 0; row < totalRows; row++)
         {
             int rowStart = row * ( bytesPerRow + 1 );
             byte filterType = input[rowStart];
-
-            var currentRow = new byte[bytesPerRow];
-            var previousRow = row > 0 ? output.Skip(( row - 1 ) * bytesPerRow).Take(bytesPerRow).ToArray() : new byte[bytesPerRow];
 
             // Extract the filtered data for this row
             for (int i = 0; i < bytesPerRow; i++)
@@ -73,6 +73,10 @@ internal class Predictors
             }
 
             output.AddRange(currentRow);
+
+            var tmp = previousRow;
+            previousRow = currentRow;
+            currentRow = tmp;
         }
 
         return output.ToArray();
