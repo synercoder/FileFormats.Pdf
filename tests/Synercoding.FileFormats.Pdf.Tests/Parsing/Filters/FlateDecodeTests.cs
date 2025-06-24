@@ -17,7 +17,7 @@ public class FlateDecodeTests
         var inputBytes = Encoding.UTF8.GetBytes(input);
 
         var encoded = filter.Encode(inputBytes, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(expected, Encoding.UTF8.GetString(decoded));
     }
@@ -28,7 +28,7 @@ public class FlateDecodeTests
         var filter = new FlateDecode();
         var input = new byte[] { 0x78, 0x9C, 0x03, 0x00, 0x00, 0x00, 0x00, 0x01 }; // Empty zlib stream
 
-        var result = filter.Decode(input, null);
+        var result = filter.Decode(input, null, null!);
 
         Assert.Empty(result);
     }
@@ -54,7 +54,7 @@ public class FlateDecodeTests
         var filter = new FlateDecode();
 
         var encoded = filter.Encode(input, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(input, decoded);
     }
@@ -67,7 +67,7 @@ public class FlateDecodeTests
         new Random(42).NextBytes(input); // Deterministic random data
 
         var encoded = filter.Encode(input, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(input, decoded);
     }

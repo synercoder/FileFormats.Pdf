@@ -14,7 +14,7 @@ public class ASCII85DecodeTests
         var inputBytes = Encoding.ASCII.GetBytes(input);
         var expected = Encoding.ASCII.GetBytes(expectedText);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -28,7 +28,7 @@ public class ASCII85DecodeTests
         var filter = new ASCII85Decode();
         var inputBytes = Encoding.ASCII.GetBytes(input);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -40,7 +40,7 @@ public class ASCII85DecodeTests
         var filter = new ASCII85Decode();
         var inputBytes = Encoding.ASCII.GetBytes(input);
         
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -55,7 +55,7 @@ public class ASCII85DecodeTests
         var inputBytes = Encoding.ASCII.GetBytes(input);
         var expected = Encoding.ASCII.GetBytes(expectedText);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -70,7 +70,7 @@ public class ASCII85DecodeTests
         var filter = new ASCII85Decode();
         var inputBytes = Encoding.ASCII.GetBytes(input);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         // Should handle incomplete groups gracefully without throwing
         Assert.NotNull(result);
@@ -84,7 +84,7 @@ public class ASCII85DecodeTests
         var filter = new ASCII85Decode();
         var inputBytes = Encoding.ASCII.GetBytes(input);
 
-        Assert.Throws<ParseException>(() => filter.Decode(inputBytes, null));
+        Assert.Throws<ParseException>(() => filter.Decode(inputBytes, null, null!));
     }
 
     [Theory]
@@ -96,7 +96,7 @@ public class ASCII85DecodeTests
         var filter = new ASCII85Decode();
         var inputBytes = Encoding.ASCII.GetBytes(input);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Empty(result);
     }
@@ -114,7 +114,7 @@ public class ASCII85DecodeTests
         var result = filter.Encode(inputBytes, null);
         
         // Should be able to decode back correctly
-        var decoded = filter.Decode(result, null);
+        var decoded = filter.Decode(result, null, null!);
         Assert.Equal(inputBytes, decoded);
     }
 
@@ -133,7 +133,7 @@ public class ASCII85DecodeTests
         Assert.EndsWith("~>", resultString);
 
         // Verify round-trip
-        var decoded = filter.Decode(result, null);
+        var decoded = filter.Decode(result, null, null!);
         Assert.Equal(input, decoded);
     }
 
@@ -174,7 +174,7 @@ public class ASCII85DecodeTests
         var originalBytes = Encoding.UTF8.GetBytes(originalText);
 
         var encoded = filter.Encode(originalBytes, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(originalBytes, decoded);
     }
@@ -190,7 +190,7 @@ public class ASCII85DecodeTests
         var filter = new ASCII85Decode();
 
         var encoded = filter.Encode(original, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(original, decoded);
     }
@@ -206,7 +206,7 @@ public class ASCII85DecodeTests
             originalData[i] = (byte)(i % 256);
 
         var encoded = filter.Encode(originalData, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(originalData, decoded);
     }
@@ -252,7 +252,7 @@ public class ASCII85DecodeTests
         var inputBytes = Encoding.ASCII.GetBytes(input);
         var expected = Encoding.ASCII.GetBytes("Man ");
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -265,7 +265,7 @@ public class ASCII85DecodeTests
         var inputBytes = Encoding.ASCII.GetBytes(input);
 
         // Should handle truncated input gracefully without throwing
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
         Assert.NotNull(result);
     }
 }

@@ -37,7 +37,7 @@ public class FlateDecode : IStreamFilter
             var level => throw new NotImplementedException("Unsupported compression level: {level}")
         };
 
-    public byte[] Decode(byte[] input, IPdfDictionary? parameters)
+    public byte[] Decode(byte[] input, IPdfDictionary? parameters, ObjectReader objectReader)
     {
         if (parameters?.TryGetValue<PdfNumber>(PdfNames.Predictor, out var predictorInteger) == true && predictorInteger != 1)
             throw new NotImplementedException($"{nameof(FlateDecode)} currently only supports flate encoding with no prediction function.");

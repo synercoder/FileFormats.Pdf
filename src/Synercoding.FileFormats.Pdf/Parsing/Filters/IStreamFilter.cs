@@ -6,5 +6,5 @@ public interface IStreamFilter
 {
     PdfName Name { get; }
     byte[] Encode(byte[] input, IPdfDictionary? parameters);
-    byte[] Decode(byte[] input, IPdfDictionary? parameters);
+    byte[] Decode(byte[] input, IPdfDictionary? parameters, ObjectReader objectReader);
 }

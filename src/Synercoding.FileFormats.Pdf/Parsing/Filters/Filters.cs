@@ -34,5 +34,5 @@ public class Filters
     }
 
     public static Filters GetDefault()
-        => new Filters([new ASCII85Decode(), new ASCIIHexDecode(), new RunlengthDecode(), new FlateDecode(), new DCTDecode(), new LZWDecode()]);
+        => new Filters([new ASCII85Decode(), new ASCIIHexDecode(), new RunLengthDecode(), new FlateDecode(), new DCTDecode(), new LZWDecode()]);
 }

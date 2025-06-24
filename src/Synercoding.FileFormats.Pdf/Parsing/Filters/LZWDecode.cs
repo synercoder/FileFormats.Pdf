@@ -65,7 +65,7 @@ public class LZWDecode : IStreamFilter
         return _packCodes(codes);
     }
 
-    public byte[] Decode(byte[] input, IPdfDictionary? parameters)
+    public byte[] Decode(byte[] input, IPdfDictionary? parameters, ObjectReader objectReader)
     {
         if (input.Length == 0)
             return Array.Empty<byte>();

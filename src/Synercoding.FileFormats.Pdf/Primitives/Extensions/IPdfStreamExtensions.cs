@@ -19,7 +19,7 @@ public static class IPdfStreamExtensions
 
                 var filter = reader.Settings.SupportedStreamFilters.Get(filterName);
 
-                data = filter.Decode(data, i < decodeParams?.Length ? decodeParams[i] : null);
+                data = filter.Decode(data, i < decodeParams?.Length ? decodeParams[i] : null, reader);
             }
 
             return data;
@@ -28,7 +28,7 @@ public static class IPdfStreamExtensions
         {
             var filter = reader.Settings.SupportedStreamFilters.Get(filterName);
 
-            var data = filter.Decode(streamObject.RawData, decodeParams?.SingleOrDefault());
+            var data = filter.Decode(streamObject.RawData, decodeParams?.SingleOrDefault(), reader);
             return data;
         }
 

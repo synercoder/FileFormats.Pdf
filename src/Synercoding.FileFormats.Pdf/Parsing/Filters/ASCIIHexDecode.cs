@@ -9,7 +9,7 @@ public class ASCIIHexDecode : IStreamFilter
     public PdfName Name
         => PdfNames.ASCIIHexDecode;
 
-    public byte[] Decode(byte[] input, IPdfDictionary? parameters)
+    public byte[] Decode(byte[] input, IPdfDictionary? parameters, ObjectReader objectReader)
     {
         using var memoryStream = new MemoryStream(input.Length * 2);
 

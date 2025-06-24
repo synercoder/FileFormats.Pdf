@@ -16,7 +16,7 @@ public class LZWDecodeTests
     [Fact]
     public void Decode_EmptyInput_ReturnsEmptyArray()
     {
-        var result = _filter.Decode(Array.Empty<byte>(), null);
+        var result = _filter.Decode(Array.Empty<byte>(), null, null!);
         
         Assert.Empty(result);
     }
@@ -35,7 +35,7 @@ public class LZWDecodeTests
         var input = new byte[] { 65 }; // 'A'
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -46,7 +46,7 @@ public class LZWDecodeTests
         var input = new byte[] { 65, 65 }; // 'AA'
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -57,7 +57,7 @@ public class LZWDecodeTests
         var input = System.Text.Encoding.ASCII.GetBytes("ABCABC");
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -68,7 +68,7 @@ public class LZWDecodeTests
         var input = System.Text.Encoding.ASCII.GetBytes("AAAAAABBBBBBCCCCCC");
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -79,7 +79,7 @@ public class LZWDecodeTests
         var input = System.Text.Encoding.ASCII.GetBytes("ABCABCABCABCABCABC");
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -94,7 +94,7 @@ public class LZWDecodeTests
         }
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -105,7 +105,7 @@ public class LZWDecodeTests
         var input = new byte[] { 0, 1, 2, 3, 4, 5, 255, 254, 253, 0, 1, 2 };
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -124,7 +124,7 @@ public class LZWDecodeTests
         
         var inputArray = input.ToArray();
         var encoded = _filter.Encode(inputArray, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(inputArray, decoded);
         
@@ -138,7 +138,7 @@ public class LZWDecodeTests
     {
         var invalidData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
         
-        Assert.Throws<InvalidDataException>(() => _filter.Decode(invalidData, null));
+        Assert.Throws<InvalidDataException>(() => _filter.Decode(invalidData, null, null!));
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public class LZWDecodeTests
         var input = System.Text.Encoding.ASCII.GetBytes("Test");
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -167,7 +167,7 @@ public class LZWDecodeTests
         var input = System.Text.Encoding.ASCII.GetBytes(testString);
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -180,7 +180,7 @@ public class LZWDecodeTests
         random.NextBytes(input);
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -191,7 +191,7 @@ public class LZWDecodeTests
         var input = new byte[] { 0, 1, 0, 2, 0, 3, 0, 0, 0, 4 };
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }
@@ -202,7 +202,7 @@ public class LZWDecodeTests
         var input = new byte[] { 255, 255, 254, 254, 253, 253 };
         
         var encoded = _filter.Encode(input, null);
-        var decoded = _filter.Decode(encoded, null);
+        var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
     }

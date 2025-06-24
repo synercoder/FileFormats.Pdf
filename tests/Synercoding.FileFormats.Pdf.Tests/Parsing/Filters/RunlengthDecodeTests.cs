@@ -12,9 +12,9 @@ public class RunlengthDecodeTests
     [InlineData(new byte[] { 128 }, new byte[] { })] // EOD marker only - empty output
     public void Test_Decode_ValidInput(byte[] input, byte[] expected)
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
 
-        var result = filter.Decode(input, null);
+        var result = filter.Decode(input, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -26,8 +26,8 @@ public class RunlengthDecodeTests
         var input = new byte[] { 2, 0x41, 0x42, 0x43, 252, 0x44, 128 };
         var expected = new byte[] { 0x41, 0x42, 0x43, 0x44, 0x44, 0x44, 0x44, 0x44 }; // 257-252=5 repeats
 
-        var filter = new RunlengthDecode();
-        var result = filter.Decode(input, null);
+        var filter = new RunLengthDecode();
+        var result = filter.Decode(input, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -45,8 +45,8 @@ public class RunlengthDecodeTests
         Array.Copy(literalData, 0, input, 1, 128);
         input[129] = 128; // EOD
 
-        var filter = new RunlengthDecode();
-        var result = filter.Decode(input, null);
+        var filter = new RunLengthDecode();
+        var result = filter.Decode(input, null, null!);
 
         Assert.Equal(literalData, result);
     }
@@ -59,8 +59,8 @@ public class RunlengthDecodeTests
         var expected = new byte[128];
         Array.Fill(expected, (byte)0xFF);
 
-        var filter = new RunlengthDecode();
-        var result = filter.Decode(input, null);
+        var filter = new RunLengthDecode();
+        var result = filter.Decode(input, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -68,10 +68,10 @@ public class RunlengthDecodeTests
     [Fact]
     public void Test_Decode_EmptyInput()
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
         var input = Array.Empty<byte>();
 
-        var result = filter.Decode(input, null);
+        var result = filter.Decode(input, null, null!);
 
         Assert.Empty(result);
     }
@@ -83,8 +83,8 @@ public class RunlengthDecodeTests
         var input = new byte[] { 1, 0x41, 0x42 }; // Copy 2 bytes literal, no EOD
         var expected = new byte[] { 0x41, 0x42 };
 
-        var filter = new RunlengthDecode();
-        var result = filter.Decode(input, null);
+        var filter = new RunLengthDecode();
+        var result = filter.Decode(input, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -96,7 +96,7 @@ public class RunlengthDecodeTests
     [InlineData(new byte[] { }, new byte[] { 128 })] // Empty input
     public void Test_Encode_BasicCases(byte[] input, byte[] expected)
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
 
         var result = filter.Encode(input, null);
 
@@ -106,7 +106,7 @@ public class RunlengthDecodeTests
     [Fact]
     public void Test_Encode_LongRepeatedRun()
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
         var input = new byte[100];
         Array.Fill(input, (byte)0x42);
 
@@ -120,7 +120,7 @@ public class RunlengthDecodeTests
     [Fact]
     public void Test_Encode_MaximumRepeatedRun()
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
         var input = new byte[128];
         Array.Fill(input, (byte)0xFF);
 
@@ -134,7 +134,7 @@ public class RunlengthDecodeTests
     [Fact]
     public void Test_Encode_LongLiteralRun()
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
         var input = new byte[100];
         for (int i = 0; i < 100; i++)
             input[i] = (byte)(i % 256);
@@ -154,7 +154,7 @@ public class RunlengthDecodeTests
     [Fact]
     public void Test_Encode_MixedLiteralAndRepeated()
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
         // ABC followed by 5 D's
         var input = new byte[] { 0x41, 0x42, 0x43, 0x44, 0x44, 0x44, 0x44, 0x44 };
 
@@ -172,10 +172,10 @@ public class RunlengthDecodeTests
     [InlineData(new byte[] { 0x41, 0x41, 0x42, 0x43 })] // Mixed: 2 repeated + 2 literal
     public void Test_Encode_Then_Decode_RoundTrip(byte[] original)
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
 
         var encoded = filter.Encode(original, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(original, decoded);
     }
@@ -183,7 +183,7 @@ public class RunlengthDecodeTests
     [Fact]
     public void Test_Filter_Name()
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
         
         Assert.Equal("RunLengthDecode", filter.Name.Display);
     }
@@ -193,9 +193,9 @@ public class RunlengthDecodeTests
     [InlineData(new byte[] { 250, 0x30 }, new byte[] { 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30 })] // Repeat 0x30 seven times (257-250=7)
     public void Test_Decode_VariousRepeatCounts(byte[] input, byte[] expected)
     {
-        var filter = new RunlengthDecode();
+        var filter = new RunLengthDecode();
 
-        var result = filter.Decode(input, null);
+        var result = filter.Decode(input, null, null!);
 
         Assert.Equal(expected, result);
     }

@@ -18,7 +18,7 @@ public class ASCIIHexDecodeTests
 
         var inputBytes = Encoding.UTF8.GetBytes(input);
 
-        var decode = filter.Decode(inputBytes, null);
+        var decode = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, decode);
     }
@@ -48,7 +48,7 @@ public class ASCIIHexDecodeTests
         var filter = new ASCIIHexDecode();
         var inputBytes = Encoding.UTF8.GetBytes(input);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -62,7 +62,7 @@ public class ASCIIHexDecodeTests
         var filter = new ASCIIHexDecode();
         var inputBytes = Encoding.UTF8.GetBytes(input);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -76,7 +76,7 @@ public class ASCIIHexDecodeTests
         var filter = new ASCIIHexDecode();
         var inputBytes = Encoding.UTF8.GetBytes(input);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -92,7 +92,7 @@ public class ASCIIHexDecodeTests
         var filter = new ASCIIHexDecode();
         var inputBytes = Encoding.UTF8.GetBytes(input);
 
-        Assert.Throws<ParseException>(() => filter.Decode(inputBytes, null));
+        Assert.Throws<ParseException>(() => filter.Decode(inputBytes, null, null!));
     }
 
     [Theory]
@@ -125,7 +125,7 @@ public class ASCIIHexDecodeTests
         var filter = new ASCIIHexDecode();
 
         var encoded = filter.Encode(original, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(original, decoded);
     }
@@ -141,7 +141,7 @@ public class ASCIIHexDecodeTests
             originalData[i] = (byte)(i % 256);
 
         var encoded = filter.Encode(originalData, null);
-        var decoded = filter.Decode(encoded, null);
+        var decoded = filter.Decode(encoded, null, null!);
 
         Assert.Equal(originalData, decoded);
     }
@@ -164,7 +164,7 @@ public class ASCIIHexDecodeTests
         var inputBytes = Encoding.UTF8.GetBytes(hexInput);
         var expected = Encoding.UTF8.GetBytes(expectedText);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }
@@ -191,7 +191,7 @@ public class ASCIIHexDecodeTests
         var filter = new ASCIIHexDecode();
         var inputBytes = Encoding.UTF8.GetBytes(input);
 
-        var result = filter.Decode(inputBytes, null);
+        var result = filter.Decode(inputBytes, null, null!);
 
         Assert.Equal(expected, result);
     }

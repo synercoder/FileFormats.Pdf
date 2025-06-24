@@ -8,7 +8,7 @@ public class ASCII85Decode : IStreamFilter
 {
     public PdfName Name => PdfNames.ASCII85Decode;
 
-    public byte[] Decode(byte[] input, IPdfDictionary? parameters)
+    public byte[] Decode(byte[] input, IPdfDictionary? parameters, ObjectReader objectReader)
     {
         using var outputStream = new MemoryStream();
         
