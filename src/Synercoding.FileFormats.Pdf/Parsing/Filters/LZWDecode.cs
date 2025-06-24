@@ -1,4 +1,5 @@
 using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.FileFormats.Pdf.Primitives.Extensions;
 
 namespace Synercoding.FileFormats.Pdf.Parsing.Filters;
 
@@ -10,6 +11,12 @@ public class LZWDecode : IStreamFilter
     {
         if (input.Length == 0)
             return Array.Empty<byte>();
+
+        var earlyChange = parameters != null
+            && parameters.TryGetValue<PdfNumber>(PdfNames.EarlyChange, out var earlyChangeNumber)
+            && !earlyChangeNumber.IsFractional
+            ? earlyChangeNumber.LongValue
+            : 1;
 
         var dictionary = new Dictionary<string, int>();
         var codes = new List<int>();
@@ -62,7 +69,7 @@ public class LZWDecode : IStreamFilter
         
         codes.Add(257); // EOD marker
         
-        return _packCodes(codes);
+        return _packCodes(codes, earlyChange);
     }
 
     public byte[] Decode(byte[] input, IPdfDictionary? parameters, ObjectReader objectReader)
@@ -70,7 +77,13 @@ public class LZWDecode : IStreamFilter
         if (input.Length == 0)
             return Array.Empty<byte>();
 
-        var codes = _unpackCodes(input);
+        var earlyChange = parameters != null
+            && parameters.TryGetValue<PdfNumber>(PdfNames.EarlyChange, objectReader, out var earlyChangeNumber)
+            && !earlyChangeNumber.IsFractional
+            ? earlyChangeNumber.LongValue
+            : 1;
+
+        var codes = _unpackCodes(input, earlyChange);
         if (codes.Length == 0)
             return Array.Empty<byte>();
 
@@ -162,12 +175,13 @@ public class LZWDecode : IStreamFilter
     }
 
 
-    private byte[] _packCodes(List<int> codes)
+    private byte[] _packCodes(List<int> codes, long earlyChange = 1)
     {
         var result = new List<byte>();
         int bitsPerCode = 9;
         int bitBuffer = 0;
         int bitCount = 0;
+        int nextCodeToAssign = 258;
         
         foreach (int code in codes)
         {
@@ -183,10 +197,11 @@ public class LZWDecode : IStreamFilter
                 bitCount -= 8;
             }
             
-            // Adjust bit width for next code based LZW standard
+            // Adjust bit width for next code based on EarlyChange parameter
             if (code == 256) // Clear table
             {
                 bitsPerCode = 9;
+                nextCodeToAssign = 258;
             }
             else if (code == 257) // EOD
             {
@@ -194,15 +209,22 @@ public class LZWDecode : IStreamFilter
             }
             else
             {
-                // Check if we need to increase bit width
-                // Standard LZW increases when the next code to be assigned would require more bits
-                int nextCode = result.Count == 1 ? 258 : Math.Max(258, code + 1);
+                // After processing this code, a new dictionary entry will be created
+                if (nextCodeToAssign < 4096)
+                {
+                    nextCodeToAssign++;
+                }
                 
-                if (nextCode >= 512 && bitsPerCode == 9)
+                // Check if we need to increase bit width based on EarlyChange
+                // When EarlyChange=1 (default): increase one code early
+                // When EarlyChange=0: postpone as long as possible
+                int threshold = earlyChange == 1 ? 0 : 1;
+                
+                if (nextCodeToAssign >= (512 - threshold) && bitsPerCode == 9)
                     bitsPerCode = 10;
-                else if (nextCode >= 1024 && bitsPerCode == 10)
+                else if (nextCodeToAssign >= (1024 - threshold) && bitsPerCode == 10)
                     bitsPerCode = 11;
-                else if (nextCode >= 2048 && bitsPerCode == 11)
+                else if (nextCodeToAssign >= (2048 - threshold) && bitsPerCode == 11)
                     bitsPerCode = 12;
             }
         }
@@ -216,7 +238,7 @@ public class LZWDecode : IStreamFilter
         return result.ToArray();
     }
 
-    private int[] _unpackCodes(byte[] input)
+    private int[] _unpackCodes(byte[] input, long earlyChange = 1)
     {
         var result = new List<int>();
         int bitsPerCode = 9;
@@ -254,12 +276,16 @@ public class LZWDecode : IStreamFilter
                         nextCodeToAssign++;
                     }
                     
-                    // Increase bit width when we reach the thresholds
-                    if (nextCodeToAssign == 512 && bitsPerCode == 9)
+                    // Increase bit width based on EarlyChange parameter
+                    // When EarlyChange=1 (default): increase one code early
+                    // When EarlyChange=0: postpone as long as possible
+                    int threshold = earlyChange == 1 ? 0 : 1;
+                    
+                    if (nextCodeToAssign >= (512 - threshold) && bitsPerCode == 9)
                         bitsPerCode = 10;
-                    else if (nextCodeToAssign == 1024 && bitsPerCode == 10)
+                    else if (nextCodeToAssign >= (1024 - threshold) && bitsPerCode == 10)
                         bitsPerCode = 11;
-                    else if (nextCodeToAssign == 2048 && bitsPerCode == 11)
+                    else if (nextCodeToAssign >= (2048 - threshold) && bitsPerCode == 11)
                         bitsPerCode = 12;
                 }
             }

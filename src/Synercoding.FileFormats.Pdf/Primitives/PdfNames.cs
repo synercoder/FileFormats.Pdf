@@ -42,6 +42,8 @@ public static class PdfNames
         => PdfName.Get(nameof(DeviceGray));
     public static PdfName DeviceRGB
         => PdfName.Get(nameof(DeviceRGB));
+    public static PdfName EarlyChange
+        => PdfName.Get(nameof(EarlyChange));
     public static PdfName EFF
         => PdfName.Get(nameof(EFF));
     public static PdfName Encrypt

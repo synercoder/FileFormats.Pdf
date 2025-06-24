@@ -1,5 +1,7 @@
 using Synercoding.FileFormats.Pdf.Parsing.Filters;
 using Synercoding.FileFormats.Pdf.Primitives;
+using Synercoding.FileFormats.Pdf.IO;
+using Synercoding.FileFormats.Pdf.Parsing;
 
 namespace Synercoding.FileFormats.Pdf.Tests.Parsing.Filters;
 
@@ -205,5 +207,184 @@ public class LZWDecodeTests
         var decoded = _filter.Decode(encoded, null, null!);
         
         Assert.Equal(input, decoded);
+    }
+
+    [Fact]
+    public void Decode_EarlyChangeDefault_UsesDefaultValue1()
+    {
+        var input = System.Text.Encoding.ASCII.GetBytes("ABCABCABC");
+        
+        var encoded = _filter.Encode(input, null);
+        var decoded = _filter.Decode(encoded, null, null!);
+        
+        Assert.Equal(input, decoded);
+    }
+
+    [Fact]
+    public void Decode_EarlyChange1_RoundTripWorks()
+    {
+        var input = System.Text.Encoding.ASCII.GetBytes("ABCABCABCABC");
+        
+        var parameters = new PdfDictionary();
+        parameters.Add(PdfNames.EarlyChange, new PdfNumber(1));
+        
+        var encoded = _filter.Encode(input, parameters);
+        var objectReader = _createMockObjectReader();
+        var decoded = _filter.Decode(encoded, parameters, objectReader);
+        
+        Assert.Equal(input, decoded);
+    }
+
+    [Fact]
+    public void Decode_EarlyChange0_RoundTripWorks()
+    {
+        var input = System.Text.Encoding.ASCII.GetBytes("ABCABCABCABC");
+        
+        var parameters = new PdfDictionary();
+        parameters.Add(PdfNames.EarlyChange, new PdfNumber(0));
+        
+        var encoded = _filter.Encode(input, parameters);
+        var objectReader = _createMockObjectReader();
+        var decoded = _filter.Decode(encoded, parameters, objectReader);
+        
+        Assert.Equal(input, decoded);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Decode_EarlyChangeParameter_RoundTripWorks(int earlyChangeValue)
+    {
+        var input = System.Text.Encoding.ASCII.GetBytes("The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog.");
+        
+        var parameters = new PdfDictionary();
+        parameters.Add(PdfNames.EarlyChange, new PdfNumber(earlyChangeValue));
+        
+        var encoded = _filter.Encode(input, parameters);
+        var objectReader = _createMockObjectReader();
+        var decoded = _filter.Decode(encoded, parameters, objectReader);
+        
+        Assert.Equal(input, decoded);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Decode_EarlyChangeWithLargeData_RoundTripWorks(int earlyChangeValue)
+    {
+        var pattern = System.Text.Encoding.ASCII.GetBytes("Pattern123");
+        var input = new List<byte>();
+        
+        // Create large repetitive data to trigger code length increases
+        for (int i = 0; i < 100; i++)
+        {
+            input.AddRange(pattern);
+            input.AddRange(System.Text.Encoding.ASCII.GetBytes(i.ToString()));
+        }
+        
+        var inputArray = input.ToArray();
+        var parameters = new PdfDictionary();
+        parameters.Add(PdfNames.EarlyChange, new PdfNumber(earlyChangeValue));
+        
+        var encoded = _filter.Encode(inputArray, parameters);
+        var objectReader = _createMockObjectReader();
+        var decoded = _filter.Decode(encoded, parameters, objectReader);
+        
+        Assert.Equal(inputArray, decoded);
+    }
+
+    [Fact]
+    public void Decode_EarlyChangeFractionalNumber_UsesDefaultValue1()
+    {
+        var input = System.Text.Encoding.ASCII.GetBytes("TestData");
+        
+        var parameters = new PdfDictionary();
+        parameters.Add(PdfNames.EarlyChange, new PdfNumber(1.5)); // Fractional number should be ignored
+        
+        var encoded = _filter.Encode(input, parameters);
+        var objectReader = _createMockObjectReader();
+        var decoded = _filter.Decode(encoded, parameters, objectReader);
+        
+        Assert.Equal(input, decoded);
+    }
+
+    [Fact]
+    public void Decode_EarlyChangeNonIntegerParameter_UsesDefaultValue1()
+    {
+        var input = System.Text.Encoding.ASCII.GetBytes("TestData");
+        
+        var parameters = new PdfDictionary();
+        parameters.Add(PdfNames.EarlyChange, new PdfString(System.Text.Encoding.ASCII.GetBytes("NotANumber"), false)); // Wrong type should be ignored
+        
+        var encoded = _filter.Encode(input, null); // Encode without parameters
+        var objectReader = _createMockObjectReader();
+        var decoded = _filter.Decode(encoded, parameters, objectReader);
+        
+        Assert.Equal(input, decoded);
+    }
+
+    [Theory]
+    [InlineData(-1)] // Invalid negative value
+    [InlineData(2)]  // Invalid value > 1
+    [InlineData(100)] // Invalid large value
+    public void Decode_EarlyChangeInvalidValues_StillProcesses(int earlyChangeValue)
+    {
+        var input = System.Text.Encoding.ASCII.GetBytes("TestData");
+        
+        var parameters = new PdfDictionary();
+        parameters.Add(PdfNames.EarlyChange, new PdfNumber(earlyChangeValue));
+        
+        var encoded = _filter.Encode(input, parameters);
+        var objectReader = _createMockObjectReader();
+        var decoded = _filter.Decode(encoded, parameters, objectReader);
+        
+        Assert.Equal(input, decoded);
+    }
+
+    [Fact]
+    public void Decode_EarlyChange0VsEarlyChange1_ProducesSameResult()
+    {
+        var input = System.Text.Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        
+        var parameters0 = new PdfDictionary();
+        parameters0.Add(PdfNames.EarlyChange, new PdfNumber(0));
+        
+        var parameters1 = new PdfDictionary();
+        parameters1.Add(PdfNames.EarlyChange, new PdfNumber(1));
+        
+        var encoded0 = _filter.Encode(input, parameters0);
+        var encoded1 = _filter.Encode(input, parameters1);
+        
+        var objectReader = _createMockObjectReader();
+        var decoded0 = _filter.Decode(encoded0, parameters0, objectReader);
+        var decoded1 = _filter.Decode(encoded1, parameters1, objectReader);
+        
+        // Both should decode to the same original input
+        Assert.Equal(input, decoded0);
+        Assert.Equal(input, decoded1);
+        Assert.Equal(decoded0, decoded1);
+    }
+
+    private static ObjectReader _createMockObjectReader()
+    {
+        // Create a minimal PDF content for ObjectReader
+        var pdfContent = 
+            "%PDF-1.7" + '\n' +
+            "1 0 obj" + '\n' +
+            "123" + '\n' +
+            "endobj" + '\n' +
+            "xref" + '\n' +
+            "0 2" + '\n' +
+            "0000000000 65535 f " + '\n' +
+            "0000000009 00000 n " + '\n' +
+            "trailer" + '\n' +
+            "<< /Size 2 >>" + '\n' +
+            "startxref" + '\n' +
+            "28" + '\n' +
+            "%%EOF";
+        
+        var bytes = System.Text.Encoding.ASCII.GetBytes(pdfContent);
+        var provider = new PdfByteArrayProvider(bytes);
+        return new ObjectReader(provider, new ReaderSettings());
     }
 }

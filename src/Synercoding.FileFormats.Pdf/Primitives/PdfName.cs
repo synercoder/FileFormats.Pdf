@@ -29,6 +29,7 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         { "DeviceCMYK",       new PdfName("DeviceCMYK") },
         { "DeviceGray",       new PdfName("DeviceGray") },
         { "DeviceRGB",        new PdfName("DeviceRGB") },
+        { "EarlyChange",      new PdfName("EarlyChange") },
         { "EFF",              new PdfName("EFF") },
         { "Encrypt",          new PdfName("Encrypt") },
         { "EncryptMetadata",  new PdfName("EncryptMetadata") },
