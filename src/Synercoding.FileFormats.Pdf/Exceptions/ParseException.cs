@@ -6,10 +6,3 @@ public class ParseException : PdfException
         : base(message)
     { }
 }
-
-public class UnexpectedEndOfFileException : ParseException
-{
-    internal UnexpectedEndOfFileException()
-        :base("Unexpected end of pdf data.")
-    { }
-}

@@ -9,7 +9,7 @@ public static class IPdfStreamExtensions
     {
         var decodeParams = _getDecodeParams(streamObject, reader);
 
-        if (streamObject.TryGetValue<PdfArray>(PdfNames.Filter, reader, out var filterArray) && filterArray.Count > 0)
+        if (streamObject.TryGetValue<IPdfArray>(PdfNames.Filter, reader, out var filterArray) && filterArray.Count > 0)
         {
             var data = streamObject.RawData;
             for (int i = 0; i < filterArray.Count; i++)
@@ -37,7 +37,7 @@ public static class IPdfStreamExtensions
 
     private static IPdfDictionary?[]? _getDecodeParams(IPdfStreamObject streamObject, ObjectReader reader)
     {
-        if (streamObject.TryGetValue<PdfArray>(PdfNames.DecodeParms, reader, out var paramsArray) && paramsArray.Count > 0)
+        if (streamObject.TryGetValue<IPdfArray>(PdfNames.DecodeParms, reader, out var paramsArray) && paramsArray.Count > 0)
         {
             var dictionaries = new IPdfDictionary?[paramsArray.Count];
             for (int i = 0; i < paramsArray.Count; i++)
@@ -49,7 +49,7 @@ public static class IPdfStreamExtensions
             }
             return dictionaries;
         }
-        else if (streamObject.TryGetValue<PdfDictionary>(PdfNames.DecodeParms, reader, out var singleParameters))
+        else if (streamObject.TryGetValue<IPdfDictionary>(PdfNames.DecodeParms, reader, out var singleParameters))
         {
             return [singleParameters];
         }

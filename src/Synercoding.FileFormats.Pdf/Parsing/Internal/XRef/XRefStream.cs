@@ -34,7 +34,7 @@ internal static class XRefStream
                         // field 2 refers to the next free object number
                         var nextFreeObjectNumber = _readField(memoryStream, w2, 0);
                         var generationForNextUse = _readField(memoryStream, w3, 0);
-                        items[index++] = new FreeXRefItem(new PdfObjectId(objNmr, (int)generationForNextUse - 1, true));
+                        items[index++] = new FreeXRefItem(new PdfObjectId(objNmr, (int)Math.Max(0, generationForNextUse - 1), true));
                     }
                     else if (type == 1)
                     {
@@ -99,7 +99,7 @@ internal static class XRefStream
 
     private static SectionIndex[] _getSections(IPdfStreamObject stream)
     {
-        if (!stream.TryGetValue<PdfArray>(PdfNames.Index, out var indexesArray))
+        if (!stream.TryGetValue<IPdfArray>(PdfNames.Index, out var indexesArray))
         {
             if (!stream.TryGetValue<PdfNumber>(PdfNames.Size, out var size) || size.Value < 0)
                 throw new ParseException("XRef stream did not contain a /Size key with a zero or higher integer value.");

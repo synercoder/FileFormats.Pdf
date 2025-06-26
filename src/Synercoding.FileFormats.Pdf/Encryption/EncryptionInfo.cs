@@ -40,8 +40,6 @@ public class EncryptionInfo
 
     internal IDecryptor? Decryptor { get; private set; }
 
-    internal event EventHandler? DecryptionSuccessful;
-
     [MemberNotNullWhen(true, nameof(Decryptor))]
     public bool Decrypt(string? password)
         => Decrypt(_padOrTruncate(password));
@@ -61,7 +59,6 @@ public class EncryptionInfo
             Level = AccessLevel.UserAccess;
             Permissions = _encryptionDictionary.P;
 
-            DecryptionSuccessful?.Invoke(this, new EventArgs());
             return true;
         }
 
@@ -75,7 +72,6 @@ public class EncryptionInfo
                 Level = AccessLevel.UserAccess;
                 Permissions = _encryptionDictionary.P;
 
-                DecryptionSuccessful?.Invoke(this, new EventArgs());
                 return true;
             }
             return false;
@@ -99,7 +95,6 @@ public class EncryptionInfo
             Permissions = Enum.GetValues<UserAccessPermissions>()
                 .Aggregate((result, permission) => result | permission);
 
-            DecryptionSuccessful?.Invoke(this, new EventArgs());
             return true;
         }
 

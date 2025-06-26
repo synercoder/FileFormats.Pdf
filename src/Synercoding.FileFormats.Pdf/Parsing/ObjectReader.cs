@@ -1,5 +1,7 @@
 using Synercoding.FileFormats.Pdf.Encryption;
+using Synercoding.FileFormats.Pdf.Exceptions;
 using Synercoding.FileFormats.Pdf.IO;
+using Synercoding.FileFormats.Pdf.Logging;
 using Synercoding.FileFormats.Pdf.Parsing.Encryption;
 using Synercoding.FileFormats.Pdf.Parsing.Internal;
 using Synercoding.FileFormats.Pdf.Parsing.Internal.XRef;
@@ -160,18 +162,23 @@ public sealed class ObjectReader : IDisposable
 
                     _encryptionInfo = new EncryptionInfo(decryptorDictionary, this);
 
-                    if (Encryption.Decrypt(_password))
+                    var decrypted = Encryption.Decrypt(_password);
+                    if (!decrypted && !string.IsNullOrEmpty(_password))
                     {
-                        _password = null;
-                        _parser = new Parser(_parser.Lexer, Encryption.Decryptor, Settings.Logger);
-                    }
-                    else
-                    {
-                        Encryption.DecryptionSuccessful += (s, e) =>
+                        Settings.Logger.LogWarning<ObjectReader>("Could not decrypt the PDF with the provided password.");
+
+                        decrypted = Encryption.Decrypt(string.Empty);
+                        if (decrypted)
                         {
-                            _parser = new Parser(_parser.Lexer, Encryption.Decryptor, Settings.Logger);
-                        };
+                            Settings.Logger.LogInformation<ObjectReader>("Decrypted password with default user password instead of provided password.");
+                        }
                     }
+
+                    if (!decrypted)
+                        throw new EncryptionException();
+
+                    _password = null;
+                    _parser = new Parser(_parser.Lexer, Encryption.Decryptor, Settings.Logger);
                 }
             }
 
