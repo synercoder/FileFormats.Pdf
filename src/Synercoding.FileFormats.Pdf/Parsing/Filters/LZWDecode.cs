@@ -171,7 +171,19 @@ public class LZWDecode : IStreamFilter
             oldCode = code;
         }
         
-        return result.ToArray();
+        var decodedData = result.ToArray();
+        
+        // Apply predictor function if specified
+        if (parameters != null && parameters.TryGetValue<PdfNumber>(PdfNames.Predictor, objectReader, out var predictorNumber) && !predictorNumber.IsFractional)
+        {
+            var predictor = (int)predictorNumber.LongValue;
+            if (predictor > 1)
+            {
+                decodedData = _applyPredictor(decodedData, predictor, parameters, objectReader);
+            }
+        }
+        
+        return decodedData;
     }
 
 
@@ -292,5 +304,56 @@ public class LZWDecode : IStreamFilter
         }
         
         return result.ToArray();
+    }
+
+    private byte[] _applyPredictor(byte[] data, int predictor, IPdfDictionary parameters, ObjectReader objectReader)
+    {
+        var predictors = new Predictors();
+
+        if (predictor == 2)
+        {
+            // TIFF predictor 2
+            var columns = parameters.TryGetValue<PdfNumber>(PdfNames.Columns, objectReader, out var columnsNumber) && !columnsNumber.IsFractional
+                ? (int)columnsNumber.LongValue
+                : 1;
+
+            var bitsPerComponent = parameters.TryGetValue<PdfNumber>(PdfNames.BitsPerComponent, objectReader, out var bitsNumber) && !bitsNumber.IsFractional
+                ? (int)bitsNumber.LongValue
+                : 8;
+
+            var colors = parameters.TryGetValue<PdfNumber>(PdfNames.Colors, objectReader, out var colorsNumber) && !colorsNumber.IsFractional
+                ? (int)colorsNumber.LongValue
+                : 1;
+
+            return predictors.DecodeTiff(data, columns, bitsPerComponent, colors);
+        }
+        else if (predictor >= 10 && predictor <= 15)
+        {
+            // PNG predictors
+            var columns = parameters.TryGetValue<PdfNumber>(PdfNames.Columns, objectReader, out var columnsNumber) && !columnsNumber.IsFractional
+                ? (int)columnsNumber.LongValue
+                : 1;
+
+            var bitsPerComponent = parameters.TryGetValue<PdfNumber>(PdfNames.BitsPerComponent, objectReader, out var bitsNumber) && !bitsNumber.IsFractional
+                ? (int)bitsNumber.LongValue
+                : 8;
+
+            var colors = parameters.TryGetValue<PdfNumber>(PdfNames.Colors, objectReader, out var colorsNumber) && !colorsNumber.IsFractional
+                ? (int)colorsNumber.LongValue
+                : 1;
+
+            // PNG predictors need the number of bytes per sample (columns * colors * bitsPerComponent / 8)
+            var bytesPerRow = columns * colors * ((bitsPerComponent + 7) / 8);
+            return predictors.DecodePng(data, bytesPerRow);
+        }
+        else if (predictor == 1)
+        {
+            // No prediction
+            return data;
+        }
+        else
+        {
+            throw new NotSupportedException($"Predictor {predictor} is not supported");
+        }
     }
 }

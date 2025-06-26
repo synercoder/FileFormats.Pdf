@@ -20,6 +20,10 @@ public static class PdfNames
         => PdfName.Get(nameof(CF));
     public static PdfName ColorSpace
         => PdfName.Get(nameof(ColorSpace));
+    public static PdfName Colors
+        => PdfName.Get(nameof(Colors));
+    public static PdfName Columns
+        => PdfName.Get(nameof(Columns));
     public static PdfName Contents
         => PdfName.Get(nameof(Contents));
     public static PdfName Count

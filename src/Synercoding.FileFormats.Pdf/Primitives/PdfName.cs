@@ -18,6 +18,8 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         { "Catalog",          new PdfName("Catalog") },
         { "CF",               new PdfName("CF") },
         { "ColorSpace",       new PdfName("ColorSpace") },
+        { "Colors",           new PdfName("Colors") },
+        { "Columns",          new PdfName("Columns") },
         { "Contents",         new PdfName("Contents") },
         { "Count",            new PdfName("Count") },
         { "CreationDate",     new PdfName("CreationDate") },
