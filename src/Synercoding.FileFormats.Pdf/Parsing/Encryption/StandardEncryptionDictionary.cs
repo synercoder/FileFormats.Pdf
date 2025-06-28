@@ -150,7 +150,7 @@ internal sealed class StandardEncryptionDictionary : EncryptDictionary
     {
         get
         {
-            if (V != EncryptionAlgorithm.RC4OrAESKey128Bits && V != EncryptionAlgorithm.AES256BitsKey)
+            if (V != 4 && V != 5)
                 return null;
 
             if (!_dictionary.TryGetValue<PdfBoolean>(PdfNames.EncryptMetadata, _objectReader, out var encryptMetaBool))
@@ -159,4 +159,73 @@ internal sealed class StandardEncryptionDictionary : EncryptDictionary
             return encryptMetaBool;
         }
     }
+
+    public void ValidateEncryptionDictionary()
+    {
+        if (Filter != PdfNames.Standard)
+            throw new EncryptionException($"Unsupported security handler: {Filter?.Display}");
+
+        if (V < 1 || V > 5)
+            throw new EncryptionException($"Unsupported encryption version: {V}");
+
+        if (R < 2 || R > 6)
+            throw new EncryptionException($"Unsupported security revision: {R}");
+
+        if (O == null || O.Length == 0)
+            throw new EncryptionException("Missing or empty owner password entry (O).");
+
+        if (U == null || U.Length == 0)
+            throw new EncryptionException("Missing or empty user password entry (U).");
+
+        if (R == 6)
+        {
+            if (O.Length != 48)
+                throw new EncryptionException("Invalid owner password entry length for R6. Expected 48 bytes.");
+
+            if (U.Length != 48)
+                throw new EncryptionException("Invalid user password entry length for R6. Expected 48 bytes.");
+        }
+        else
+        {
+            if (O.Length != 32)
+                throw new EncryptionException($"Invalid owner password entry length for R{R}. Expected 32 bytes.");
+
+            if (U.Length != 32)
+                throw new EncryptionException($"Invalid user password entry length for R{R}. Expected 32 bytes.");
+        }
+    }
+
+    internal PdfName GetDefaultStringFilter()
+    {
+        if (StrF is not null
+            && CF?.TryGetValue(StrF, out var cryptDict) == true
+            && cryptDict.TryGetValue<PdfName>(PdfNames.CFM, out var encryptionMethod))
+        {
+            return encryptionMethod;
+        }
+
+        return _getFilterFromVersion();
+    }
+
+    internal PdfName GetDefaultStreamFilter()
+    {
+        if (StmF is not null
+            && CF?.TryGetValue(StmF, out var cryptDict) == true
+            && cryptDict.TryGetValue<PdfName>(PdfNames.CFM, out var encryptionMethod))
+        {
+            return encryptionMethod;
+        }
+
+        return _getFilterFromVersion();
+    }
+
+    private PdfName _getFilterFromVersion()
+        => V switch
+        {
+            1 or 2 or 3 => PdfNames.V2,
+            4 when R == 4 => PdfNames.V4,
+            4 when R >= 5 => PdfNames.AESV2,
+            5 => PdfNames.AESV3,
+            _ => throw new EncryptionException($"Unsupported encryption version: {V}")
+        };
 }

@@ -96,6 +96,8 @@ public static class PdfNames
         => PdfName.Get(nameof(ModDate));
     public static PdfName N
         => PdfName.Get(nameof(N));
+    public static PdfName None
+        => PdfName.Get(nameof(None));
     public static PdfName O
         => PdfName.Get(nameof(O));
     public static PdfName ObjStm
@@ -164,6 +166,12 @@ public static class PdfNames
         => PdfName.Get(nameof(UserUnit));
     public static PdfName V
         => PdfName.Get(nameof(V));
+    public static PdfName V2
+        => PdfName.Get(nameof(V2));
+    public static PdfName V4
+        => PdfName.Get(nameof(V4));
+    public static PdfName V5
+        => PdfName.Get(nameof(V5));
     public static PdfName W
         => PdfName.Get(nameof(W));
     public static PdfName Width

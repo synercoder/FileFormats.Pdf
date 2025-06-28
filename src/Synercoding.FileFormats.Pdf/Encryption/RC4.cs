@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace Synercoding.FileFormats.Pdf.Encryption.Internal;
+namespace Synercoding.FileFormats.Pdf.Encryption;
 
 internal static class RC4
 {

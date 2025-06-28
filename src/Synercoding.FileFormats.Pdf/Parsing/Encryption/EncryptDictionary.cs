@@ -12,8 +12,6 @@ internal abstract class EncryptDictionary
 
     internal EncryptDictionary(IPdfPrimitive trailerValue, ObjectReader objectReader)
     {
-        _ = objectReader ?? throw new ArgumentNullException(nameof(objectReader));
-
         if (trailerValue is IPdfDictionary encryptDictionary)
             _dictionary = encryptDictionary;
         else if (trailerValue is PdfReference encryptRef)

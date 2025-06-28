@@ -109,7 +109,7 @@ public sealed class PdfReader : IReadOnlyList<IReadOnlyPage>, IDisposable
         }
     }
 
-    public EncryptionInfo Encryption => _objectReader.Encryption;
+    public DecryptionResult Encryption => _objectReader.Encryption;
 
     public IReadOnlyPage this[int index]
     {

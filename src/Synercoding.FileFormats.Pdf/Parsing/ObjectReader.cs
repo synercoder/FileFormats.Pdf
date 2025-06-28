@@ -101,13 +101,13 @@ public sealed class ObjectReader : IDisposable
         }
     }
 
-    private EncryptionInfo? _encryptionInfo;
-    public EncryptionInfo Encryption
+    private DecryptionResult? _decryptionResult;
+    public DecryptionResult Encryption
     {
         get
         {
             _ensureHeaderAndFooterIsRead();
-            return _encryptionInfo;
+            return _decryptionResult;
         }
     }
 
@@ -143,42 +143,43 @@ public sealed class ObjectReader : IDisposable
         throw new InvalidOperationException($"Unknown XRefItem type: {typeof(XRefItem).Name}");
     }
 
-    [MemberNotNull(nameof(_pdfHeader), nameof(_trailer), nameof(_xRefTable), nameof(_encryptionInfo))]
+    [MemberNotNull(nameof(_pdfHeader), nameof(_trailer), nameof(_xRefTable), nameof(_decryptionResult))]
     private void _ensureHeaderAndFooterIsRead()
     {
-        if (_pdfHeader is null || _trailer is null || _xRefTable is null || _encryptionInfo is null)
+        if (_pdfHeader is null || _trailer is null || _xRefTable is null || _decryptionResult is null)
         {
             _pdfHeader = PdfHeader.Parse(_parser.Lexer.PdfBytesProvider);
             var footer = PdfFooter.CreateDefault();
             _trailer = footer.GetTrailer(_parser.Lexer.PdfBytesProvider, _pdfHeader.PdfStart, this.Settings);
 
-            if (_encryptionInfo is null)
+            if (_decryptionResult is null)
             {
-                _encryptionInfo = new EncryptionInfo();
+                _decryptionResult = DecryptionResult.NotEncrypted();
 
                 if (_trailer.ID is not null && _trailer.Encrypt is not null)
                 {
                     var decryptorDictionary = new StandardEncryptionDictionary(_trailer.Encrypt, this);
 
-                    _encryptionInfo = new EncryptionInfo(decryptorDictionary, this);
+                    var securityHandler = new StandardSecurityHandler(decryptorDictionary, _trailer.ID.OriginalId);
 
-                    var decrypted = Encryption.Decrypt(_password);
-                    if (!decrypted && !string.IsNullOrEmpty(_password))
+                    _decryptionResult = securityHandler.Authenticate(_password);
+
+                    if (_decryptionResult.AccessLevel == AccessLevel.Encrypted)
                     {
                         Settings.Logger.LogWarning<ObjectReader>("Could not decrypt the PDF with the provided password.");
 
-                        decrypted = Encryption.Decrypt(string.Empty);
-                        if (decrypted)
+                        _decryptionResult = securityHandler.Authenticate(string.Empty);
+                        if (_decryptionResult.AccessLevel != AccessLevel.Encrypted)
                         {
                             Settings.Logger.LogInformation<ObjectReader>("Decrypted password with default user password instead of provided password.");
                         }
                     }
 
-                    if (!decrypted)
+                    if (_decryptionResult.AccessLevel == AccessLevel.Encrypted)
                         throw new EncryptionException();
 
                     _password = null;
-                    _parser = new Parser(_parser.Lexer, Encryption.Decryptor, Settings.Logger);
+                    _parser = new Parser(_parser.Lexer, _decryptionResult.GetDecryptor(), Settings.Logger);
                 }
             }
 
