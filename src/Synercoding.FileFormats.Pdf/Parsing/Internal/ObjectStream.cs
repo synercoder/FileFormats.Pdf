@@ -1,5 +1,4 @@
 using Synercoding.FileFormats.Pdf.IO;
-using Synercoding.FileFormats.Pdf.Parsing.Internal.XRef;
 using Synercoding.FileFormats.Pdf.Primitives;
 using Synercoding.FileFormats.Pdf.Primitives.Extensions;
 using System.Diagnostics.CodeAnalysis;
@@ -29,12 +28,6 @@ internal class ObjectStream
 
         _readOffsets((int)firstOffSet.Value, (int)numberOfObjects.Value);
     }
-
-    public CompressedXRefItem[] AsXRefItems(PdfObjectId wrapperStreamId)
-        => _offsetLookup
-            .OrderBy(kv => kv.Value)
-            .Select((kv, i) => new CompressedXRefItem(kv.Key, wrapperStreamId, i))
-            .ToArray();
 
     public bool TryGet<TPrimitive>(PdfObjectId id, [NotNullWhen(true)] out TPrimitive? pdfObject)
         where TPrimitive : IPdfPrimitive

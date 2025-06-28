@@ -1,7 +1,6 @@
 using Synercoding.FileFormats.Pdf.Exceptions;
 using Synercoding.FileFormats.Pdf.IO;
 using Synercoding.FileFormats.Pdf.Primitives;
-using System.Reflection.PortableExecutable;
 
 namespace Synercoding.FileFormats.Pdf.Parsing.Internal.XRef;
 
@@ -49,8 +48,9 @@ internal class ClassicXRefParser : IXRefParser
             var parser = new Parser(new Lexer(pdfBytesProvider, reader.Settings.Logger), null, reader.Settings.Logger);
             parser.Lexer.Position = trailer.XRefStm.Value;
             var objStreamWrapper = parser.ReadObject<IPdfStreamObject>();
-            var objStream = new ObjectStream(objStreamWrapper.Value, reader);
-            table = table.Merge(new XRefTable(objStream.AsXRefItems(objStreamWrapper.Id)));
+
+            var xRefItems = XRefStream.ParseStream(objStreamWrapper.Value, reader);
+            table = table.Merge(new XRefTable(xRefItems));
         }
 
         return (trailer, table);
