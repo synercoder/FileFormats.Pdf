@@ -49,7 +49,7 @@ internal abstract class EncryptDictionary
         }
     }
 
-    public EncryptionAlgorithm V
+    public int V
     {
         get
         {
@@ -59,7 +59,7 @@ internal abstract class EncryptDictionary
             if (vNumber.IsFractional)
                 throw new ParseException("The number for the /V key in the Encrypt dictionary was fractional.");
 
-            return (EncryptionAlgorithm)vNumber.LongValue;
+            return (int)vNumber.LongValue;
         }
     }
 
@@ -67,9 +67,7 @@ internal abstract class EncryptDictionary
     {
         get
         {
-            var algorithm = V;
-            if (algorithm != EncryptionAlgorithm.RC4WithMoreThan40BitsKey
-                && algorithm != EncryptionAlgorithm.UnpublishedAlgorithm)
+            if (V != 2 && V != 3)
                 return null;
 
             if (!_dictionary.TryGetValue<PdfNumber>(PdfNames.Length, _objectReader, out var lengthNumber))
@@ -92,9 +90,7 @@ internal abstract class EncryptDictionary
     {
         get
         {
-            var algorithm = V;
-            if (algorithm != EncryptionAlgorithm.RC4OrAESKey128Bits
-                && algorithm != EncryptionAlgorithm.AES256BitsKey)
+            if (V != 4 && V != 5)
                 return null;
 
             if (!_dictionary.TryGetValue<IPdfDictionary>(PdfNames.CF, _objectReader, out var cfDictionary))
@@ -113,9 +109,7 @@ internal abstract class EncryptDictionary
     {
         get
         {
-            var algorithm = V;
-            if (algorithm != EncryptionAlgorithm.RC4OrAESKey128Bits
-                && algorithm != EncryptionAlgorithm.AES256BitsKey)
+            if (V != 4 && V != 5)
                 return null;
 
             if (_dictionary.TryGetValue<PdfName>(PdfNames.StmF, _objectReader, out var stmfName))
@@ -128,9 +122,7 @@ internal abstract class EncryptDictionary
     {
         get
         {
-            var algorithm = V;
-            if (algorithm != EncryptionAlgorithm.RC4OrAESKey128Bits
-                && algorithm != EncryptionAlgorithm.AES256BitsKey)
+            if (V != 4 && V != 5)
                 return null;
 
             if (_dictionary.TryGetValue<PdfName>(PdfNames.StrF, _objectReader, out var strfName))
@@ -143,9 +135,7 @@ internal abstract class EncryptDictionary
     {
         get
         {
-            var algorithm = V;
-            if (algorithm != EncryptionAlgorithm.RC4OrAESKey128Bits
-                && algorithm != EncryptionAlgorithm.AES256BitsKey)
+            if (V != 4 && V != 5)
                 return null;
 
             if (_dictionary.TryGetValue<PdfName>(PdfNames.EFF, _objectReader, out var effName))

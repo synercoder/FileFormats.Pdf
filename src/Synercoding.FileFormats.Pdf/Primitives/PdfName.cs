@@ -9,6 +9,8 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
 {
     private static readonly IDictionary<string, PdfName> _reservedNames = new Dictionary<string, PdfName>()
     {
+        { "AESV2",            new PdfName("AESV2") },
+        { "AESV3",            new PdfName("AESV3") },
         { "ArtBox",           new PdfName("ArtBox") },
         { "ASCII85Decode",    new PdfName("ASCII85Decode") },
         { "ASCIIHexDecode",   new PdfName("ASCIIHexDecode") },
@@ -17,6 +19,7 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         { "BleedBox",         new PdfName("BleedBox") },
         { "Catalog",          new PdfName("Catalog") },
         { "CF",               new PdfName("CF") },
+        { "CFM",              new PdfName("CFM") },
         { "ColorSpace",       new PdfName("ColorSpace") },
         { "Colors",           new PdfName("Colors") },
         { "Columns",          new PdfName("Columns") },

@@ -2,6 +2,10 @@ namespace Synercoding.FileFormats.Pdf.Primitives;
 
 public static class PdfNames
 {
+    public static PdfName AESV2
+        => PdfName.Get(nameof(AESV2));
+    public static PdfName AESV3
+        => PdfName.Get(nameof(AESV3));
     public static PdfName ASCII85Decode
         => PdfName.Get(nameof(ASCII85Decode));
     public static PdfName ASCIIHexDecode
@@ -18,6 +22,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Catalog));
     public static PdfName CF
         => PdfName.Get(nameof(CF));
+    public static PdfName CFM
+        => PdfName.Get(nameof(CFM));
     public static PdfName ColorSpace
         => PdfName.Get(nameof(ColorSpace));
     public static PdfName Colors

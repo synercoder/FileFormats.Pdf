@@ -55,7 +55,7 @@ public class EncryptionInfo
         var userKey = _processUserPassword(password, out var encryptionKey);
         if (_validate(userKey))
         {
-            Decryptor = new RC4PasswordDecryptor(encryptionKey);
+            Decryptor = _getDecryptor(encryptionKey);
             Level = AccessLevel.UserAccess;
             Permissions = _encryptionDictionary.P;
 
@@ -68,7 +68,7 @@ public class EncryptionInfo
             userKey = RC4.Process(possibleEncryptionKey, _encryptionDictionary.O);
             if (_validate(userKey))
             {
-                Decryptor = new RC4PasswordDecryptor(userKey);
+                Decryptor = _getDecryptor(possibleEncryptionKey);
                 Level = AccessLevel.UserAccess;
                 Permissions = _encryptionDictionary.P;
 
@@ -90,7 +90,7 @@ public class EncryptionInfo
 
         if (_validate(userKey))
         {
-            Decryptor = new RC4PasswordDecryptor(encryptionKey);
+            Decryptor = _getDecryptor(encryptionKey);
             Level = AccessLevel.OwnerAccess;
             Permissions = Enum.GetValues<UserAccessPermissions>()
                 .Aggregate((result, permission) => result | permission);
@@ -112,22 +112,35 @@ public class EncryptionInfo
         }
     }
 
+    private IDecryptor _getDecryptor(byte[] encryptionKey)
+    {
+        return _encryptionDictionary.V switch
+        {
+            EncryptionAlgorithm.RC4With40BitsKey => new RC4PasswordDecryptor(encryptionKey),
+            EncryptionAlgorithm.RC4WithMoreThan40BitsKey => new RC4PasswordDecryptor(encryptionKey),
+            EncryptionAlgorithm.UnpublishedAlgorithm => throw new NotImplementedException(),
+            EncryptionAlgorithm.AES256BitsKey => throw new NotImplementedException(),
+            EncryptionAlgorithm.RC4OrAESKey128Bits => new AesOrRC4Decryptor(encryptionKey, _encryptionDictionary),
+            _ => throw new InvalidOperationException()
+        };
+    }
+
     private byte[] _padOrTruncate(string? password)
         => _padOrTruncate(PDFDocEncoding.Encode(password ?? ""));
 
+    private readonly byte[] _paddingBytes =
+    [
+        0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41,
+        0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
+        0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80,
+        0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A
+    ];
+
     private byte[] _padOrTruncate(byte[] password)
     {
-        byte[] padString =
-        [
-            0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41,
-            0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
-            0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80,
-            0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A
-        ];
-
         return password
                 .Take(32)
-                .Concat(padString)
+                .Concat(_paddingBytes)
                 .Take(32)
                 .ToArray();
     }
@@ -148,7 +161,13 @@ public class EncryptionInfo
 
         var hash = MD5.HashData(hashInput.ToArray());
 
-        var length = ( _encryptionDictionary.Length ?? 40 ) / 8;
+        var length = _encryptionDictionary.Length.HasValue
+            ? _encryptionDictionary.Length.Value
+            : _encryptionDictionary.V == EncryptionAlgorithm.RC4OrAESKey128Bits
+                ? 128
+                : 40;
+
+        length = length / 8;
 
         if (_encryptionDictionary.R >= 3)
             for (int i = 0; i < 50; i++)
@@ -170,7 +189,7 @@ public class EncryptionInfo
 
         encryptionKey = _computeEncryptionKey(password);
 
-        var hash = MD5.HashData([.. password, .. id]);
+        var hash = MD5.HashData([.. _paddingBytes, .. id]);
 
         var encrypted = RC4.Process(encryptionKey, hash);
         for (byte i = 1; i <= 19; i++)
@@ -189,13 +208,4 @@ public class EncryptionInfo
         encryptionKey = _computeEncryptionKey(password);
         return RC4.Process(encryptionKey, password);
     }
-}
-
-
-public enum AccessLevel
-{
-    NotEncrypted,
-    Encrypted,
-    UserAccess,
-    OwnerAccess
 }
