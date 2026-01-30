@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <BaseArtifactsPath>$(MSBuildThisFileDirectory)artifacts/</BaseArtifactsPath>
+    <BaseArtifactsPath Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(MSBuildThisFileDirectory)artifacts-linux/</BaseArtifactsPath>
     <BaseArtifactsPathSuffix>$(SynercodingProjectCategory)/$(MSBuildProjectName)</BaseArtifactsPathSuffix>
     <BaseIntermediateOutputPath>$(BaseArtifactsPath)obj/$(BaseArtifactsPathSuffix)/</BaseIntermediateOutputPath>
     <BaseOutputPath>$(BaseArtifactsPath)bin/$(BaseArtifactsPathSuffix)/</BaseOutputPath>
@@ -40,11 +41,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Features>strict</Features>
     <ImplicitUsings>enable</ImplicitUsings>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>9-default</AnalysisLevel>
   </PropertyGroup>
 
 </Project>

@@ -17,6 +17,10 @@ tab_width = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
 
+[*.{yml,yaml}]
+indent_size = 2
+tab_width = 2
+
 #########################
 # File Extension Settings
 #########################
@@ -143,7 +147,7 @@ dotnet_style_predefined_type_for_member_access = true:warning
 
 # Modifier preferences
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#normalize-modifiers
-dotnet_style_require_accessibility_modifiers = always:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:warning
 dotnet_style_readonly_field = true:warning
@@ -158,7 +162,7 @@ dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
 # Expression-level preferences
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#expression-level-preferences
 dotnet_style_object_initializer = true:warning
-dotnet_style_collection_initializer = true:warning
+dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:warning
 dotnet_style_prefer_inferred_tuple_names = true:warning
 dotnet_style_prefer_inferred_anonymous_type_member_names = false:suggestion
@@ -171,7 +175,7 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 # Null-checking preferences
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions?view=vs-2019#null-checking-preferences
 dotnet_style_coalesce_expression = true:warning
-dotnet_style_null_propagation = true:warning
+dotnet_style_null_propagation = true:suggestion
 
 # Miscellaneous preferences
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
@@ -264,7 +268,7 @@ csharp_preserve_single_line_blocks = true
 dotnet_naming_symbols.constant_fields.applicable_kinds = field
 dotnet_naming_symbols.constant_fields.required_modifiers = const
 
-# non_private_readonly_fields - Define public, internal and protected readonly fields
+# non_private_readonly_fields - Define public, internal, and protected readonly fields
 dotnet_naming_symbols.non_private_readonly_fields.applicable_accessibilities = public, internal, protected
 dotnet_naming_symbols.non_private_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.non_private_readonly_fields.required_modifiers = readonly
@@ -289,17 +293,17 @@ dotnet_naming_symbols.private_readonly_fields.applicable_accessibilities = priva
 dotnet_naming_symbols.private_readonly_fields.applicable_kinds = field
 dotnet_naming_symbols.private_readonly_fields.required_modifiers = readonly
 
-# public_internal_fields - Define public and internal fields
-dotnet_naming_symbols.public_internal_fields.applicable_accessibilities = public, internal
+# public_internal_protected_fields - Define public, internal, and protected fields
+dotnet_naming_symbols.public_internal_fields.applicable_accessibilities = public, internal, protected
 dotnet_naming_symbols.public_internal_fields.applicable_kinds = field
 
-# private_protected_fields - Define private and protected fields
-dotnet_naming_symbols.private_protected_fields.applicable_accessibilities = private, protected
+# private_fields - Define private fields
+dotnet_naming_symbols.private_protected_fields.applicable_accessibilities = private
 dotnet_naming_symbols.private_protected_fields.applicable_kinds = field
 
 # private_symbols - Define any private symbol
 dotnet_naming_symbols.private_symbols.applicable_accessibilities = private
-dotnet_naming_symbols.private_symbols.applicable_kinds = method, property, event, delegate
+dotnet_naming_symbols.private_symbols.applicable_kinds = method, property, event
 
 # public_symbols - Define any public symbol
 dotnet_naming_symbols.public_symbols.applicable_accessibilities = public, internal, protected, protected_internal
@@ -308,8 +312,13 @@ dotnet_naming_symbols.public_symbols.applicable_kinds = method, property, event,
 # parameters - Defines any parameter
 dotnet_naming_symbols.parameters.applicable_kinds = parameter
 
-# non_interface_types - Defines class, struct, enum and delegate types
+# non_interface_types - Defines class, struct, enum and delegate types (non-private)
+dotnet_naming_symbols.non_interface_types.applicable_accessibilities = public, internal, protected, protected_internal
 dotnet_naming_symbols.non_interface_types.applicable_kinds = class, struct, enum, delegate
+
+# private_types - Defines private class, struct, enum and delegate types
+dotnet_naming_symbols.private_types.applicable_accessibilities = private
+dotnet_naming_symbols.private_types.applicable_kinds = class, struct, enum, delegate
 
 # interface_types - Defines interfaces
 dotnet_naming_symbols.interface_types.applicable_kinds = interface
@@ -342,7 +351,7 @@ dotnet_naming_rule.constant_fields_must_be_all_upper.severity = warning
 dotnet_naming_rule.constant_fields_must_be_all_upper.symbols = constant_fields
 dotnet_naming_rule.constant_fields_must_be_all_upper.style = all_upper_with_underscore
 
-# Static readonly fields must be PascalCase
+# Internal and protected static readonly fields must be PascalCase
 dotnet_naming_rule.non_private_static_readonly_fields_must_be_pascal_case.severity = warning
 dotnet_naming_rule.non_private_static_readonly_fields_must_be_pascal_case.symbols = non_private_static_readonly_fields
 dotnet_naming_rule.non_private_static_readonly_fields_must_be_pascal_case.style = pascal_case
@@ -352,7 +361,7 @@ dotnet_naming_rule.public_static_readonly_fields_must_be_all_upper.severity = wa
 dotnet_naming_rule.public_static_readonly_fields_must_be_all_upper.symbols = public_static_readonly_fields
 dotnet_naming_rule.public_static_readonly_fields_must_be_all_upper.style = all_upper_with_underscore
 
-# Internal and protected readonly fields must be PascalCase
+# Public, internal, and protected readonly fields must be PascalCase
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.severity = warning
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.symbols = non_private_readonly_fields
 dotnet_naming_rule.non_private_readonly_fields_must_be_pascal_case.style = pascal_case
@@ -367,12 +376,12 @@ dotnet_naming_rule.private_readonly_fields_must_be_underscore_camel_case.severit
 dotnet_naming_rule.private_readonly_fields_must_be_underscore_camel_case.symbols = private_readonly_fields
 dotnet_naming_rule.private_readonly_fields_must_be_underscore_camel_case.style = underscore_camel_case
 
-# Public and internal fields must be PascalCase
+# Public, internal, and protected fields must be PascalCase
 dotnet_naming_rule.public_internal_fields_must_be_pascal_case.severity = warning
 dotnet_naming_rule.public_internal_fields_must_be_pascal_case.symbols = public_internal_fields
 dotnet_naming_rule.public_internal_fields_must_be_pascal_case.style = pascal_case
 
-# Private and protected fields must be _camelCase
+# Private fields must be _camelCase
 dotnet_naming_rule.private_protected_fields_must_be_underscore_camel_case.severity = warning
 dotnet_naming_rule.private_protected_fields_must_be_underscore_camel_case.symbols = private_protected_fields
 dotnet_naming_rule.private_protected_fields_must_be_underscore_camel_case.style = underscore_camel_case
@@ -382,7 +391,7 @@ dotnet_naming_rule.public_members_must_be_capitalized.severity = warning
 dotnet_naming_rule.public_members_must_be_capitalized.symbols = public_symbols
 dotnet_naming_rule.public_members_must_be_capitalized.style = first_upper
 
-# Private symbols must be _camelCase
+# Private members must be _camelCase
 dotnet_naming_rule.private_members_must_be_underscore_camel_case.severity = warning
 dotnet_naming_rule.private_members_must_be_underscore_camel_case.symbols = private_symbols
 dotnet_naming_rule.private_members_must_be_underscore_camel_case.style = underscore_camel_case
@@ -397,7 +406,213 @@ dotnet_naming_rule.non_interface_types_must_be_pascal_case.severity = warning
 dotnet_naming_rule.non_interface_types_must_be_pascal_case.symbols = non_interface_types
 dotnet_naming_rule.non_interface_types_must_be_pascal_case.style = pascal_case
 
+# Private class, struct, enum and delegates - not enforced (allows both PascalCase and _PascalCase)
+dotnet_naming_rule.private_types_naming.severity = none
+dotnet_naming_rule.private_types_naming.symbols = private_types
+dotnet_naming_rule.private_types_naming.style = pascal_case
+
 # Interfaces must be PascalCase and start with an 'I'
 dotnet_naming_rule.interface_types_must_be_prefixed_with_i.severity = warning
 dotnet_naming_rule.interface_types_must_be_prefixed_with_i.symbols = interface_types
 dotnet_naming_rule.interface_types_must_be_prefixed_with_i.style = prefix_interface_interface_with_i
+
+#####################################
+# Build-time analyzer enforcement
+# These dotnet_diagnostic rules enable enforcement during build (not just in IDE)
+# Requires <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild> in your .csproj
+#####################################
+
+[*.{cs,csx,cake,vb}]
+
+# IDE0003/IDE0009: this and Me qualification
+dotnet_diagnostic.IDE0003.severity = suggestion
+dotnet_diagnostic.IDE0009.severity = suggestion
+
+# IDE0007/IDE0008: var preferences
+dotnet_diagnostic.IDE0007.severity = warning
+dotnet_diagnostic.IDE0008.severity = none
+
+# IDE0011: Add braces
+dotnet_diagnostic.IDE0011.severity = suggestion
+
+# IDE0016: Use throw expression
+dotnet_diagnostic.IDE0016.severity = warning
+
+# IDE0017: Use object initializers
+dotnet_diagnostic.IDE0017.severity = warning
+
+# IDE0018: Inline variable declaration
+dotnet_diagnostic.IDE0018.severity = warning
+
+# IDE0019: Use pattern matching to avoid as followed by null check
+dotnet_diagnostic.IDE0019.severity = warning
+
+# IDE0020/IDE0038: Use pattern matching to avoid is check followed by cast
+dotnet_diagnostic.IDE0020.severity = warning
+dotnet_diagnostic.IDE0038.severity = warning
+
+# IDE0021: Use expression body for constructors
+dotnet_diagnostic.IDE0021.severity = suggestion
+
+# IDE0022: Use expression body for methods
+dotnet_diagnostic.IDE0022.severity = none
+
+# IDE0023/IDE0024: Use expression body for operators
+dotnet_diagnostic.IDE0023.severity = suggestion
+dotnet_diagnostic.IDE0024.severity = suggestion
+
+# IDE0025: Use expression body for properties
+dotnet_diagnostic.IDE0025.severity = suggestion
+
+# IDE0026: Use expression body for indexers
+dotnet_diagnostic.IDE0026.severity = suggestion
+
+# IDE0027: Use expression body for accessors
+dotnet_diagnostic.IDE0027.severity = suggestion
+
+# IDE0028: Use collection initializers
+dotnet_diagnostic.IDE0028.severity = suggestion
+
+# IDE0029/IDE0030: Use coalesce expression
+dotnet_diagnostic.IDE0029.severity = warning
+dotnet_diagnostic.IDE0030.severity = warning
+
+# IDE0031: Use null propagation
+dotnet_diagnostic.IDE0031.severity = warning
+
+# IDE0032: Use auto-property
+dotnet_diagnostic.IDE0032.severity = warning
+
+# IDE0033: Use explicitly provided tuple name
+dotnet_diagnostic.IDE0033.severity = warning
+
+# IDE0034: Simplify default expression
+dotnet_diagnostic.IDE0034.severity = warning
+
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = warning
+
+# IDE0037: Use inferred member names
+dotnet_diagnostic.IDE0037.severity = warning
+
+# IDE0039: Use local function instead of lambda
+dotnet_diagnostic.IDE0039.severity = suggestion
+
+# IDE0040: Add accessibility modifiers
+dotnet_diagnostic.IDE0040.severity = warning
+
+# IDE0041: Use is null check
+dotnet_diagnostic.IDE0041.severity = warning
+
+# IDE0042: Deconstruct variable declaration
+dotnet_diagnostic.IDE0042.severity = warning
+
+# IDE0044: Add readonly modifier
+dotnet_diagnostic.IDE0044.severity = warning
+
+# IDE0045: Use conditional expression for assignment
+dotnet_diagnostic.IDE0045.severity = silent
+
+# IDE0046: Use conditional expression for return
+dotnet_diagnostic.IDE0046.severity = silent
+
+# IDE0047/IDE0048: Parentheses preferences
+dotnet_diagnostic.IDE0047.severity = warning
+dotnet_diagnostic.IDE0048.severity = warning
+
+# IDE0049: Use language keywords instead of framework type names
+dotnet_diagnostic.IDE0049.severity = warning
+
+# IDE0053: Use expression body for lambdas
+dotnet_diagnostic.IDE0053.severity = suggestion
+
+# IDE0054/IDE0074: Use compound assignment
+dotnet_diagnostic.IDE0054.severity = suggestion
+dotnet_diagnostic.IDE0074.severity = suggestion
+
+# IDE0055: Formatting rule
+dotnet_diagnostic.IDE0055.severity = warning
+
+# IDE0056: Use index operator
+dotnet_diagnostic.IDE0056.severity = suggestion
+
+# IDE0057: Use range operator
+dotnet_diagnostic.IDE0057.severity = suggestion
+
+# IDE0058: Remove unnecessary expression value
+dotnet_diagnostic.IDE0058.severity = silent
+
+# IDE0059: Remove unnecessary value assignment
+dotnet_diagnostic.IDE0059.severity = suggestion
+
+# IDE0060: Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = suggestion
+
+# IDE0061: Use expression body for local functions
+dotnet_diagnostic.IDE0061.severity = silent
+
+# IDE0062: Make local function static
+dotnet_diagnostic.IDE0062.severity = suggestion
+
+# IDE0063: Use simple using statement
+dotnet_diagnostic.IDE0063.severity = suggestion
+
+# IDE0065: using directive placement
+dotnet_diagnostic.IDE0065.severity = silent
+
+# IDE0066: Use switch expression
+dotnet_diagnostic.IDE0066.severity = suggestion
+
+# IDE0071: Simplify interpolation
+dotnet_diagnostic.IDE0071.severity = suggestion
+
+# IDE0075: Simplify conditional expression
+dotnet_diagnostic.IDE0075.severity = suggestion
+
+# IDE0078: Use pattern matching
+dotnet_diagnostic.IDE0078.severity = silent
+
+# IDE0083: Use pattern matching (not pattern)
+dotnet_diagnostic.IDE0083.severity = suggestion
+
+# IDE0090: Simplify new expression
+dotnet_diagnostic.IDE0090.severity = suggestion
+
+# IDE0130: Namespace does not match folder structure
+dotnet_diagnostic.IDE0130.severity = suggestion
+
+# IDE0150: Prefer null check over type check
+dotnet_diagnostic.IDE0150.severity = suggestion
+
+# IDE0161: Use file-scoped namespace
+dotnet_diagnostic.IDE0161.severity = suggestion
+
+# IDE0170: Prefer extended property pattern
+dotnet_diagnostic.IDE0170.severity = suggestion
+
+# IDE0180: Use tuple to swap values
+dotnet_diagnostic.IDE0180.severity = suggestion
+
+# IDE0200: Remove unnecessary lambda expression
+dotnet_diagnostic.IDE0200.severity = silent
+
+# IDE1005: Use conditional delegate call
+dotnet_diagnostic.IDE1005.severity = warning
+
+# IDE1006: Naming rule violation
+dotnet_diagnostic.IDE1006.severity = warning
+
+# IDE2000: Allow multiple blank lines
+dotnet_diagnostic.IDE2000.severity = suggestion
+
+# IDE2001: Embedded statements on same line
+dotnet_diagnostic.IDE2001.severity = silent
+
+# IDE2002: Consecutive braces spacing
+dotnet_diagnostic.IDE2002.severity = silent
+
+# IDE2003: Allow statement immediately after block
+dotnet_diagnostic.IDE2003.severity = silent
+
+# IDE2004: Blank line after colon in constructor initializer
+dotnet_diagnostic.IDE2004.severity = silent
