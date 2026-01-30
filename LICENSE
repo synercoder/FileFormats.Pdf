@@ -1,21 +1,19 @@
-MIT License
+Synercoding Split License
+Copyright (c) 2026 Synercoding
 
-Copyright (c) 2021 Gerard Gunnewijk
+This software is available under a dual license model designed to meet the needs of both open source and commercial users.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+License Options
+Option 1: Apache License 2.0 (Qualifying Use)
+You may use, copy, modify, and distribute this software under the terms of the Apache License 2.0 if you meet any one of the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Open Source Use: You are using this software as part of an open source project that is distributed under an OSI-approved open source license.
+Non-Profit Use: You are a non-profit organization, charity, or educational institution using this software for non-commercial purposes.
+Small Business Use: You are an individual or organization with total annual gross revenue of less than $1,000,000 USD (one million US dollars) in the most recently completed fiscal year.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+If you qualify under any of these conditions, your use is governed by the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+Option 2: Commercial License (Non-Qualifying Use)
+If you do not meet any of the qualifying conditions above, you must obtain a commercial license to use this software.
+To obtain a commercial license, please contact:
+
+Email: gerard.gunnewijk@live.nl

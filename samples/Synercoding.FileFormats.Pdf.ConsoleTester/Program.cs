@@ -1,8 +1,13 @@
 using SixLabors.ImageSharp.PixelFormats;
-using Synercoding.FileFormats.Pdf.Extensions;
-using Synercoding.FileFormats.Pdf.LowLevel.Colors;
-using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
-using Synercoding.FileFormats.Pdf.LowLevel.Text;
+using Synercoding.FileFormats.Pdf.Content;
+using Synercoding.FileFormats.Pdf.Content.Colors;
+using Synercoding.FileFormats.Pdf.Content.Colors.ColorSpaces;
+using Synercoding.FileFormats.Pdf.Content.Extensions;
+using Synercoding.FileFormats.Pdf.Content.Text;
+using Synercoding.FileFormats.Pdf.Content.Text.Fonts;
+using Synercoding.FileFormats.Pdf.Generation.Extensions;
+using Synercoding.FileFormats.Pdf.IO.Filters;
+using Synercoding.FileFormats.Pdf.Primitives;
 
 namespace Synercoding.FileFormats.Pdf.ConsoleTester;
 
@@ -10,17 +15,29 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var fileName = "out.pdf";
+        _writePdf("test.pdf");
+        _writePdf("test-no-subset.pdf", enableSubsetting: false);
+        _writeTextOnlyPdf("text-only.pdf");
+        _writeTextOnlyPdf("text-only-no-subset.pdf", enableSubsetting: false);
+    }
 
-        if (File.Exists(fileName))
-            File.Delete(fileName);
-
+    private static void _writePdf(string fileName, bool enableSubsetting = true)
+    {
+        File.Delete(fileName);
         using (var fs = File.OpenWrite(fileName))
-        using (var writer = new PdfWriter(fs))
+        using (var writer = new PdfWriter(fs, new WriterSettings()
+        {
+            ContentStreamFilters = Array.Empty<IStreamFilter>(),
+            EnableSubsetting = enableSubsetting
+        }))
         {
             var bleed = Mm(3);
             var mediaBox = Sizes.A4.Expand(bleed).AsRectangle();
             var trimBox = mediaBox.Contract(bleed);
+
+            writer.PageLayout = PageLayout.SinglePage;
+
+            var font = Font.Load("Fonts/JuliettRegular-7OXnA.ttf");
 
             writer
                 // Set document info
@@ -30,6 +47,52 @@ public class Program
                     info.Title = "Example 1";
                     info.Creator = "Synercoding.FileFormats.Pdf";
                     info.ExtraInfo.Add("CutContourProgramId", "cloud-shape");
+                })
+                .AddPage(page =>
+                {
+                    page.MediaBox = mediaBox;
+                    page.TrimBox = trimBox;
+
+                    using (page.Content.WrapInState())
+                    {
+                        string text = "Hello world!";
+                        double fontSize = 80;
+
+                        var textSize = font.GetBoundingBox(text, fontSize);
+                        var matrix = Matrix.Identity
+                            .Translate(
+                                x: ( ( mediaBox.Width / 2 ) - ( textSize.BoundingBox.Width / 2 ) ).AsRaw(Unit.Points),
+                                y: ( ( mediaBox.Height / 2 ) - ( textSize.BoundingBox.Height / 2 ) ).AsRaw(Unit.Points)
+                            );
+                        page.Content.ConcatenateMatrix(matrix);
+                        page.Content.AddText(text, font, fontSize);
+                    }
+
+                    using (page.Content.WrapInState())
+                    {
+                        string[] lines = [
+                            "This text is centered.",
+                            "Because text bounding box calculations are now supported by the font implementation."
+                        ];
+                        double fontSize = 14;
+
+                        var yPos = ( mediaBox.Height / 2 ) - Mm(20);
+                        foreach (var line in lines)
+                        {
+                            using (page.Content.WrapInState())
+                            {
+                                var textSize = font.GetBoundingBox(line, fontSize);
+                                var matrix = Matrix.Identity
+                                    .Translate(
+                                        x: ( ( mediaBox.Width / 2 ) - ( textSize.BoundingBox.Width / 2 ) ).AsRaw(Unit.Points),
+                                        y: yPos.AsRaw(Unit.Points)
+                                    );
+                                page.Content.ConcatenateMatrix(matrix);
+                                page.Content.AddText(line, font, fontSize);
+                                yPos -= Pts(( font.Ascent + font.LineGap ) / font.UnitsPerEm * fontSize);
+                            }
+                        }
+                    }
                 })
                 // Add image to writer directly and then use that image in the page
                 .AddPage(page =>
@@ -55,11 +118,11 @@ public class Program
                         content.AddText(textOp =>
                         {
                             textOp.SetTextRenderingMode(TextRenderingMode.AddClippingPath)
-                                .SetFontAndSize(StandardFonts.Helvetica, 160)
-                                .SetTextLeading(500)
-                                .MoveToStartNextLine(Mm(10).AsRaw(Unit.Points), Mm(200).AsRaw(Unit.Points))
+                                .SetFontAndSize(font, 160)
+                                .SetTextLeading(425)
+                                .MoveToStartNextLine(Mm(10).AsRaw(Unit.Points), Mm(170).AsRaw(Unit.Points))
                                 .ShowText("Clipped")
-                                .SetFontAndSize(StandardFonts.HelveticaBold, 650)
+                                .SetFontAndSize(font, 650)
                                 .ShowTextOnNextLine("it!");
                         });
 
@@ -109,8 +172,8 @@ public class Program
                     page.Content.AddShapes(ctx =>
                     {
                         ctx.SetMiterLimit(10)
-                            .SetLineCap(LowLevel.Graphics.LineCapStyle.ButtCap)
-                            .SetLineJoin(LowLevel.Graphics.LineJoinStyle.MiterJoin);
+                            .SetLineCap(LineCapStyle.ButtCap)
+                            .SetLineJoin(LineJoinStyle.MiterJoin);
 
                         ctx.Move(100, 100)
                             .LineTo(200, 100)
@@ -119,7 +182,7 @@ public class Program
                             .SetLineWidth(5)
                             .SetStroke(PredefinedColors.Black)
                             .SetFill(PredefinedColors.Red)
-                            .FillThenStroke(LowLevel.FillRule.NonZeroWindingNumber);
+                            .FillThenStroke(FillRule.NonZeroWindingNumber);
 
                         ctx.Move(50, 50)
                             .LineTo(150, 50)
@@ -128,7 +191,7 @@ public class Program
                             .SetLineWidth(1)
                             .SetFill(PredefinedColors.Blue)
                             .CloseSubPath()
-                            .Fill(LowLevel.FillRule.NonZeroWindingNumber);
+                            .Fill(FillRule.NonZeroWindingNumber);
 
                         ctx.Move(150, 150)
                             .LineTo(250, 150)
@@ -136,7 +199,7 @@ public class Program
                             .LineTo(150, 250)
                             .SetLineWidth(3)
                             .SetStroke(PredefinedColors.Yellow)
-                            .SetDashPattern(new LowLevel.Graphics.Dash() { Array = new[] { 5d } })
+                            .SetDashPattern(new Dash() { Array = new[] { 5d } })
                             .CloseSubPath()
                             .Stroke();
                     });
@@ -150,19 +213,19 @@ public class Program
                     page.Content.AddText(ops =>
                     {
                         ops.MoveToStartNextLine(Mm(10).AsRaw(Unit.Points), Mm(10).AsRaw(Unit.Points))
-                           .SetFontAndSize(StandardFonts.Helvetica, 12)
+                           .SetFontAndSize(font, 12)
                            .SetFill(PredefinedColors.Blue)
                            .ShowText("The quick brown fox jumps over the lazy dog.");
                     });
 
-                    page.Content.AddText("Text with a newline" + Environment.NewLine + "in it.", StandardFonts.Helvetica, 12, new Point(Mm(10), Mm(20)));
+                    page.Content.AddText("Text with a newline" + Environment.NewLine + "in it.", font, 12, new Point(Mm(10), Mm(20)));
                 })
                 .AddPage(page =>
                 {
                     page.MediaBox = mediaBox;
                     page.TrimBox = trimBox;
 
-                    page.Content.AddText("This page also used Helvetica", StandardFonts.Helvetica, 32, textContext =>
+                    page.Content.AddText("This page also has text in it.", font, 32, textContext =>
                     {
                         textContext.MoveToStartNextLine(Mm(10).AsRaw(Unit.Points), Mm(10).AsRaw(Unit.Points))
                             .SetTextRenderingMode(TextRenderingMode.Stroke)
@@ -221,7 +284,7 @@ public class Program
                         {
                             Overprint = true
                         });
-                        context.SetStroke(new SpotColor(new Separation(LowLevel.PdfName.Get("CutContour"), PredefinedColors.Magenta), 1));
+                        context.SetStroke(new SpotColor(new Separation(PdfName.Get("CutContour"), PredefinedColors.Magenta), 1));
                         context.Rectangle(trim);
                         context.Stroke();
                     });
@@ -231,7 +294,7 @@ public class Program
                 using (var pantherSixImage = SixLabors.ImageSharp.Image.Load<Rgba32>(pantherPngStream))
                 {
                     var pantherImg = writer.AddImage(pantherSixImage);
-                    var transparentPanther = writer.AddSeparationImage(new Separation(LowLevel.PdfName.Get("White"), PredefinedColors.Yellow), pantherSixImage, GrayScaleMethod.AlphaChannel, [0, 1]);
+                    var transparentPanther = writer.AddSeparationImage(pantherSixImage, new Separation(PdfName.Get("White"), PredefinedColors.Yellow), GrayScaleMethod.AlphaChannel, [0, 1]);
 
                     writer.AddPage(page =>
                     {
@@ -257,6 +320,29 @@ public class Program
                     });
                 }
             }
+        }
+    }
+
+    private static void _writeTextOnlyPdf(string fileName, bool enableSubsetting = true)
+    {
+        File.Delete(fileName);
+        using (var fs = File.OpenWrite(fileName))
+        using (var writer = new PdfWriter(fs, new WriterSettings()
+        {
+            ContentStreamFilters = Array.Empty<IStreamFilter>(),
+            EnableSubsetting = enableSubsetting
+        }))
+        {
+            var font = Font.Load("Fonts/JuliettRegular-7OXnA.ttf");
+
+            writer.AddPage(page =>
+            {
+                page.MediaBox = Sizes.A6.Rotated.AsRectangle();
+
+                // Use a limited character set to make subsetting more effective
+                page.Content.AddText("The quick brown fox jumps over the lazy dog.", font, 18, new Point(Mm(5), Mm(20)));
+                page.Content.AddText("0123456789.,!@#$%^&*()-=[];'<>?_+", font, 18, new Point(Mm(5), Mm(10)));
+            });
         }
     }
 }

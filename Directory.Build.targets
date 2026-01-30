@@ -6,20 +6,9 @@
     <DefineConstants>$(DefineConstants);$(OS)</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Update="SixLabors.ImageSharp" Version="3.1.*" />
-  </ItemGroup>
-
-  <!-- Disable auto imports/usings from ImageSharp -->
-  <ItemGroup>
-    <Using Remove="SixLabors.ImageSharp" />
-    <Using Remove="SixLabors.ImageSharp.PixelFormats" />
-    <Using Remove="SixLabors.ImageSharp.Processing" />
-  </ItemGroup>
-  
   <!-- For ease of use -->
-  <ItemGroup>
-    <PackageReference Include="Synercoding.Primitives" Version="1.0.0-rc09" />
+  <ItemGroup Label="Easy units for measurements">
+    <PackageReference Include="Synercoding.Primitives" />
     <Using Static="true" Include="Synercoding.Primitives.ValueCreator" />
     <Using Include="Synercoding.Primitives" />
     <Using Include="Synercoding.Primitives.Extensions" />
