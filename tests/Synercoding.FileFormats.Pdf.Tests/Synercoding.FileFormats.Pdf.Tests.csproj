@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Synercoding.FileFormats.Pdf\Synercoding.FileFormats.Pdf.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="TestFiles\Fonts\" />
+    <Folder Include="TestFiles\Pdfs\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="..\Font-Files\juliett-font\JuliettBold-vndlO.ttf" Link="TestFiles\Fonts\JuliettBold-vndlO.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Font-Files\juliett-font\JuliettBoldItalic-2v3AK.ttf" Link="TestFiles\Fonts\JuliettBoldItalic-2v3AK.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Font-Files\juliett-font\JuliettItalic-wodnZ.ttf" Link="TestFiles\Fonts\JuliettItalic-wodnZ.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Font-Files\juliett-font\JuliettRegular-7OXnA.ttf" Link="TestFiles\Fonts\JuliettRegular-7OXnA.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Pdf-Files\encrypted-aes-128bits.pdf" Link="TestFiles\Pdfs\encrypted-aes-128bits.pdf" >
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Pdf-Files\encrypted-aes-256bits.pdf" Link="TestFiles\Pdfs\encrypted-aes-256bits.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Pdf-Files\encrypted-rc4-128bits.pdf" Link="TestFiles\Pdfs\encrypted-rc4-128bits.pdf" >
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Pdfium.Rendering" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PdfiumVersion>141.0.7374</PdfiumVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="bblanchon.PDFium.Win32" VersionOverride="$(PdfiumVersion)" Condition="'$(RuntimeIdentifier)'=='' Or '$(RuntimeIdentifier)'=='win-x64' Or '$(RuntimeIdentifier)'=='win-x86' Or '$(RuntimeIdentifier)'=='win-arm64'" />
+    <PackageReference Include="bblanchon.PDFium.Linux" VersionOverride="$(PdfiumVersion)" Condition="'$(RuntimeIdentifier)'=='' Or $(RuntimeIdentifier.StartsWith('linux-'))" />
+    <PackageReference Include="bblanchon.PDFium.macOS" VersionOverride="$(PdfiumVersion)" Condition="'$(RuntimeIdentifier)'=='' Or '$(RuntimeIdentifier)'=='osx-x64' Or '$(RuntimeIdentifier)'=='osx-arm64'" />
+  </ItemGroup>
+  
+</Project>

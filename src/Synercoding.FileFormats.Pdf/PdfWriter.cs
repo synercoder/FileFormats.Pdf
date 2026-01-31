@@ -1,58 +1,98 @@
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using Synercoding.FileFormats.Pdf.LowLevel;
-using Synercoding.FileFormats.Pdf.LowLevel.Colors.ColorSpaces;
-using Synercoding.FileFormats.Pdf.LowLevel.Extensions;
-using Synercoding.FileFormats.Pdf.LowLevel.Internal;
-using Synercoding.FileFormats.Pdf.LowLevel.XRef;
-using System.IO.Compression;
+using Synercoding.FileFormats.Pdf.Content;
+using Synercoding.FileFormats.Pdf.Content.Colors.ColorSpaces;
+using Synercoding.FileFormats.Pdf.DocumentObjects;
+using Synercoding.FileFormats.Pdf.Generation;
+using Synercoding.FileFormats.Pdf.Generation.Internal;
+using Synercoding.FileFormats.Pdf.Primitives;
 using System.Reflection;
 
 namespace Synercoding.FileFormats.Pdf;
 
 /// <summary>
-/// This class is the start point for creating a pdf file
+/// Provides functionality to write and create PDF documents.
 /// </summary>
-public sealed class PdfWriter : IDisposable
+public class PdfWriter : IDisposable
 {
-    private readonly bool _ownsStream;
-    private readonly ObjectStream _objectStream;
-    private readonly TableBuilder _tableBuilder = new TableBuilder();
+    private readonly CachedResources _cachedResources;
+    private readonly PdfStream _pdfStream;
+    private readonly WriterSettings _settings;
+    private readonly ObjectWriter _objectWriter;
+    private readonly IList<PdfDictionary> _pages = new List<PdfDictionary>();
 
-    private readonly PageTree _pageTree;
-    private readonly Catalog _catalog;
-
-    private bool _endingWritten = false;
+    private bool _trailerWritten = false;
 
     /// <summary>
-    /// Constructor for <see cref="PdfWriter"/>
+    /// Initializes a new instance of the <see cref="PdfWriter"/> class to write to a file.
     /// </summary>
-    /// <param name="stream">The <see cref="Stream"/> to write the PDF file</param>
-    public PdfWriter(Stream stream)
-        : this(stream, true)
+    /// <param name="filePath">The path to the PDF file to create.</param>
+    public PdfWriter(string filePath)
+        : this(filePath, new WriterSettings())
     { }
 
     /// <summary>
-    /// Constructor for <see cref="PdfWriter"/>
+    /// Initializes a new instance of the <see cref="PdfWriter"/> class to write to a file with settings.
     /// </summary>
-    /// <param name="stream">The <see cref="Stream"/> to write the PDF file</param>
-    /// <param name="ownsStream">If the stream is owned, then when this <see cref="PdfWriter"/> is disposed, the stream is also disposed.</param>
-    public PdfWriter(Stream stream, bool ownsStream)
+    /// <param name="filePath">The path to the PDF file to create.</param>
+    /// <param name="settings">The writer settings.</param>
+    public PdfWriter(string filePath, WriterSettings settings)
+        : this(File.OpenRead(filePath), settings, true)
+    { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PdfWriter"/> class to write to a stream.
+    /// </summary>
+    /// <param name="stream">The stream to write PDF data to.</param>
+    public PdfWriter(Stream stream)
+        : this(stream, new WriterSettings())
+    { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PdfWriter"/> class to write to a stream with settings.
+    /// </summary>
+    /// <param name="stream">The stream to write PDF data to.</param>
+    /// <param name="settings">The writer settings.</param>
+    public PdfWriter(Stream stream, WriterSettings settings)
+        : this(stream, settings, false)
+    { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PdfWriter"/> class to write to a stream with settings and dispose control.
+    /// </summary>
+    /// <param name="stream">The stream to write PDF data to.</param>
+    /// <param name="settings">The writer settings.</param>
+    /// <param name="ownsStream">Whether to dispose the stream when the writer is disposed.</param>
+    public PdfWriter(Stream stream, WriterSettings settings, bool ownsStream)
+        : this(new PdfStream(stream, ownsStream), settings)
+    { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PdfWriter"/> class to write to a PDF stream with settings.
+    /// </summary>
+    /// <param name="pdfStream">The PDF stream to write to.</param>
+    /// <param name="settings">The writer settings.</param>
+    public PdfWriter(PdfStream pdfStream, WriterSettings settings)
     {
-        var pdfStream = new PdfStream(stream);
-        _writeHeader(pdfStream);
-        _objectStream = new ObjectStream(pdfStream, _tableBuilder);
+        _pdfStream = pdfStream;
+        _settings = settings;
 
-        _pageTree = new PageTree(_tableBuilder.ReserveId());
-        _catalog = new Catalog(_tableBuilder.ReserveId(), _pageTree);
+        var pdfStart = PdfHeaderWriter.WriteTo(_pdfStream, new PdfVersion(2, 0));
 
-        DocumentInformation = new DocumentInformation(_tableBuilder.ReserveId())
+        _objectWriter = new ObjectWriter(_pdfStream, pdfStart);
+
+        DocumentInformation = new DocumentInformation(this)
         {
             Producer = $"Synercoding.FileFormats.Pdf {typeof(PdfWriter).GetTypeInfo().Assembly.GetName().Version}",
-            CreationDate = DateTime.Now
+            CreationDate = DateTimeOffset.Now,
         };
 
-        _ownsStream = ownsStream;
+        _cachedResources = new CachedResources(_objectWriter.TableBuiler);
+    }
+
+    internal void ThrowsWhenEndingWritten()
+    {
+        if (_trailerWritten)
+            throw new InvalidOperationException("Can not modify the PDF further since the trailer has been written to the stream.");
     }
 
     /// <summary>
@@ -61,33 +101,105 @@ public sealed class PdfWriter : IDisposable
     public DocumentInformation DocumentInformation { get; }
 
     /// <summary>
-    /// Returns the number of pages already added to the writer
+    /// Specifies how the document should be displayed when opened. When null, no page mode is written to the catalog.
+    /// </summary>
+    public PageMode? PageMode { get; set; }
+
+    /// <summary>
+    /// Specifies the page layout to be used when the document is opened. When null, no page layout is written to the catalog.
+    /// </summary>
+    public PageLayout? PageLayout { get; set; }
+
+    /// <summary>
+    /// Gets the number of pages in the document.
     /// </summary>
     public int PageCount
-        => _pageTree.PageCount;
+        => _pages.Count;
 
     /// <summary>
-    /// Set meta information for this document
+    /// Adds a JPEG image from a stream without validation.
     /// </summary>
-    /// <param name="infoAction">Action used to set meta data</param>
-    /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
-    public PdfWriter SetDocumentInfo(Action<DocumentInformation> infoAction)
-        => SetDocumentInfo(infoAction, static (action, did) => action(did));
-
-    /// <summary>
-    /// Set meta information for this document
-    /// </summary>
-    /// <typeparam name="T">Type of data to pass to the action</typeparam>
-    /// <param name="data">Data to be used in the action</param>
-    /// <param name="infoAction">Action used to set meta data</param>
-    /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
-    public PdfWriter SetDocumentInfo<T>(T data, Action<T, DocumentInformation> infoAction)
+    /// <param name="stream">The stream containing JPEG data.</param>
+    /// <param name="width">The width of the image in pixels.</param>
+    /// <param name="height">The height of the image in pixels.</param>
+    /// <param name="colorSpace">The color space of the image.</param>
+    /// <returns>The added PDF image.</returns>
+    public PdfImage AddJpgUnsafe(Stream stream, int width, int height, ColorSpace colorSpace)
     {
-        _throwWhenEndingWritten();
+        var pdfImage = new PdfImage(_objectWriter.TableBuiler.ReserveId(), stream, width, height, colorSpace, null, null, (PdfNames.DCTDecode, null));
 
-        infoAction(data, DocumentInformation);
+        _objectWriter.Write(pdfImage.ToStreamObject(_cachedResources));
 
-        return this;
+        return pdfImage;
+    }
+
+    /// <summary>
+    /// Adds an RGBA image to the document.
+    /// </summary>
+    /// <param name="image">The image to add.</param>
+    /// <returns>The added PDF image.</returns>
+    public PdfImage AddImage(SixLabors.ImageSharp.Image<Rgba32> image)
+    {
+        var pdfImage = PdfImage.Get(_objectWriter.TableBuiler, image);
+
+        _objectWriter.Write(pdfImage.ToStreamObject(_cachedResources));
+
+        return pdfImage;
+    }
+
+    /// <summary>
+    /// Adds an RGB image to the document.
+    /// </summary>
+    /// <param name="image">The image to add.</param>
+    /// <returns>The added PDF image.</returns>
+    public PdfImage AddImage(SixLabors.ImageSharp.Image<Rgb24> image)
+    {
+        var pdfImage = PdfImage.Get(_objectWriter.TableBuiler, image);
+
+        _objectWriter.Write(pdfImage.ToStreamObject(_cachedResources));
+
+        return pdfImage;
+    }
+
+    /// <summary>
+    /// Adds an RGBA image as a separation color space image.
+    /// </summary>
+    /// <param name="image">The image to add.</param>
+    /// <param name="separation">The separation color space definition.</param>
+    /// <param name="grayScaleMethod">The method to convert to grayscale.</param>
+    /// <param name="decodeArray">Optional decode array for the image.</param>
+    /// <returns>The added PDF image.</returns>
+    public PdfImage AddSeparationImage(SixLabors.ImageSharp.Image<Rgba32> image, Separation separation, GrayScaleMethod grayScaleMethod = GrayScaleMethod.AverageOfRGBChannels, double[]? decodeArray = null)
+    {
+        var pdfImage = PdfImage.GetSeparation(_objectWriter.TableBuiler, image, separation, grayScaleMethod, decodeArray);
+
+        _objectWriter.Write(pdfImage.ToStreamObject(_cachedResources));
+
+        var separationRef = _cachedResources.GetOrAdd(separation);
+        _objectWriter.Write(new PdfObject<IPdfArray>()
+        {
+            Id = separationRef.Id,
+            Value = separation.ToPdfArray()
+        });
+
+        return pdfImage;
+    }
+
+    /// <summary>
+    /// Adds an RGB image as a separation color space image.
+    /// </summary>
+    /// <param name="image">The image to add.</param>
+    /// <param name="separation">The separation color space definition.</param>
+    /// <param name="grayScaleMethod">The method to convert to grayscale.</param>
+    /// <param name="decodeArray">Optional decode array for the image.</param>
+    /// <returns>The added PDF image.</returns>
+    public PdfImage AddSeparationImage(SixLabors.ImageSharp.Image<Rgb24> image, Separation separation, GrayScaleMethod grayScaleMethod = GrayScaleMethod.AverageOfRGBChannels, double[]? decodeArray = null)
+    {
+        var pdfImage = PdfImage.GetSeparation(_objectWriter.TableBuiler, image, separation, grayScaleMethod, decodeArray);
+
+        _objectWriter.Write(pdfImage.ToStreamObject(_cachedResources));
+
+        return pdfImage;
     }
 
     /// <summary>
@@ -95,7 +207,7 @@ public sealed class PdfWriter : IDisposable
     /// </summary>
     /// <param name="pageAction">Action used to setup the page</param>
     /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
-    public PdfWriter AddPage(Action<PdfPage> pageAction)
+    public PdfWriter AddPage(Action<WriteablePage> pageAction)
         => AddPage(pageAction, static (action, page) => action(page));
 
     /// <summary>
@@ -104,14 +216,14 @@ public sealed class PdfWriter : IDisposable
     /// <param name="data">Data passed into the action</param>
     /// <param name="pageAction">Action used to setup the page</param>
     /// <returns>Returns this <see cref="PdfWriter"/> to chain calls</returns>
-    public PdfWriter AddPage<T>(T data, Action<T, PdfPage> pageAction)
+    public PdfWriter AddPage<T>(T data, Action<T, WriteablePage> pageAction)
     {
-        _throwWhenEndingWritten();
+        ThrowsWhenEndingWritten();
 
-        using (var page = new PdfPage(_tableBuilder, _pageTree))
+        using (var page = new WriteablePage(_objectWriter.TableBuiler, _cachedResources, _pages.Count + 1))
         {
             pageAction(data, page);
-            _writePageAndResourcesToObjectStream(page);
+            _processPage(page);
         }
 
         return this;
@@ -122,7 +234,7 @@ public sealed class PdfWriter : IDisposable
     /// </summary>
     /// <param name="pageAction">Action used to setup the page</param>
     /// <returns>Returns an awaitable task that resolves into this <see cref="PdfWriter"/> to chain calls</returns>
-    public async Task<PdfWriter> AddPageAsync(Func<PdfPage, Task> pageAction)
+    public async Task<PdfWriter> AddPageAsync(Func<WriteablePage, Task> pageAction)
         => await AddPageAsync(pageAction, static async (action, page) => await action(page));
 
     /// <summary>
@@ -131,215 +243,86 @@ public sealed class PdfWriter : IDisposable
     /// <param name="data">Data passed into the action</param>
     /// <param name="pageAction">Action used to setup the page</param>
     /// <returns>Returns an awaitable task that resolves into this <see cref="PdfWriter"/> to chain calls</returns>
-    public async Task<PdfWriter> AddPageAsync<T>(T data, Func<T, PdfPage, Task> pageAction)
+    public async Task<PdfWriter> AddPageAsync<T>(T data, Func<T, WriteablePage, Task> pageAction)
     {
-        _throwWhenEndingWritten();
+        ThrowsWhenEndingWritten();
 
-        using (var page = new PdfPage(_tableBuilder, _pageTree))
+        using (var page = new WriteablePage(_objectWriter.TableBuiler, _cachedResources, _pages.Count + 1))
         {
             await pageAction(data, page);
-
-            _writePageAndResourcesToObjectStream(page);
+            _processPage(page);
         }
 
         return this;
     }
 
-    /// <summary>
-    /// Add an <see cref="SixLabors.ImageSharp.Image"/> to the pdf file and get the <see cref="Image"/> reference returned
-    /// </summary>
-    /// <param name="image">The image that needs to be added.</param>
-    /// <returns>The image reference that can be used in pages</returns>
-    public Image AddImage(Image<Rgba32> image)
+    private void _processPage(WriteablePage page)
     {
-        _throwWhenEndingWritten();
+        // Write resources
+        var pageResourceWriter = new PageResourcesWriter(_objectWriter, _cachedResources);
+        var resourcesDict = pageResourceWriter.Write(page.Resources);
+        _objectWriter.Write(new PdfObject<IPdfDictionary>
+        {
+            Id = page.Resources.Id,
+            Value = resourcesDict
+        });
 
-        var pdfImage = Image.Get(_tableBuilder, image);
+        // Write content stream
+        var contentStreamId = page.Content.RawContentStream.Id;
+        var streamObj = page.Content.RawContentStream.InnerStream.ToStreamObject(_settings.ContentStreamFilters);
+        _objectWriter.Write(new PdfObject<IPdfStreamObject>()
+        {
+            Id = contentStreamId,
+            Value = streamObj
+        });
 
-        _objectStream.Write(pdfImage);
-
-        return pdfImage;
-    }
-
-    /// <summary>
-    /// Add a separation image to the <see cref="PdfWriter"/>.
-    /// </summary>
-    /// <param name="separation">The <see cref="Separation"/> to use.</param>
-    /// <param name="image">The image to use.</param>
-    /// <param name="grayScaleMethod">The <see cref="GrayScaleMethod"/> to use.</param>
-    /// <param name="decodeArray">Optional decode array to use, default value is <c>[ 0.0 1.0 ]</c></param>
-    /// <returns>The SeparationImage reference that can be used in pages</returns>
-    public Image AddSeparationImage(Separation separation, Image<Rgba32> image, GrayScaleMethod grayScaleMethod, double[]? decodeArray = null)
-    {
-        _throwWhenEndingWritten();
-
-        decodeArray ??= new double[] { 0, 1 };
-        if(decodeArray.Length != 2)
-            throw new ArgumentOutOfRangeException(nameof(decodeArray), "Length of decode array for separation images should be 2.");
-        if (decodeArray.Any(v => v < 0 || v > 1))
-            throw new ArgumentOutOfRangeException(nameof(decodeArray), "All values of the decode array should be between 0 and 1.");
-
-        var id = _tableBuilder.ReserveId();
-
-        var mask = Image.GetMask(_tableBuilder, image);
-
-        var imageStream = Image.AsImageByteStream(image, grayScaleMethod);
-
-        var pdfImage = new Image(id, imageStream, image.Width, image.Height, separation, mask, decodeArray, StreamFilter.FlateDecode);
-
-        _objectStream.Write(pdfImage);
-
-        return pdfImage;
-    }
-
-    /// <summary>
-    /// Add an jpg <see cref="Stream"/> to the pdf file and get the <see cref="Image"/> reference returned
-    /// </summary>
-    /// <remarks>
-    /// The <paramref name="jpgStream"/> is not checked, and is used as is. Make sure only streams that represent a JPG are used.
-    /// </remarks>
-    /// <param name="jpgStream">The <see cref="Stream"/> of the jpg image that needs to be added.</param>
-    /// <param name="originalWidth">The width of the image in the <paramref name="jpgStream"/>.</param>
-    /// <param name="originalHeight">The height of the image in the <paramref name="jpgStream"/>.</param>
-    /// <param name="colorSpace">The color space of the jpg image.</param>
-    /// <returns>The image reference that can be used in pages</returns>
-    public Image AddJpgUnsafe(Stream jpgStream, int originalWidth, int originalHeight, ColorSpace colorSpace)
-    {
-        _throwWhenEndingWritten();
-
-        var id = _tableBuilder.ReserveId();
-
-        var pdfImage = new Image(id, jpgStream, originalWidth, originalHeight, colorSpace, null, null, StreamFilter.DCTDecode);
-
-        _objectStream.Write(pdfImage);
-
-        return pdfImage;
-    }
-
-    /// <summary>
-    /// Write the PDF trailer; indicates that the PDF is done.
-    /// </summary>
-    /// <remarks>
-    /// Other calls to this <see cref="PdfWriter"/> will throw or have no effect after call this.
-    /// </remarks>
-    public void WriteTrailer()
-    {
-        if (_endingWritten)
-            return;
-
-        _objectStream
-            .Write(_pageTree)
-            .Write(_catalog)
-            .Write(DocumentInformation);
-
-        _writePdfEnding();
-
-        _objectStream.InnerStream.Flush();
-
-        _endingWritten = true;
+        _pages.Add(page.ToDictionary());
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        WriteTrailer();
+        if (_trailerWritten)
+            return;
 
-        _objectStream.InnerStream.Flush();
-
-        if (_ownsStream)
-        {
-            _objectStream.InnerStream.Dispose();
-        }
+        _writeTrailer();
+        _pdfStream.Dispose();
     }
 
-    private void _writePageAndResourcesToObjectStream(PdfPage page)
+    private void _writeTrailer()
     {
-        _objectStream.Write(page);
+        _trailerWritten = true;
 
-        foreach (var kv in page.Resources.Images)
-            _objectStream.Write(kv.Value);
+        _writeAllUsedFonts();
 
-        foreach (var (font, refId) in page.Resources.FontReferences)
-            _objectStream.Write(refId, font);
+        var pagesRef = _writePageTreeAndGetRootRef();
 
-        foreach (var (separation, _) in page.Resources.SeparationReferences)
-            _objectStream.Write(separation);
+        var infoWriter = new DocumentInformationWriter(_objectWriter);
+        var infoRef = infoWriter.WriteIfNeeded(DocumentInformation);
 
-        foreach (var (state, (_, refId)) in page.Resources.ExtendedGraphicsStates)
-            _objectStream.Write(refId, state);
+        var catalogWriter = new CatalogWriter(_objectWriter);
+        var catalogRef = catalogWriter.WriteCatalog(pagesRef, _settings, PageMode, PageLayout);
 
-        _objectStream.Write(page.Content.RawContentStream);
+        var xrefWriter = new CrossReferenceTableWriter(_objectWriter.TableBuiler);
+        var xrefPosition = xrefWriter.WriteTo(_pdfStream);
+
+        var trailerWriter = new TrailerWriter(_objectWriter.TableBuiler, _settings);
+        trailerWriter.WriteTo(_pdfStream, catalogRef, infoRef, xrefPosition);
     }
 
-    internal static Stream FlateEncode(Stream inputStream)
+    private void _writeAllUsedFonts()
     {
-        var outputStream = new MemoryStream();
-
-        inputStream.Position = 0;
-        using (var zlibStream = new ZLibStream(outputStream, CompressionLevel.SmallestSize, true))
-        {
-            inputStream.CopyTo(zlibStream);
-        }
-
-        outputStream.Position = 0;
-        return outputStream;
+        foreach (var (font, (reference, tracker)) in _cachedResources.Fonts)
+            font.WriteTo(_objectWriter, reference.Id, tracker, _settings);
     }
 
-    private void _throwWhenEndingWritten()
+    private PdfReference _writePageTreeAndGetRootRef()
     {
-        if (_endingWritten) throw new InvalidOperationException("Can't change document information when PDF trailer is written to the stream.");
-    }
+        var (nodes, root) = PageTreeGenerator.Create(_objectWriter.TableBuiler, _pages);
 
-    private static void _writeHeader(PdfStream stream)
-    {
-        stream.WriteByte(0x25); // %
-        stream.WriteByte(0x50); // P
-        stream.WriteByte(0x44); // D
-        stream.WriteByte(0x46); // F
-        stream.WriteByte(0x2D); // -
-        stream.WriteByte(0x31); // 1
-        stream.WriteByte(0x2E); // .
-        stream.WriteByte(0x37); // 7
-        stream.WriteByte(0x0D); // CR
-        stream.WriteByte(0x0A); // LF
-        stream.WriteByte(0x25); // %
-        stream.WriteByte(0x81); // binary indicator > 128
-        stream.WriteByte(0x82); // binary indicator > 128
-        stream.WriteByte(0x83); // binary indicator > 128
-        stream.WriteByte(0x84); // binary indicator > 128
-        stream.WriteByte(0x0D); // CR
-        stream.WriteByte(0x0A); // LF
-    }
+        foreach (var node in nodes)
+            _objectWriter.Write(node);
 
-    private void _writePdfEnding()
-    {
-        if (!_tableBuilder.Validate())
-            throw new InvalidOperationException("XRef table is invalid.");
-
-        var xRefTable = _tableBuilder.GetXRefTable();
-        uint xRefPosition = xRefTable.WriteToStream(_objectStream.InnerStream);
-
-        _writeTrailer(_objectStream.InnerStream, xRefPosition, xRefTable.Section.ObjectCount, _catalog.Reference, DocumentInformation.Reference);
-    }
-
-    private static void _writeTrailer(PdfStream stream, uint startXRef, int size, PdfReference root, PdfReference documentInfo)
-    {
-        stream
-            .Write("trailer")
-            .NewLine()
-            .Dictionary((size, root, documentInfo), static (triple, dictionary) =>
-            {
-                var (size, root, documentInfo) = triple;
-                dictionary
-                    .Write(PdfName.Get("Size"), size)
-                    .Write(PdfName.Get("Root"), root)
-                    .Write(PdfName.Get("Info"), documentInfo);
-            })
-            .NewLine()
-            .Write("startxref")
-            .NewLine()
-            .Write(startXRef)
-            .NewLine()
-            .Write("%%EOF");
+        return root;
     }
 }

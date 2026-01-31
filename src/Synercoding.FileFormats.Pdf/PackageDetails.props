@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Added and removed newlines on byte level to better match the standard.</PackageReleaseNotes>
+    <PackageReleaseNotes>Complete rewrite to add support for fonts, and with an read/edit future in mind.</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
