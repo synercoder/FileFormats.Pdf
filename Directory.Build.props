@@ -34,6 +34,9 @@
     <OverwriteReadOnlyFiles>true</OverwriteReadOnlyFiles>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/synercoder/FileFormats.Pdf/</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/synercoder/FileFormats.Pdf</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
     </RestoreSources>
