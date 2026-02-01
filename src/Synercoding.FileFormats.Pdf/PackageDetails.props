@@ -12,10 +12,12 @@
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
     <PackageReleaseNotes>Complete rewrite to add support for fonts, and with an read/edit future in mind.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
