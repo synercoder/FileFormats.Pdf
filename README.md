@@ -5,9 +5,9 @@
 [nuget-badge]: https://img.shields.io/nuget/v/Synercoding.FileFormats.Pdf.svg?label=Synercoding.FileFormats.Pdf
 
 
-This project was created to enable PDF creation on .NETStandard 2.1, .NET 6 & .NET 7. This because multiple libraries did not suit my purpose of working on .NET Core & .NET Framework the same way. Some alternatives supported settings the different boxes (Media, Crop, Bleed & Trim) but did not fully supported images on all platforms. Others supported images but not the different boxes, and again others did not work at all on .NET Core.
+This project was created to enable PDF creation on .NET. Multiple libraries did not suit my purpose of working on .NET Core & .NET Framework the same way. Some alternatives supported settings the different boxes (Media, Crop, Bleed & Trim) but did not fully support images on all platforms. Others supported images but not the different boxes, and again others did not work at all on .NET Core.
 
-Because of those reasons this libary was created. Since then this project has evolved to keep current with the latest versions. Currently only supporting .NET 8.0 and .NET 10.0.
+Because of those reasons this library was created. Since then this project has evolved to keep current with the latest versions. Currently targeting .NET 8.0 and .NET 10.0.
 
 ## License
 This project is licensed under a dual license. See [LICENSE](LICENSE) for full information. It comes down to: Apache License 2.0 for small and non-profit companies, or contact me for other options.

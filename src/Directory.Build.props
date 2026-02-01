@@ -9,6 +9,10 @@
 
   <Import Project="$(MSBuildThisFileDirectory)..\Directory.Build.props" />
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='RELEASE'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

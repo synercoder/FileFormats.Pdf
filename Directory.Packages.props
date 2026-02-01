@@ -12,6 +12,10 @@
     </RestoreSources>
   </PropertyGroup>
 
+  <ItemGroup Label="Build packages">
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.102" />
+  </ItemGroup>
+
   <ItemGroup Label="General packages">
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="Synercoding.Primitives" Version="1.0.0-rc11" />
