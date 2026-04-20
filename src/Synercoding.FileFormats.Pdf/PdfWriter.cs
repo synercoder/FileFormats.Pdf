@@ -169,8 +169,9 @@ public class PdfWriter : IDisposable
     /// <param name="grayScaleMethod">The method to convert to grayscale.</param>
     /// <param name="decodeArray">Optional decode array for the image.</param>
     /// <returns>The added PDF image.</returns>
-    public PdfImage AddSeparationImage(SixLabors.ImageSharp.Image<Rgba32> image, Separation separation, GrayScaleMethod grayScaleMethod = GrayScaleMethod.AverageOfRGBChannels, double[]? decodeArray = null)
+    public PdfImage AddSeparationImage(SixLabors.ImageSharp.Image<Rgba32> image, Separation separation, GrayScaleMethod32? grayScaleMethod = null, double[]? decodeArray = null)
     {
+        grayScaleMethod ??= GrayScaleMethods.AverageOfRGBChannels;
         var pdfImage = PdfImage.GetSeparation(_objectWriter.TableBuiler, image, separation, grayScaleMethod, decodeArray);
 
         _objectWriter.Write(pdfImage.ToStreamObject(_cachedResources));
@@ -193,8 +194,9 @@ public class PdfWriter : IDisposable
     /// <param name="grayScaleMethod">The method to convert to grayscale.</param>
     /// <param name="decodeArray">Optional decode array for the image.</param>
     /// <returns>The added PDF image.</returns>
-    public PdfImage AddSeparationImage(SixLabors.ImageSharp.Image<Rgb24> image, Separation separation, GrayScaleMethod grayScaleMethod = GrayScaleMethod.AverageOfRGBChannels, double[]? decodeArray = null)
+    public PdfImage AddSeparationImage(SixLabors.ImageSharp.Image<Rgb24> image, Separation separation, GrayScaleMethod24? grayScaleMethod = null, double[]? decodeArray = null)
     {
+        grayScaleMethod ??= GrayScaleMethods.AverageOfRGBChannels;
         var pdfImage = PdfImage.GetSeparation(_objectWriter.TableBuiler, image, separation, grayScaleMethod, decodeArray);
 
         _objectWriter.Write(pdfImage.ToStreamObject(_cachedResources));
