@@ -151,14 +151,14 @@ public class PdfImage : IDisposable
     internal static PdfImage Get(TableBuilder tableBuilder, Image<Rgb24> image)
         => new PdfImage(tableBuilder.ReserveId(), _encodeToJpg(image), image.Width, image.Height, DeviceRGB.Instance, null, null, (PdfNames.DCTDecode, null));
 
-    internal static PdfImage GetSeparation(TableBuilder tableBuilder, Image<Rgb24> image, Separation separation, GrayScaleMethod grayScaleMethod, double[]? decodeArray = null)
+    internal static PdfImage GetSeparation(TableBuilder tableBuilder, Image<Rgb24> image, Separation separation, GrayScaleMethod24 grayScaleMethod, double[]? decodeArray = null)
     {
         using var grayScaleStream = AsGrayScaleByteStream(image, grayScaleMethod);
 
         return new PdfImage(tableBuilder.ReserveId(), _flateEncode(grayScaleStream), image.Width, image.Height, separation, null, decodeArray, (PdfNames.FlateDecode, null));
     }
 
-    internal static PdfImage GetSeparation(TableBuilder tableBuilder, Image<Rgba32> image, Separation separation, GrayScaleMethod grayScaleMethod, double[]? decodeArray = null)
+    internal static PdfImage GetSeparation(TableBuilder tableBuilder, Image<Rgba32> image, Separation separation, GrayScaleMethod32 grayScaleMethod, double[]? decodeArray = null)
     {
         using var grayScaleStream = AsGrayScaleByteStream(image, grayScaleMethod);
 
@@ -170,7 +170,7 @@ public class PdfImage : IDisposable
         if (!_hasTransparancy(image))
             return null;
 
-        using var grayScaleStream = AsGrayScaleByteStream(image, GrayScaleMethod.AlphaChannel);
+        using var grayScaleStream = AsGrayScaleByteStream(image, GrayScaleMethods.AlphaChannel);
 
         return new PdfImage(tableBuilder.ReserveId(), _flateEncode(grayScaleStream), image.Width, image.Height, DeviceGray.Instance, null, null, (PdfNames.FlateDecode, null));
     }
@@ -214,7 +214,7 @@ public class PdfImage : IDisposable
         return new MemoryStream(bytes);
     }
 
-    internal static MemoryStream AsGrayScaleByteStream(Image<Rgba32> image, GrayScaleMethod grayScaleMethod)
+    internal static MemoryStream AsGrayScaleByteStream(Image<Rgba32> image, GrayScaleMethod32 grayScaleMethod)
     {
         var byteStream = new MemoryStream();
 
@@ -231,17 +231,7 @@ public class PdfImage : IDisposable
                     // Get a reference to the pixel at position x
                     ref Rgba32 pixel = ref pixelRow[x];
 
-                    var pixelValue = grayScaleMethod switch
-                    {
-                        GrayScaleMethod.AlphaChannel => pixel.A,
-                        GrayScaleMethod.RedChannel => pixel.R,
-                        GrayScaleMethod.GreenChannel => pixel.G,
-                        GrayScaleMethod.BlueChannel => pixel.B,
-                        GrayScaleMethod.AverageOfRGBChannels => (byte)( ( pixel.R + pixel.G + pixel.B ) / 3 ),
-                        GrayScaleMethod.BT601 => (byte)( ( pixel.R * 0.299 ) + ( pixel.G * 0.587 ) + ( pixel.B * 0.114 ) ),
-                        GrayScaleMethod.BT709 => (byte)( ( pixel.R * 0.2126 ) + ( pixel.G * 0.7152 ) + ( pixel.B * 0.0722 ) ),
-                        _ => throw new NotImplementedException()
-                    };
+                    var pixelValue = grayScaleMethod(ref pixel);
 
                     byteStream.WriteByte(pixelValue);
                 }
@@ -253,11 +243,8 @@ public class PdfImage : IDisposable
         return byteStream;
     }
 
-    internal static MemoryStream AsGrayScaleByteStream(Image<Rgb24> image, GrayScaleMethod grayScaleMethod)
+    internal static MemoryStream AsGrayScaleByteStream(Image<Rgb24> image, GrayScaleMethod24 grayScaleMethod)
     {
-        if (grayScaleMethod == GrayScaleMethod.AlphaChannel)
-            throw new ArgumentException($"Can not use alpha channel for images of pixel format {nameof(Rgb24)}.", nameof(grayScaleMethod));
-
         var byteStream = new MemoryStream();
 
         image.ProcessPixelRows(accessor =>
@@ -273,16 +260,7 @@ public class PdfImage : IDisposable
                     // Get a reference to the pixel at position x
                     ref Rgb24 pixel = ref pixelRow[x];
 
-                    var pixelValue = grayScaleMethod switch
-                    {
-                        GrayScaleMethod.RedChannel => pixel.R,
-                        GrayScaleMethod.GreenChannel => pixel.G,
-                        GrayScaleMethod.BlueChannel => pixel.B,
-                        GrayScaleMethod.AverageOfRGBChannels => (byte)( ( pixel.R + pixel.G + pixel.B ) / 3 ),
-                        GrayScaleMethod.BT601 => (byte)( ( pixel.R * 0.299 ) + ( pixel.G * 0.587 ) + ( pixel.B * 0.114 ) ),
-                        GrayScaleMethod.BT709 => (byte)( ( pixel.R * 0.2126 ) + ( pixel.G * 0.7152 ) + ( pixel.B * 0.0722 ) ),
-                        _ => throw new NotImplementedException()
-                    };
+                    var pixelValue = grayScaleMethod(ref pixel);
 
                     byteStream.WriteByte(pixelValue);
                 }

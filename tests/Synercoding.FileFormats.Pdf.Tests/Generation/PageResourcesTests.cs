@@ -283,7 +283,7 @@ public class PageResourcesTests : IDisposable
         var separation = new Separation(PdfName.Get("SpotColor"), new RgbColor(0, 1, 0)); // Green
 
         // Act
-        var name = _pageResources.Add(image, separation, GrayScaleMethod.AverageOfRGBChannels);
+        var name = _pageResources.Add(image, separation, GrayScaleMethods.AverageOfRGBChannels);
 
         // Assert
         Assert.NotNull(name);

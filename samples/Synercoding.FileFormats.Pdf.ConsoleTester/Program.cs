@@ -294,7 +294,7 @@ public class Program
                 using (var pantherSixImage = SixLabors.ImageSharp.Image.Load<Rgba32>(pantherPngStream))
                 {
                     var pantherImg = writer.AddImage(pantherSixImage);
-                    var transparentPanther = writer.AddSeparationImage(pantherSixImage, new Separation(PdfName.Get("White"), PredefinedColors.Yellow), GrayScaleMethod.AlphaChannel, [0, 1]);
+                    var transparentPanther = writer.AddSeparationImage(pantherSixImage, new Separation(PdfName.Get("White"), PredefinedColors.Yellow), GrayScaleMethods.AlphaChannel, [0, 1]);
 
                     writer.AddPage(page =>
                     {
