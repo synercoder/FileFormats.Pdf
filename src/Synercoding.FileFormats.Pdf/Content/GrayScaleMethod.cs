@@ -95,5 +95,16 @@ public static class GrayScaleMethods
     }
 }
 
+/// <summary>
+/// Represents a method to convert a <see cref="Rgba32"/> pixel into a single byte.
+/// </summary>
+/// <param name="pixel">The pixel to convert</param>
+/// <returns>The byte value the pixel represents.</returns>
 public delegate byte GrayScaleMethod32(ref Rgba32 pixel);
+
+/// <summary>
+/// Represents a method to convert a <see cref="Rgb24"/> pixel into a single byte.
+/// </summary>
+/// <param name="pixel">The pixel to convert</param>
+/// <returns>The byte value the pixel represents.</returns>
 public delegate byte GrayScaleMethod24(ref Rgb24 pixel);
