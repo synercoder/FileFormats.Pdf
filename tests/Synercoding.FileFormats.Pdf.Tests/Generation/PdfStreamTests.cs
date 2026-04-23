@@ -266,6 +266,151 @@ public class PdfStreamTests
         Assert.Equal(thirdEncoded, streamObject.RawData);
     }
 
+    // Regression tests for issue #87 — the literal-string escape table and the
+    // hex-string fallback used for CID-encoded show-text operands.
+
+    [Fact]
+    public void WriteStringHex_EmptyArray_WritesEmptyAngleBrackets()
+    {
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringHex(Array.Empty<byte>());
+
+        Assert.Equal(new byte[] { 0x3C, 0x3E }, memoryStream.ToArray());
+    }
+
+    [Fact]
+    public void WriteStringHex_GlyphId0x000D_PreservesCarriageReturn()
+    {
+        // Issue #87: Source Sans Pro capital 'J' has glyph id 13 (0x000D).
+        // Previously this was written as a literal string, where the parser
+        // would silently normalise 0x0D to 0x0A and the consumer would look
+        // up CID 10 instead of 13.
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringHex(new byte[] { 0x00, 0x0D });
+
+        Assert.Equal("<000D>", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
+    [Fact]
+    public void WriteStringHex_GlyphIdWithCarriageReturnInHighByte_IsPreserved()
+    {
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringHex(new byte[] { 0x0D, 0x42 });
+
+        Assert.Equal("<0D42>", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
+    [Fact]
+    public void WriteStringHex_ConsecutiveCidsForming0D0A_PreservesAlignment()
+    {
+        // A literal string would collapse the 0D 0A pair into a single 0x0A,
+        // shifting alignment for every subsequent 2-byte CID. A hex string
+        // round-trips every byte.
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringHex(new byte[] { 0x01, 0x0D, 0x0A, 0x02 });
+
+        Assert.Equal("<010D0A02>", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
+    [Fact]
+    public void WriteStringHex_BytesThatWouldBeEscapedInLiteral_AreWrittenRaw()
+    {
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringHex(new byte[] { 0x28, 0x29, 0x5C });
+
+        Assert.Equal("<28295C>", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
+    [Fact]
+    public void WriteStringHex_AllBytes_RoundTripExactly()
+    {
+        var input = new byte[256];
+        for (int i = 0; i < 256; i++)
+            input[i] = (byte)i;
+
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringHex(input);
+
+        var output = Encoding.ASCII.GetString(memoryStream.ToArray());
+        Assert.StartsWith("<", output);
+        Assert.EndsWith(">", output);
+        Assert.Equal(( input.Length * 2 ) + 2, output.Length);
+
+        // Parse the hex back and verify every byte round-trips.
+        var hex = output[1..^1];
+        var roundTripped = new byte[input.Length];
+        for (int i = 0; i < input.Length; i++)
+            roundTripped[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+        Assert.Equal(input, roundTripped);
+    }
+
+    [Fact]
+    public void WriteStringLiteral_String_EscapesCarriageReturn()
+    {
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringLiteral("a\rb");
+
+        Assert.Equal("(a\\rb)", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
+    [Fact]
+    public void WriteStringLiteral_String_EscapesLineFeed()
+    {
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringLiteral("a\nb");
+
+        Assert.Equal("(a\\nb)", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
+    [Fact]
+    public void WriteStringLiteral_String_EscapesTab()
+    {
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringLiteral("a\tb");
+
+        Assert.Equal("(a\\tb)", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
+    [Fact]
+    public void WriteStringLiteral_String_StillEscapesParenthesesAndBackslash()
+    {
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringLiteral("(a)\\b");
+
+        Assert.Equal("(\\(a\\)\\\\b)", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
+    [Fact]
+    public void WriteStringLiteral_Bytes_EscapesControlCharacters()
+    {
+        using var memoryStream = new MemoryStream();
+        var pdfStream = new PdfStream(memoryStream);
+
+        pdfStream.WriteStringLiteral(new byte[] { 0x0D, 0x0A, 0x09, 0x08, 0x0C });
+
+        Assert.Equal("(\\r\\n\\t\\b\\f)", Encoding.ASCII.GetString(memoryStream.ToArray()));
+    }
+
     private class PassThroughFilterStub : IStreamFilter
     {
         public PdfName Name => PdfName.Get("PassThrough");

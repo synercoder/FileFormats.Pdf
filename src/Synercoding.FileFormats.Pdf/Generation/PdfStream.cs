@@ -259,16 +259,7 @@ public sealed class PdfStream : IDisposable
             : [.. Encoding.UTF8.Preamble, .. Encoding.UTF8.GetBytes(value)];
 
         foreach (var b in bytes)
-        {
-            if (b == '(')
-                Write('\\').Write('(');
-            else if (b == ')')
-                Write('\\').Write(')');
-            else if (b == '\\')
-                Write('\\').Write('\\');
-            else
-                Write(b);
-        }
+            _writeLiteralByte(b);
 
         WriteByte(0x29); // )
 
@@ -285,21 +276,76 @@ public sealed class PdfStream : IDisposable
         WriteByte(0x28); // (
 
         foreach (var b in encodedString)
-        {
-            if (b == '(')
-                Write('\\').Write('(');
-            else if (b == ')')
-                Write('\\').Write(')');
-            else if (b == '\\')
-                Write('\\').Write('\\');
-            else
-                WriteByte(b);
-        }
+            _writeLiteralByte(b);
 
         WriteByte(0x29); // )
 
         return this;
     }
+
+    /// <summary>
+    /// Write an encoded byte sequence to the stream as a PDF hexadecimal string.
+    /// </summary>
+    /// <remarks>
+    /// Hexadecimal strings (ISO 32000-1 §7.3.4.3) are the correct container for arbitrary
+    /// binary data such as CID-encoded show-text operands: they have no escape rules and
+    /// no end-of-line normalisation, so every byte round-trips exactly.
+    /// </remarks>
+    /// <param name="encodedString">The bytes to write.</param>
+    /// <returns>The <see cref="PdfStream"/> to support chaining operations.</returns>
+    internal PdfStream WriteStringHex(byte[] encodedString)
+    {
+        WriteByte(0x3C); // <
+
+        Span<byte> pair = stackalloc byte[2];
+        foreach (var b in encodedString)
+        {
+            pair[0] = _hexNibble(b >> 4);
+            pair[1] = _hexNibble(b & 0x0F);
+            Write(pair);
+        }
+
+        WriteByte(0x3E); // >
+
+        return this;
+    }
+
+    private void _writeLiteralByte(byte b)
+    {
+        switch (b)
+        {
+            case (byte)'(':
+                Write('\\').Write('(');
+                break;
+            case (byte)')':
+                Write('\\').Write(')');
+                break;
+            case (byte)'\\':
+                Write('\\').Write('\\');
+                break;
+            case 0x0A:
+                Write('\\').Write('n');
+                break;
+            case 0x0D:
+                Write('\\').Write('r');
+                break;
+            case 0x09:
+                Write('\\').Write('t');
+                break;
+            case 0x08:
+                Write('\\').Write('b');
+                break;
+            case 0x0C:
+                Write('\\').Write('f');
+                break;
+            default:
+                WriteByte(b);
+                break;
+        }
+    }
+
+    private static byte _hexNibble(int n)
+        => (byte)( n < 10 ? ( '0' + n ) : ( 'A' + n - 10 ) );
 
     /// <summary>
     /// Write an array of numbers to the pdf stream
