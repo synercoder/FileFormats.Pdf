@@ -234,7 +234,7 @@ public sealed class ContentStream : IDisposable
     public ContentStream ShowTextTj(byte[] line)
     {
         InnerStream
-            .WriteStringLiteral(line)
+            .WriteStringHex(line)
             .Space()
             .Write("Tj")
             .NewLine();
@@ -250,7 +250,7 @@ public sealed class ContentStream : IDisposable
     public ContentStream MoveNextLineShowText(byte[] line)
     {
         InnerStream
-            .WriteStringLiteral(line)
+            .WriteStringHex(line)
             .Space()
             .Write("'")
             .NewLine();
@@ -285,7 +285,7 @@ public sealed class ContentStream : IDisposable
             .Space()
             .Write(characterSpacing)
             .Space()
-            .WriteStringLiteral(line)
+            .WriteStringHex(line)
             .Space()
             .Write("\"")
             .NewLine();
