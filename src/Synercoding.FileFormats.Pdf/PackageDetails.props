@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Complete rewrite to add support for fonts, and with an read/edit future in mind.</PackageReleaseNotes>
+    <PackageReleaseNotes>Changed GrayScaleMethod from an enum to a delegate, giving users full control over how separation images are converted to grayscale (breaking change). Fixed issue #87 where CID text bytes containing 0x0D were incorrectly unescaped in string literals, causing parsers to misread them as 0x0A and render the wrong glyph; string literals now escape more characters and CID text in content streams is written as hex strings.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
