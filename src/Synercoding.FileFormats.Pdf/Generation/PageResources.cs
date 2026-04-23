@@ -69,8 +69,9 @@ internal sealed class PageResources : IDisposable
         return Add(pdfImage);
     }
 
-    public PdfName Add(SixLabors.ImageSharp.Image<Rgba32> image, Separation separation, GrayScaleMethod grayScaleMethod = GrayScaleMethod.AverageOfRGBChannels)
+    public PdfName Add(SixLabors.ImageSharp.Image<Rgba32> image, Separation separation, GrayScaleMethod32? grayScaleMethod = null)
     {
+        grayScaleMethod ??= GrayScaleMethods.AverageOfRGBChannels;
         var pdfImage = PdfImage.GetSeparation(_tableBuilder, image, separation, grayScaleMethod);
 
         return Add(pdfImage);
