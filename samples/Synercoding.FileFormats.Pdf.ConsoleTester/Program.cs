@@ -248,6 +248,25 @@ public class Program
 
                         page.Content.AddImage(forestImage, matrix);
                     }
+                })
+                // Add hyperlink
+                .AddPage(page =>
+                {
+                    page.MediaBox = mediaBox;
+                    page.TrimBox = trimBox;
+
+                    using (var forestStream = File.OpenRead("Pexels_com/android-wallpaper-art-backlit-1114897.jpg"))
+                    using (var forestImage = SixLabors.ImageSharp.Image.Load<Rgba32>(forestStream))
+                    {
+                        var scale = (double)forestImage.Width / forestImage.Height;
+
+                        var matrix = Matrix.CreateScaleMatrix(new Value(scale * 303, Unit.Millimeters).AsRaw(Unit.Points), new Value(303, Unit.Millimeters).AsRaw(Unit.Points))
+                            .Translate(new Value(-100, Unit.Millimeters).AsRaw(Unit.Points), new Value(0, Unit.Millimeters).AsRaw(Unit.Points));
+
+                        page.Content.AddImage(forestImage, matrix);
+
+                        page.AddHyperlink(new Uri("https://www.github.com/synercoder/fileformats.pdf"), new Rectangle(new Point(Mm(-100), Mm(0)), new Size(scale * 303, 303, Unit.Millimeters)));
+                    }
                 });
 
             using (var blurStream = File.OpenRead("Pexels_com/4k-wallpaper-blur-bokeh-1484253.jpg"))

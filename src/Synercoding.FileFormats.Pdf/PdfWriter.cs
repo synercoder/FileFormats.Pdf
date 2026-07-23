@@ -278,6 +278,10 @@ public class PdfWriter : IDisposable
             Value = streamObj
         });
 
+        // Write annotations
+        foreach (var annotation in page.Annotations)
+            _objectWriter.Write(annotation);
+
         _pages.Add(page.ToDictionary());
     }
 
