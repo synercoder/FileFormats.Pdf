@@ -1,3 +1,4 @@
+using Synercoding.FileFormats.Pdf.Content.Extensions;
 using Synercoding.FileFormats.Pdf.Primitives;
 
 namespace Synercoding.FileFormats.Pdf.Content;
@@ -22,6 +23,43 @@ public sealed record class ExtendedGraphicsState
     /// </summary>
     public bool? OverprintNonStroking { get; init; }
 
+    /// <summary>
+    /// The current stroking alpha constant, specifying the constant shape or constant opacity value
+    /// to be used for stroking operations in the transparent imaging model.
+    /// </summary>
+    public double? CurrentAlphaConstantStroking
+    {
+        get;
+        init
+        {
+            if (value < 0 || value > 1)
+                throw new ArgumentOutOfRangeException(nameof(CurrentAlphaConstantStroking), "Value must be between 0 and 1.");
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// The current non-stroking alpha constant, specifying the constant shape or constant opacity value
+    /// to be used for non-stroking operations in the transparent imaging model.
+    /// </summary>
+    public double? CurrentAlphaConstantNonStroking
+    {
+        get;
+        init
+        {
+            if (value < 0 || value > 1)
+                throw new ArgumentOutOfRangeException(nameof(CurrentAlphaConstantNonStroking), "Value must be between 0 and 1.");
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// The current blend mode to be used in the transparent imaging model.
+    /// </summary>
+    public BlendMode? BlendMode { get; init; }
+
     internal IPdfDictionary ToPdfDictionary()
     {
         var dictionary = new PdfDictionary()
@@ -33,8 +71,13 @@ public sealed record class ExtendedGraphicsState
             dictionary[PdfNames.OP] = new PdfBoolean(Overprint.Value);
         if (OverprintNonStroking.HasValue)
             dictionary[PdfNames.op] = new PdfBoolean(OverprintNonStroking.Value);
+        if (CurrentAlphaConstantStroking.HasValue)
+            dictionary[PdfNames.CA] = new PdfNumber(CurrentAlphaConstantStroking.Value);
+        if (CurrentAlphaConstantNonStroking.HasValue)
+            dictionary[PdfNames.ca] = new PdfNumber(CurrentAlphaConstantNonStroking.Value);
+        if (BlendMode.HasValue)
+            dictionary[PdfNames.BM] = BlendMode.Value.ToPdfName();
 
         return dictionary;
     }
 }
-

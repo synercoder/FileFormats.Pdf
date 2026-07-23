@@ -30,6 +30,12 @@ public static class PdfNames
         => PdfName.Get(nameof(Black));
     public static PdfName BleedBox
         => PdfName.Get(nameof(BleedBox));
+    public static PdfName BM
+        => PdfName.Get(nameof(BM));
+    public static PdfName CA
+        => PdfName.Get(nameof(CA));
+    public static PdfName ca
+        => PdfName.Get(nameof(ca));
     public static PdfName CapHeight
         => PdfName.Get(nameof(CapHeight));
     public static PdfName Catalog
@@ -46,6 +52,12 @@ public static class PdfNames
         => PdfName.Get(nameof(CIDSystemInfo));
     public static PdfName CIDToGIDMap
         => PdfName.Get(nameof(CIDToGIDMap));
+    public static PdfName Color
+        => PdfName.Get(nameof(Color));
+    public static PdfName ColorBurn
+        => PdfName.Get(nameof(ColorBurn));
+    public static PdfName ColorDodge
+        => PdfName.Get(nameof(ColorDodge));
     public static PdfName ColorSpace
         => PdfName.Get(nameof(ColorSpace));
     public static PdfName Colors
@@ -66,6 +78,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Crypt));
     public static PdfName Cyan
         => PdfName.Get(nameof(Cyan));
+    public static PdfName Darken
+        => PdfName.Get(nameof(Darken));
     public static PdfName DCTDecode
         => PdfName.Get(nameof(DCTDecode));
     public static PdfName Decode
@@ -82,6 +96,8 @@ public static class PdfNames
         => PdfName.Get(nameof(DeviceGray));
     public static PdfName DeviceRGB
         => PdfName.Get(nameof(DeviceRGB));
+    public static PdfName Difference
+        => PdfName.Get(nameof(Difference));
     public static PdfName DW
         => PdfName.Get(nameof(DW));
     public static PdfName EarlyChange
@@ -94,6 +110,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Encrypt));
     public static PdfName EncryptMetadata
         => PdfName.Get(nameof(EncryptMetadata));
+    public static PdfName Exclusion
+        => PdfName.Get(nameof(Exclusion));
     public static PdfName ExtGState
         => PdfName.Get(nameof(ExtGState));
     public static PdfName Filter
@@ -116,8 +134,12 @@ public static class PdfNames
         => PdfName.Get(nameof(FontName));
     public static PdfName FullScreen
         => PdfName.Get(nameof(FullScreen));
+    public static PdfName HardLight
+        => PdfName.Get(nameof(HardLight));
     public static PdfName Height
         => PdfName.Get(nameof(Height));
+    public static PdfName Hue
+        => PdfName.Get(nameof(Hue));
     public static PdfName ID
         => PdfName.Get(nameof(ID));
     public static PdfName Identity
@@ -144,6 +166,10 @@ public static class PdfNames
         => PdfName.Get(nameof(Length));
     public static PdfName Length1
         => PdfName.Get(nameof(Length1));
+    public static PdfName Lighten
+        => PdfName.Get(nameof(Lighten));
+    public static PdfName Luminosity
+        => PdfName.Get(nameof(Luminosity));
     public static PdfName LZWDecode
         => PdfName.Get(nameof(LZWDecode));
     public static PdfName Magenta
@@ -154,10 +180,14 @@ public static class PdfNames
         => PdfName.Get(nameof(Metadata));
     public static PdfName ModDate
         => PdfName.Get(nameof(ModDate));
+    public static PdfName Multiply
+        => PdfName.Get(nameof(Multiply));
     public static PdfName N
         => PdfName.Get(nameof(N));
     public static PdfName None
         => PdfName.Get(nameof(None));
+    public static PdfName Normal
+        => PdfName.Get(nameof(Normal));
     public static PdfName O
         => PdfName.Get(nameof(O));
     public static PdfName ObjStm
@@ -172,6 +202,8 @@ public static class PdfNames
         => PdfName.Get(nameof(op));
     public static PdfName Ordering
         => PdfName.Get(nameof(Ordering));
+    public static PdfName Overlay
+        => PdfName.Get(nameof(Overlay));
     public static PdfName P
         => PdfName.Get(nameof(P));
     public static PdfName Page
@@ -210,6 +242,10 @@ public static class PdfNames
         => PdfName.Get(nameof(Rotate));
     public static PdfName RunLengthDecode
         => PdfName.Get(nameof(RunLengthDecode));
+    public static PdfName Saturation
+        => PdfName.Get(nameof(Saturation));
+    public static PdfName Screen
+        => PdfName.Get(nameof(Screen));
     public static PdfName Separation
         => PdfName.Get(nameof(Separation));
     public static PdfName Shading
@@ -220,6 +256,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Size));
     public static PdfName SMask
         => PdfName.Get(nameof(SMask));
+    public static PdfName SoftLight
+        => PdfName.Get(nameof(SoftLight));
     public static PdfName Standard
         => PdfName.Get(nameof(Standard));
     public static PdfName StemV
