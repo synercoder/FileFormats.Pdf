@@ -30,6 +30,10 @@ public static class PdfNames
         => PdfName.Get(nameof(Black));
     public static PdfName BleedBox
         => PdfName.Get(nameof(BleedBox));
+    public static PdfName CA
+        => PdfName.Get(nameof(CA));
+    public static PdfName ca
+        => PdfName.Get(nameof(ca));
     public static PdfName CapHeight
         => PdfName.Get(nameof(CapHeight));
     public static PdfName Catalog

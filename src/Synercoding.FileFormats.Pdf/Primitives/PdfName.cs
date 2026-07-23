@@ -23,6 +23,8 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         { "BitsPerComponent", new PdfName("BitsPerComponent") },
         { "Black",            new PdfName("Black") },
         { "BleedBox",         new PdfName("BleedBox") },
+        { "CA",               new PdfName("CA") },
+        { "ca",               new PdfName("ca") },
         { "CapHeight",        new PdfName("CapHeight") },
         { "Catalog",          new PdfName("Catalog") },
         { "CCITTFaxDecode",   new PdfName("CCITTFaxDecode") },
