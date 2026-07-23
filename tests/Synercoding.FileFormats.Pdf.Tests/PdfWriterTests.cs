@@ -230,4 +230,52 @@ public class PdfWriterTests
         Assert.DoesNotContain("/PageMode", pdfContent);
         Assert.Contains("/PageLayout/TwoPageRight", pdfContent);
     }
+
+    [Fact]
+    public void Test_PdfWriter_AddHyperlink_WritesLinkAnnotation()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+
+        // Act
+        using (var writer = new PdfWriter(stream))
+        {
+            writer.AddPage(page =>
+            {
+                page.MediaBox = Sizes.A4.AsRectangle();
+                page.AddHyperlink(new Uri("https://example.com/"), new Rectangle(100, 100, 200, 130, Unit.Points));
+            });
+        }
+
+        // Assert
+        stream.Position = 0;
+        var pdfContent = System.Text.Encoding.ASCII.GetString(stream.ToArray());
+
+        Assert.Contains("/Annots", pdfContent);        // page references the annotation
+        Assert.Contains("/Subtype/Link", pdfContent);  // it is a link annotation
+        Assert.Contains("/S/URI", pdfContent);          // with a URI action
+        Assert.Contains("/Border[0 0 0]", pdfContent); // no visible border
+        Assert.Contains("/F 4", pdfContent);            // print flag
+        // The uri itself is written as a hex string, so assert on the key rather than the raw url.
+        Assert.Contains("/URI<", pdfContent);
+    }
+
+    [Fact]
+    public void Test_PdfWriter_AddHyperlink_WithRelativeUri_Throws()
+    {
+        // Arrange
+        using var stream = new MemoryStream();
+
+        // Act & Assert
+        // Note: the writer is intentionally not disposed here. A pageAction that throws leaves the
+        // page's reserved objects unwritten, which would make writing the trailer (on Dispose) fail.
+        var writer = new PdfWriter(stream);
+        Assert.Throws<ArgumentException>(() =>
+        {
+            writer.AddPage(page =>
+            {
+                page.AddHyperlink(new Uri("/relative", UriKind.Relative), new Rectangle(0, 0, 10, 10, Unit.Points));
+            });
+        });
+    }
 }

@@ -12,6 +12,12 @@ public static class PdfNames
         => PdfName.Get(nameof(AESV2));
     public static PdfName AESV3
         => PdfName.Get(nameof(AESV3));
+    public static PdfName A
+        => PdfName.Get(nameof(A));
+    public static PdfName Annot
+        => PdfName.Get(nameof(Annot));
+    public static PdfName Annots
+        => PdfName.Get(nameof(Annots));
     public static PdfName ASCII85Decode
         => PdfName.Get(nameof(ASCII85Decode));
     public static PdfName ASCIIHexDecode
@@ -32,6 +38,8 @@ public static class PdfNames
         => PdfName.Get(nameof(BleedBox));
     public static PdfName BM
         => PdfName.Get(nameof(BM));
+    public static PdfName Border
+        => PdfName.Get(nameof(Border));
     public static PdfName CA
         => PdfName.Get(nameof(CA));
     public static PdfName ca
@@ -114,6 +122,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Exclusion));
     public static PdfName ExtGState
         => PdfName.Get(nameof(ExtGState));
+    public static PdfName F
+        => PdfName.Get(nameof(F));
     public static PdfName Filter
         => PdfName.Get(nameof(Filter));
     public static PdfName First
@@ -168,6 +178,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Length1));
     public static PdfName Lighten
         => PdfName.Get(nameof(Lighten));
+    public static PdfName Link
+        => PdfName.Get(nameof(Link));
     public static PdfName Luminosity
         => PdfName.Get(nameof(Luminosity));
     public static PdfName LZWDecode
@@ -232,6 +244,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Properties));
     public static PdfName R
         => PdfName.Get(nameof(R));
+    public static PdfName Rect
+        => PdfName.Get(nameof(Rect));
     public static PdfName Registry
         => PdfName.Get(nameof(Registry));
     public static PdfName Resources
@@ -242,6 +256,8 @@ public static class PdfNames
         => PdfName.Get(nameof(Rotate));
     public static PdfName RunLengthDecode
         => PdfName.Get(nameof(RunLengthDecode));
+    public static PdfName S
+        => PdfName.Get(nameof(S));
     public static PdfName Saturation
         => PdfName.Get(nameof(Saturation));
     public static PdfName Screen
@@ -298,6 +314,8 @@ public static class PdfNames
         => PdfName.Get(nameof(U));
     public static PdfName UE
         => PdfName.Get(nameof(UE));
+    public static PdfName URI
+        => PdfName.Get(nameof(URI));
     public static PdfName UseAttachments
         => PdfName.Get(nameof(UseAttachments));
     public static PdfName UseNone

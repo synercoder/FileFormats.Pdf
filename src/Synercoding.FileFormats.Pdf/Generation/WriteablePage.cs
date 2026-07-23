@@ -12,6 +12,7 @@ namespace Synercoding.FileFormats.Pdf.Generation;
 public class WriteablePage : IDisposable
 {
     private readonly TableBuilder _tableBuilder;
+    private readonly List<PdfObject<PdfDictionary>> _annotations = [];
 
     internal WriteablePage(TableBuilder tableBuilder, CachedResources cachedResources, int pageNumber)
     {
@@ -25,6 +26,9 @@ public class WriteablePage : IDisposable
     }
 
     internal PageResources Resources { get; }
+
+    internal IReadOnlyList<PdfObject<PdfDictionary>> Annotations
+        => _annotations;
 
     /// <summary>
     /// The rotation of how the page is displayed, must be in increments of 90
@@ -77,6 +81,47 @@ public class WriteablePage : IDisposable
     /// </summary>
     public IPageContentContext Content { get; }
 
+    /// <summary>
+    /// Adds a clickable hyperlink annotation to the page that opens an external URI.
+    /// </summary>
+    /// <param name="uri">The absolute URI to open. Must be an absolute URI.</param>
+    /// <param name="rectangle">
+    /// The clickable area, expressed in default user space. This is <b>not</b> affected by any
+    /// transformation applied through <see cref="Content"/>.
+    /// </param>
+    /// <returns>Returns this <see cref="WriteablePage"/> to chain calls.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="uri"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="uri"/> is not an absolute URI.</exception>
+    public WriteablePage AddHyperlink(Uri uri, Rectangle rectangle)
+    {
+        ArgumentNullException.ThrowIfNull(uri);
+        if (!uri.IsAbsoluteUri)
+            throw new ArgumentException("The provided uri must be an absolute uri.", nameof(uri));
+
+        var annotation = new PdfDictionary()
+        {
+            [PdfNames.Type] = PdfNames.Annot,
+            [PdfNames.Subtype] = PdfNames.Link,
+            [PdfNames.Rect] = rectangle.ToArray(),
+            [PdfNames.Border] = new PdfArray(new[] { 0, 0, 0 }), // no visible border
+            [PdfNames.F] = new PdfNumber(4),                     // Print flag
+            [PdfNames.A] = new PdfDictionary()
+            {
+                [PdfNames.S] = PdfNames.URI,
+                // Written as a hex string so characters like '(' ')' '\' in the uri can not corrupt the string literal.
+                [PdfNames.URI] = new PdfString(System.Text.Encoding.ASCII.GetBytes(uri.AbsoluteUri), isHex: true),
+            }
+        };
+
+        _annotations.Add(new PdfObject<PdfDictionary>()
+        {
+            Id = _tableBuilder.ReserveId(),
+            Value = annotation
+        });
+
+        return this;
+    }
+
     internal PdfDictionary ToDictionary()
     {
         var dictionary = new PdfDictionary()
@@ -97,6 +142,8 @@ public class WriteablePage : IDisposable
             dictionary[PdfNames.ArtBox] = ArtBox.Value.ToArray();
         if (Rotation.HasValue)
             dictionary[PdfNames.Rotate] = new PdfNumber((int)Rotation.Value);
+        if (_annotations.Count > 0)
+            dictionary[PdfNames.Annots] = new PdfArray(_annotations.Select(a => a.Id.GetReference()).Cast<IPdfPrimitive>().ToArray());
 
         return dictionary;
     }
