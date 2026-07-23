@@ -1,3 +1,4 @@
+using Synercoding.FileFormats.Pdf.Content.Extensions;
 using Synercoding.FileFormats.Pdf.Primitives;
 
 namespace Synercoding.FileFormats.Pdf.Content;
@@ -53,6 +54,12 @@ public sealed record class ExtendedGraphicsState
             field = value;
         }
     }
+
+    /// <summary>
+    /// The current blend mode to be used in the transparent imaging model.
+    /// </summary>
+    public BlendMode? BlendMode { get; init; }
+
     internal IPdfDictionary ToPdfDictionary()
     {
         var dictionary = new PdfDictionary()
@@ -68,8 +75,9 @@ public sealed record class ExtendedGraphicsState
             dictionary[PdfNames.CA] = new PdfNumber(CurrentAlphaConstantStroking.Value);
         if (CurrentAlphaConstantNonStroking.HasValue)
             dictionary[PdfNames.ca] = new PdfNumber(CurrentAlphaConstantNonStroking.Value);
+        if (BlendMode.HasValue)
+            dictionary[PdfNames.BM] = BlendMode.Value.ToPdfName();
 
         return dictionary;
     }
 }
-
