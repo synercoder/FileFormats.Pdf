@@ -36,7 +36,7 @@ public class PdfWriter : IDisposable
     /// <param name="filePath">The path to the PDF file to create.</param>
     /// <param name="settings">The writer settings.</param>
     public PdfWriter(string filePath, WriterSettings settings)
-        : this(File.OpenRead(filePath), settings, true)
+        : this(File.OpenWrite(filePath), settings, true)
     { }
 
     /// <summary>
