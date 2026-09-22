@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Added support for the current alpha constant and blend mode via the extended graphic state. And added basic support for clickable hyperlinks on a page.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed a broken constructor.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
