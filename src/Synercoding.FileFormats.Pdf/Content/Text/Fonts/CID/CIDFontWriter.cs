@@ -32,12 +32,17 @@ internal static class CIDFontWriter
         PdfObjectId? cidToGidMapId = null;
         Dictionary<ushort, ushort>? cidToGidMap = null;
 
+        var baseFontName = ttFont.FontName;
+
         // Write CIDSystemInfo
         _writeCIDSystemInfo(writer, cidSystemInfoId);
 
         // Handle font subsetting if enabled and we have tracked usage
         if (writerSettings.EnableSubsetting && tracker.HasUsage)
         {
+            // Subset fonts must have their name prefixed with a tag (ISO 32000-2, 9.9.2)
+            baseFontName = _getSubsetTag(ttFont, tracker) + "+" + ttFont.FontName;
+
             var subsetter = new TrueType.FontSubsetter();
             var result = subsetter.CreateSubset(ttFont, tracker);
 
@@ -58,10 +63,10 @@ internal static class CIDFontWriter
         }
 
         // Write font descriptor
-        _writeFontDescriptor(writer, fontDescriptorId, ttFont, fontFileId);
+        _writeFontDescriptor(writer, fontDescriptorId, ttFont, baseFontName, fontFileId);
 
         // Write CID font (descendant font) with optional CIDToGIDMap
-        _writeCIDFont(writer, descendantFontId, ttFont, fontDescriptorId, cidSystemInfoId, tracker, cidToGidMapId);
+        _writeCIDFont(writer, descendantFontId, ttFont, baseFontName, fontDescriptorId, cidSystemInfoId, tracker, cidToGidMapId);
 
         // Write CIDToGIDMap if needed
         if (cidToGidMapId != null && cidToGidMap != null)
@@ -77,7 +82,7 @@ internal static class CIDFontWriter
         {
             [PdfNames.Type] = PdfNames.Font,
             [PdfNames.Subtype] = PdfNames.Type0,
-            [PdfNames.BaseFont] = PdfName.Get(ttFont.FontName),
+            [PdfNames.BaseFont] = PdfName.Get(baseFontName),
             [PdfNames.Encoding] = PdfNames.IdentityH,
             [PdfNames.DescendantFonts] = new PdfArray() { descendantFontId.GetReference() },
             [PdfNames.ToUnicode] = toUnicodeId.GetReference()
@@ -152,7 +157,20 @@ internal static class CIDFontWriter
         });
     }
 
-    private static void _writeFontDescriptor(ObjectWriter writer, PdfObjectId descriptorId, TrueTypeFont font, PdfObjectId fontFileId)
+    private static string _getSubsetTag(TrueTypeFont font, FontUsageTracker tracker)
+    {
+        // Deterministic tag derived from the font name and the used characters, so identical input gives identical output.
+        var input = font.FontName + "|" + new string(tracker.UsedCharacters.Order().ToArray());
+        var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(input));
+
+        Span<char> tag = stackalloc char[6];
+        for (int i = 0; i < tag.Length; i++)
+            tag[i] = (char)( 'A' + ( hash[i] % 26 ) );
+
+        return new string(tag);
+    }
+
+    private static void _writeFontDescriptor(ObjectWriter writer, PdfObjectId descriptorId, TrueTypeFont font, string fontName, PdfObjectId fontFileId)
     {
         var tables = font.Tables;
         var head = tables.Head!;
@@ -170,7 +188,7 @@ internal static class CIDFontWriter
         var descriptor = new PdfDictionary()
         {
             [PdfNames.Type] = PdfNames.FontDescriptor,
-            [PdfNames.FontName] = PdfName.Get(font.FontName),
+            [PdfNames.FontName] = PdfName.Get(fontName),
             [PdfNames.Flags] = new PdfNumber(flags),
             [PdfNames.FontBBox] = new PdfArray
             {
@@ -194,14 +212,14 @@ internal static class CIDFontWriter
         });
     }
 
-    private static void _writeCIDFont(ObjectWriter writer, PdfObjectId cidFontId, TrueTypeFont font,
+    private static void _writeCIDFont(ObjectWriter writer, PdfObjectId cidFontId, TrueTypeFont font, string baseFontName,
         PdfObjectId fontDescriptorId, PdfObjectId cidSystemInfoId, FontUsageTracker tracker, PdfObjectId? cidToGidMapId = null)
     {
         var cidFont = new PdfDictionary()
         {
             [PdfNames.Type] = PdfNames.Font,
             [PdfNames.Subtype] = PdfNames.CIDFontType2,
-            [PdfNames.BaseFont] = PdfName.Get(font.FontName),
+            [PdfNames.BaseFont] = PdfName.Get(baseFontName),
             [PdfNames.CIDSystemInfo] = cidSystemInfoId.GetReference(),
             [PdfNames.FontDescriptor] = fontDescriptorId.GetReference(),
             [PdfNames.DW] = new PdfNumber(1000) // Default width

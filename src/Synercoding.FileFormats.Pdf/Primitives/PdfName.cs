@@ -108,6 +108,7 @@ public sealed class PdfName : IPdfPrimitive, IEquatable<PdfName>
         { "OneColumn",        new PdfName("OneColumn") },
         { "OP",               new PdfName("OP") },
         { "op",               new PdfName("op") },
+        { "OPM",              new PdfName("OPM") },
         { "Ordering",         new PdfName("Ordering") },
         { "Overlay",          new PdfName("Overlay") },
         { "P",                new PdfName("P") },
