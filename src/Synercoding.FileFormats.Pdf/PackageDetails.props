@@ -10,7 +10,7 @@
     <Product>Synercoding.FileFormats.Pdf</Product>
     <Title>Synercoding.FileFormats.Pdf</Title>
     <Description>Contains classes which makes it easy to quickly create a pdf file.</Description>
-    <PackageReleaseNotes>Fixed a broken constructor.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed a broken constructor. Fixed FlateDecode streams missing the zlib Adler-32 trailer, which caused "incorrect data check" warnings in Ghostscript. Subset fonts now get the required six-letter tag prefix (e.g. ABCDEF+FontName). Added OverprintMode (OPM) support to the extended graphics state.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
