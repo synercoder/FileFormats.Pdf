@@ -22,13 +22,13 @@
     <Content Include="..\Font-Files\juliett-font\JuliettRegular-7OXnA.ttf" Link="TestFiles\Fonts\JuliettRegular-7OXnA.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\Pdf-Files\encrypted-aes-128bits.pdf" Link="TestFiles\Pdfs\encrypted-aes-128bits.pdf" >
+    <Content Include="..\Pdf-Files\encrypted-aes-128bits.pdf" Link="TestFiles\Pdfs\encrypted-aes-128bits.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\Pdf-Files\encrypted-aes-256bits.pdf" Link="TestFiles\Pdfs\encrypted-aes-256bits.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\Pdf-Files\encrypted-rc4-128bits.pdf" Link="TestFiles\Pdfs\encrypted-rc4-128bits.pdf" >
+    <Content Include="..\Pdf-Files\encrypted-rc4-128bits.pdf" Link="TestFiles\Pdfs\encrypted-rc4-128bits.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -49,6 +49,20 @@
     <PackageReference Include="bblanchon.PDFium.Win32" VersionOverride="$(PdfiumVersion)" Condition="'$(RuntimeIdentifier)'=='' Or '$(RuntimeIdentifier)'=='win-x64' Or '$(RuntimeIdentifier)'=='win-x86' Or '$(RuntimeIdentifier)'=='win-arm64'" />
     <PackageReference Include="bblanchon.PDFium.Linux" VersionOverride="$(PdfiumVersion)" Condition="'$(RuntimeIdentifier)'=='' Or $(RuntimeIdentifier.StartsWith('linux-'))" />
     <PackageReference Include="bblanchon.PDFium.macOS" VersionOverride="$(PdfiumVersion)" Condition="'$(RuntimeIdentifier)'=='' Or '$(RuntimeIdentifier)'=='osx-x64' Or '$(RuntimeIdentifier)'=='osx-arm64'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   
 </Project>
