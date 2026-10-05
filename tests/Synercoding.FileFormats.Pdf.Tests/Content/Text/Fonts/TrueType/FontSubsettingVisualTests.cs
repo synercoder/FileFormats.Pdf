@@ -112,6 +112,30 @@ public class FontSubsettingVisualTests
             $"Subset PDF should be smaller. Full: {fullFontPdf.Length}, Subset: {subsetFontPdf.Length}");
     }
 
+    [Fact]
+    public void Test_SubsetFont_FontNames_HaveSubsetTag()
+    {
+        var fontName = Font.Load(_testFontPath).FontName;
+        var pdf = System.Text.Encoding.ASCII.GetString(_createPdfWithFont("Tagged", enableSubsetting: true));
+
+        var matches = System.Text.RegularExpressions.Regex.Matches(pdf, @"/(?:BaseFont|FontName) */([^\s/<>\[\]]+)");
+
+        // Type0 BaseFont, CIDFont BaseFont and FontDescriptor FontName
+        Assert.Equal(3, matches.Count);
+        var names = matches.Select(m => m.Groups[1].Value).Distinct().ToArray();
+        var name = Assert.Single(names);
+        Assert.Matches(@"^[A-Z]{6}\+", name);
+        Assert.EndsWith(fontName, name);
+    }
+
+    [Fact]
+    public void Test_FullFont_FontNames_HaveNoSubsetTag()
+    {
+        var pdf = System.Text.Encoding.ASCII.GetString(_createPdfWithFont("Untagged", enableSubsetting: false));
+
+        Assert.DoesNotMatch(@"/(?:BaseFont|FontName) */[A-Z]{6}\+", pdf);
+    }
+
     /// <summary>
     /// Creates a PDF with the specified text and subsetting setting.
     /// Based on _writeTextOnlyPdf from ConsoleTester.

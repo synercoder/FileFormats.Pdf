@@ -212,6 +212,8 @@ public static class PdfNames
         => PdfName.Get(nameof(OP));
     public static PdfName op
         => PdfName.Get(nameof(op));
+    public static PdfName OPM
+        => PdfName.Get(nameof(OPM));
     public static PdfName Ordering
         => PdfName.Get(nameof(Ordering));
     public static PdfName Overlay

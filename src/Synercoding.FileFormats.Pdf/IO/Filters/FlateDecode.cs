@@ -33,25 +33,10 @@ public class FlateDecode : IStreamFilter
 
         using (var outputStream = new MemoryStream())
         {
-            const CompressionLevel LEVEL = CompressionLevel.SmallestSize;
-
-            var (method, flags) = _getHeader(LEVEL);
-            outputStream.WriteByte(method);
-            outputStream.WriteByte(flags);
-
-            using (var flateStream = new DeflateStream(outputStream, LEVEL, leaveOpen: true))
-                flateStream.Write(input);
+            // ZLibStream writes both the zlib header and the Adler-32 trailer, which FlateDecode requires.
+            using (var zlibStream = new ZLibStream(outputStream, CompressionLevel.SmallestSize, leaveOpen: true))
+                zlibStream.Write(input);
             return outputStream.ToArray();
         }
     }
-
-    private (byte CompressionMethod, byte Flags) _getHeader(CompressionLevel compressionLevel)
-        => compressionLevel switch
-        {
-            CompressionLevel.Optimal => (0x78, 0x9C),
-            CompressionLevel.Fastest => (0x78, 0x5E),
-            CompressionLevel.SmallestSize => (0x78, 0xDA),
-            CompressionLevel.NoCompression => (0x78, 0x01),
-            var level => throw new NotImplementedException("Unsupported compression level: {level}")
-        };
 }

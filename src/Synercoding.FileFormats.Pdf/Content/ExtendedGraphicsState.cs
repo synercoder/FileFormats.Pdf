@@ -24,6 +24,11 @@ public sealed record class ExtendedGraphicsState
     public bool? OverprintNonStroking { get; init; }
 
     /// <summary>
+    /// The overprint mode, which determines how overprinting is applied when painting in a DeviceCMYK color space.
+    /// </summary>
+    public OverprintMode? OverprintMode { get; init; }
+
+    /// <summary>
     /// The current stroking alpha constant, specifying the constant shape or constant opacity value
     /// to be used for stroking operations in the transparent imaging model.
     /// </summary>
@@ -71,6 +76,8 @@ public sealed record class ExtendedGraphicsState
             dictionary[PdfNames.OP] = new PdfBoolean(Overprint.Value);
         if (OverprintNonStroking.HasValue)
             dictionary[PdfNames.op] = new PdfBoolean(OverprintNonStroking.Value);
+        if (OverprintMode.HasValue)
+            dictionary[PdfNames.OPM] = new PdfNumber((int)OverprintMode.Value);
         if (CurrentAlphaConstantStroking.HasValue)
             dictionary[PdfNames.CA] = new PdfNumber(CurrentAlphaConstantStroking.Value);
         if (CurrentAlphaConstantNonStroking.HasValue)
